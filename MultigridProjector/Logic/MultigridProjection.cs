@@ -1689,9 +1689,6 @@ System.NullReferenceException: Object reference not set to an instance of an obj
 
         private bool CheckVoxels(MySlimBlock block)
         {
-            if (MyPerGameSettings.Destruction && block.CubeGrid.GridSizeEnum == MyCubeSize.Large)
-                return block.CubeGrid.Physics.Shape.BlocksConnectedToWorld.Contains(block.Position);
-            
             if (Projector.PositionComp == null)
                 return false;
             
