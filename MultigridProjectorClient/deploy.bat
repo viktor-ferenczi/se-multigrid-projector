@@ -19,7 +19,7 @@ if "%SOURCE:~-1%"=="\" set SOURCE=%SOURCE:~0,-1%
 if "%BIN64:~-1%"=="\" set BIN64=%BIN64:~0,-1%
 
 REM Get the plugin directory
-set PLUGIN_DIR=%BIN64%\Plugins\Local
+set PLUGIN_DIR=%BIN64%\Pulsar\Legacy\Local
 
 REM Create this directory if it does not exist
 if not exist "%PLUGIN_DIR%" (
