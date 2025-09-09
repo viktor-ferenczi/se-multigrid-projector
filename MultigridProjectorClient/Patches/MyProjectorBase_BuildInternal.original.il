@@ -1,4 +1,4 @@
-// ee2506ad
+// f78ce8f7
 call static Sandbox.Game.World.MySession Sandbox.Game.World.MySession::get_Static()
 ldfld Sandbox.Game.Multiplayer.MyPlayerCollection Sandbox.Game.World.MySession::Players
 ldarg.2
@@ -21,17 +21,9 @@ ldfld Sandbox.Definitions.MyCubeBlockDefinition Sandbox.Game.Entities.Cube.MySli
 brfalse.s L2
 ldarg.0
 call System.Boolean Sandbox.Game.Entities.Blocks.MyProjectorBase::get_AllowWelding()
-brfalse.s L3
-call static Sandbox.Game.World.MySession Sandbox.Game.World.MySession::get_Static()
-callvirt Sandbox.Game.SessionComponents.MySessionComponentDLC Sandbox.Game.World.MySession::GetComponent()
-ldloc.1
-ldfld Sandbox.Definitions.MyCubeBlockDefinition Sandbox.Game.Entities.Cube.MySlimBlock::BlockDefinition
-ldloc.0
-callvirt System.Boolean Sandbox.Game.SessionComponents.MySessionComponentDLC::HasDefinitionDLC(VRage.Game.MyDefinitionBase definition, System.UInt64 steamId)
-brtrue.s L4
+brtrue.s L3
 L1:
 L2:
-L3:
 call static Sandbox.Engine.Multiplayer.MyMultiplayerBase Sandbox.Engine.Multiplayer.MyMultiplayer::get_Static()
 isinst Sandbox.Engine.Multiplayer.MyMultiplayerServerBase
 call static VRage.Network.MyEventContext VRage.Network.MyEventContext::get_Current()
@@ -41,6 +33,14 @@ ldc.i4.0
 ldnull
 ldc.i4.1
 callvirt virtual System.Void Sandbox.Engine.Multiplayer.MyMultiplayerServerBase::ValidationFailed(System.UInt64 clientId, System.Boolean kick, System.String additionalInfo, System.Boolean stackTrace)
+ret
+L3:
+ldarg.0
+ldloc.1
+ldarg.2
+ldarg.3
+call System.Boolean Sandbox.Game.Entities.Blocks.MyProjectorBase::CheckMissingDlcs(Sandbox.Game.Entities.Cube.MySlimBlock cubeBlock, System.Int64 owner, System.Int64 builder)
+brtrue.s L4
 ret
 L4:
 ldsfld VRageMath.Quaternion VRageMath.Quaternion::Identity

@@ -1388,9 +1388,8 @@ System.NullReferenceException: Object reference not set to an instance of an obj
 
             // Can the player build this block?
             // LEGAL: DO NOT REMOVE THIS CHECK!
-            var steamId = MySession.Static.Players.TryGetSteamId(owner);
             var previewBlock = previewGrid.GetCubeBlock(previewCubeBlockPosition);
-            if (previewBlock == null || !Projector.AllowWelding || !MySession.Static.GetComponent<MySessionComponentDLC>().HasDefinitionDLC(previewBlock.BlockDefinition, steamId))
+            if (previewBlock == null || !Projector.AllowWelding || !Projector.CheckMissingDlcs(previewBlock, owner, builder))
             {
                 var myMultiplayerServerBase = MyMultiplayer.Static as MyMultiplayerServerBase;
                 myMultiplayerServerBase?.ValidationFailed(MyEventContext.Current.Sender.Value, false, stackTrace: false,
@@ -1460,6 +1459,7 @@ System.NullReferenceException: Object reference not set to an instance of an obj
             // Instant build is active in creative mode, in survival blocks are built gradually
             var instantBuild = requestInstant && MySession.Static.CreativeToolsEnabled(MyEventContext.Current.Sender.Value);
             var component = MySession.Static.GetComponent<MySessionComponentGameInventory>();
+            var steamId = MySession.Static.Players.TryGetSteamId(owner);
             var skinId = component?.ValidateArmor(previewBlock.SkinSubtypeId, steamId) ?? MyStringHash.NullOrEmpty;
             var visuals = new MyCubeGrid.MyBlockVisuals(previewBlock.ColorMaskHSV.PackHSVToUint(), skinId);
 
@@ -1689,9 +1689,6 @@ System.NullReferenceException: Object reference not set to an instance of an obj
 
         private bool CheckVoxels(MySlimBlock block)
         {
-            if (MyPerGameSettings.Destruction && block.CubeGrid.GridSizeEnum == MyCubeSize.Large)
-                return block.CubeGrid.Physics.Shape.BlocksConnectedToWorld.Contains(block.Position);
-            
             if (Projector.PositionComp == null)
                 return false;
             
@@ -1701,15 +1698,42 @@ System.NullReferenceException: Object reference not set to an instance of an obj
             {
                 if (!voxelCache.Any())
                     return false;
+
+                // Voxels may be removed from the scene, which would likely crash the IsAnyAabbCornerInside check below.
+                // In such cases just clear the cache and let it repopulate with voxels present in the scene.
+                if (voxelCache.Any(voxel => voxel.Closed || !voxel.InScene))
+                {
+                    voxelCache.Clear();
+                }
                 
                 var gridSize = block.CubeGrid.GridSize;
                 var boundingBoxD = new BoundingBoxD(gridSize * ((Vector3D)block.Min - 0.5), gridSize * ((Vector3D)block.Max + 0.5));
                 var worldMatrix = block.CubeGrid.WorldMatrix;
 
-                foreach (var voxel in voxelCache)
+                try
                 {
-                    if (voxel.IsAnyAabbCornerInside(ref worldMatrix, boundingBoxD))
-                        return true;
+                    foreach (var voxel in voxelCache)
+                    {
+                        if (voxel.IsAnyAabbCornerInside(ref worldMatrix, boundingBoxD))
+                            return true;
+                    }
+                }
+                catch (Exception)
+                {
+                    /* But in any case, should a crash would still happen:
+                     
+Suppress log spam reported by Prozon in #bug-reports on 2025-09-01:
+
+14:37:54.3885 [ERROR]  Multigrid Projector: : System.NullReferenceException: Object reference not set to an instance of an object.
+   at Sandbox.Game.Entities.MyVoxelBase.CountPointsInside(Vector3D* worldPoints, Int32 pointCount, Boolean stopWhenFound)
+   at Sandbox.Game.Entities.MyVoxelBase.CountCornersInside(MatrixD& aabbWorldTransform, BoundingBoxD& aabb, Boolean stopWhenFound)
+   at MultigridProjector.Logic.MultigridProjection.CheckVoxels(MySlimBlock block)
+   at MultigridProjector.Logic.MultigridProjection.CanBuild(MySlimBlock projectedBlock, Boolean checkHavokIntersections, Boolean& fallback)
+   at MultigridProjectorServer.Patches.MyProjectorBase_CanBuild.Prefix(MyProjectorBase __instance, MySlimBlock projectedBlock, Boolean checkHavokIntersections, BuildCheckResult& __result)
+   
+                     */
+                    voxelCache.Clear();
+                    return false;
                 }
             }
 

@@ -15,34 +15,36 @@ namespace MultigridProjector.Patches
     [HarmonyPatch("TestPlacementAreaCube",
         new[] {
             typeof(MyCubeGrid),
-            typeof(MyGridPlacementSettings),
+            typeof(MyGridPlacementSettings), // settings
             typeof(Vector3I),
             typeof(Vector3I),
             typeof(MyBlockOrientation),
             typeof(MyCubeBlockDefinition),
-            typeof(MyCubeGrid),
+            typeof(MyCubeGrid), // touchingGrid
             typeof(ulong),
-            typeof(MyEntity),
-            typeof(bool),
-            typeof(bool),
-            typeof(bool),
+            typeof(MyEntity), // ignoredEntity
+            typeof(bool), // ignoreFracturedPieces
+            typeof(bool), // isProjected
+            typeof(bool), // forceCheck
+            typeof(bool), // wheelsAsCylinders (new in 1.207.020)
         },
         new []
         {
             ArgumentType.Normal,
-            ArgumentType.Ref,
+            ArgumentType.Ref, // settings
             ArgumentType.Normal,
             ArgumentType.Normal,
             ArgumentType.Normal,
             ArgumentType.Normal,
-            ArgumentType.Out,
+            ArgumentType.Out, // touchingGrid
+            ArgumentType.Normal,
+            ArgumentType.Normal, // ignoredEntity
             ArgumentType.Normal,
             ArgumentType.Normal,
             ArgumentType.Normal,
-            ArgumentType.Normal,
-            ArgumentType.Normal,
+            ArgumentType.Normal, // wheelsAsCylinders (new in 1.207.020)
         })]
-    [EnsureOriginal("e93c5c27")]
+    [EnsureOriginal("7eec76c6")]
     // ReSharper disable once InconsistentNaming
     public static class MyCubeGrid_TestPlacementAreaCube
     {

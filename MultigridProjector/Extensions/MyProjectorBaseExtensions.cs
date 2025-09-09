@@ -293,5 +293,12 @@ namespace MultigridProjector.Extensions
             lock (gridBuilders)
                 MyEntities.RemapObjectBuilderCollection(gridBuilders);
         }
+
+        private static readonly MethodInfo CheckMissingDlcsMethodInfo = Validation.EnsureInfo(AccessTools.Method(typeof(MyProjectorBase), "CheckMissingDlcs"));
+
+        public static bool CheckMissingDlcs(this MyProjectorBase projector, MySlimBlock cubeBlock, long owner, long builder)
+        {
+            return (bool)CheckMissingDlcsMethodInfo.Invoke(projector, new object[] { cubeBlock, owner, builder });
+        }
     }
 }

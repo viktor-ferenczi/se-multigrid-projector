@@ -37,9 +37,9 @@ Add the plugin on Torch's UI, then restart the server. Make sure your players ar
 
 ### Dedicated Server plugin installation
 
-[Plugin download](https://github.com/viktor-ferenczi/multigrid-projector/releases/) (requires manual updating)
+[Plugin download](https://github.com/viktor-ferenczi/se-multigrid-projector//releases/) (requires manual updating)
 
-- Open: https://github.com/viktor-ferenczi/multigrid-projector/releases/
+- Open: https://github.com/viktor-ferenczi/se-multigrid-projector//releases/
 - Download and extract the latest release: `MultigridProjectorDedicated-*.zip` 
 - Keep `0Harmony.dll` and `MultigridProjectorDedicated.dll` in the same folder.
 - Right click on each of the DLLs, select **Unblock** in the **Properties** dialog if you have such a button (Windows protection). 
@@ -77,11 +77,11 @@ You may also want to save this file for later reuse.
 - [SE Mods Discord](https://discord.gg/PYPFPGf3Ca) FAQ, Troubleshooting, Support, Bug Reports, Discussion
 - [Plugin Loader Discord](https://discord.gg/6ETGRU3CzR) Everything about plugins
 - [Torch plugin](https://torchapi.com/plugins/view/?guid=d9359ba0-9a69-41c3-971d-eb5170adb97e)
-- [Dedicated Server plugin](https://github.com/viktor-ferenczi/multigrid-projector/releases)
+- [Dedicated Server plugin](https://github.com/viktor-ferenczi/se-multigrid-projector//releases)
 - [Test world (Rings)](https://steamcommunity.com/sharedfiles/filedetails/?id=2420963329)
-- [Source code](https://github.com/viktor-ferenczi/multigrid-projector)
-- [Mod API](https://github.com/viktor-ferenczi/multigrid-projector/tree/main/ModApiTest)
-- [PB API](https://github.com/viktor-ferenczi/multigrid-projector/tree/main/IngameApiTest)
+- [Source code](https://github.com/viktor-ferenczi/se-multigrid-projector/)
+- [Mod API](https://github.com/viktor-ferenczi/se-multigrid-projector//tree/main/ModApiTest)
+- [PB API](https://github.com/viktor-ferenczi/se-multigrid-projector//tree/main/IngameApiTest)
 
 ## Credits
 

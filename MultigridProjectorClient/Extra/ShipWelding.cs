@@ -67,8 +67,8 @@ namespace MultigridProjectorClient.Extra
             }
 
             // Sanity checks are done by the game for normal welding, but for ship welders we need to do our own sanity checks
-            ulong steamId = MyAPIGateway.Session.Player.SteamUserId;
-            if (!projector.AllowWelding || !MySession.Static.GetComponent<MySessionComponentDLC>().HasDefinitionDLC(block.BlockDefinition, steamId))
+            // DLC check has been removed since 1.207.020, because it was moved to `BuildInternal`
+            if (!projector.AllowWelding)
                 return false;
 
             int pcu;
