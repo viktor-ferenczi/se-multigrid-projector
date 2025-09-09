@@ -142,7 +142,7 @@
     <Content Include="Patches\MySpaceProjector_CreateTerminalControls.patched.il" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Lib.Harmony" Version="2.3.3" />
+    <PackageReference Include="Lib.Harmony" Version="2.3.6" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Import Project="..\MultigridProjector\MultigridProjector.projitems" Label="Shared" />
