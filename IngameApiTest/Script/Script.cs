@@ -21,7 +21,7 @@ namespace Script
 /* Multigrid Projector Ingame Script API Example
 
 Requires the Multigrid Projector plugin:
-https://github.com/viktor-ferenczi/multigrid-projector
+https://github.com/viktor-ferenczi/se-multigrid-projector/
 
 */
 

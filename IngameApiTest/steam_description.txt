@@ -5,11 +5,11 @@ provided by the Multigrid Projector plugin in their ingame scripts.
 
 [list]
 [*] [url=https://github.com/sepluginloader/SpaceEngineersLauncher]Plugin Loader[/url]
-[*] [url=https://github.com/viktor-ferenczi/multigrid-projector]Multigrid Projector plugin[/url]
+[*] [url=https://github.com/viktor-ferenczi/se-multigrid-projector/]Multigrid Projector plugin[/url]
 [/list]
 
 Please see the full API documentation in the
-[url=https://github.com/viktor-ferenczi/multigrid-projector]Multigrid Projector plugin[/url] repository,
+[url=https://github.com/viktor-ferenczi/se-multigrid-projector/]Multigrid Projector plugin[/url] repository,
 search for [b]IMultigridProjectorApi[/b].
 
 Please join the [url=https://discord.gg/PYPFPGf3Ca]SE Mods Discord[/url] for more information or hands-on help.
