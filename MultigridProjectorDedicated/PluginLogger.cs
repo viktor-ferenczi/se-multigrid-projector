@@ -1,6 +1,5 @@
 using System.Runtime.CompilerServices;
 using MultigridProjector.Utilities;
-using NLog;
 using VRage.Utils;
 
 namespace MultigridProjectorDedicated
