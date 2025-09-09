@@ -1388,9 +1388,8 @@ System.NullReferenceException: Object reference not set to an instance of an obj
 
             // Can the player build this block?
             // LEGAL: DO NOT REMOVE THIS CHECK!
-            var steamId = MySession.Static.Players.TryGetSteamId(owner);
             var previewBlock = previewGrid.GetCubeBlock(previewCubeBlockPosition);
-            if (previewBlock == null || !Projector.AllowWelding || !MySession.Static.GetComponent<MySessionComponentDLC>().HasDefinitionDLC(previewBlock.BlockDefinition, steamId))
+            if (previewBlock == null || !Projector.AllowWelding || !Projector.CheckMissingDlcs(previewBlock, owner, builder))
             {
                 var myMultiplayerServerBase = MyMultiplayer.Static as MyMultiplayerServerBase;
                 myMultiplayerServerBase?.ValidationFailed(MyEventContext.Current.Sender.Value, false, stackTrace: false,
@@ -1460,6 +1459,7 @@ System.NullReferenceException: Object reference not set to an instance of an obj
             // Instant build is active in creative mode, in survival blocks are built gradually
             var instantBuild = requestInstant && MySession.Static.CreativeToolsEnabled(MyEventContext.Current.Sender.Value);
             var component = MySession.Static.GetComponent<MySessionComponentGameInventory>();
+            var steamId = MySession.Static.Players.TryGetSteamId(owner);
             var skinId = component?.ValidateArmor(previewBlock.SkinSubtypeId, steamId) ?? MyStringHash.NullOrEmpty;
             var visuals = new MyCubeGrid.MyBlockVisuals(previewBlock.ColorMaskHSV.PackHSVToUint(), skinId);
 

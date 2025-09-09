@@ -243,9 +243,11 @@ namespace MultigridProjectorClient.Utilities
             if (projector.CanBuild(cubeBlock, true) != BuildCheckResult.OK)
                 return false;
 
-            // Sanity checks for DLC and if the block can be welded
-            var steamId = MySession.Static.Players.TryGetSteamId(owner);
-            if (!projector.AllowWelding || !MySession.Static.GetComponent<MySessionComponentDLC>().HasDefinitionDLC(cubeBlock.BlockDefinition, steamId))
+            // Weld check
+            // Not checking for DLC as of 1.207.020.
+            // Keen introduced the CheckMissingDlcs method which is called from `BuildInternal` instead.
+            // See also: NotifyAboutMissingDLC
+            if (!projector.AllowWelding)
                 return false;
 
             // Place the block
