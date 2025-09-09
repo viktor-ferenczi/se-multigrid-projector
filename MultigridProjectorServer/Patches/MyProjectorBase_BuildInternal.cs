@@ -9,7 +9,7 @@ using VRageMath;
 namespace MultigridProjectorServer.Patches
 {
     [PatchShim]
-    [EnsureOriginalTorch(typeof(MyProjectorBase), "BuildInternal", null,"ee2506ad")]
+    [EnsureOriginalTorch(typeof(MyProjectorBase), "BuildInternal", null,"f78ce8f7")]
     // ReSharper disable once InconsistentNaming
     // ReSharper disable once UnusedType.Global
     public static class MyProjectorBase_BuildInternal

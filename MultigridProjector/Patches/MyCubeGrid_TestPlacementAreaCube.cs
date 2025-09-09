@@ -44,7 +44,7 @@ namespace MultigridProjector.Patches
             ArgumentType.Normal,
             ArgumentType.Normal, // wheelsAsCylinders (new in 1.207.020)
         })]
-    [EnsureOriginal("e93c5c27")]
+    [EnsureOriginal("7eec76c6")]
     // ReSharper disable once InconsistentNaming
     public static class MyCubeGrid_TestPlacementAreaCube
     {

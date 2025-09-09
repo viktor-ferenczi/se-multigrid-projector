@@ -1,4 +1,4 @@
-// ee2506ad
+// f78ce8f7
 call static Sandbox.Game.World.MySession Sandbox.Game.World.MySession::get_Static()
 ldfld Sandbox.Game.Multiplayer.MyPlayerCollection Sandbox.Game.World.MySession::Players
 ldarg.2
