@@ -10,12 +10,9 @@ using System.Text;
 using VRage.Game;
 using VRageMath;
 using MultigridProjector.Utilities;
-using MultigridProjector.Extensions;
-using System.Linq;
 using IMyEventControllerBlock = Sandbox.ModAPI.Ingame.IMyEventControllerBlock;
-using SpaceEngineers.Game.EntityComponents.Blocks;
+using SpaceEngineers.Game.EntityComponents.Blocks.Events;
 using VRage.Sync;
-using Sandbox.Graphics.GUI;
 using MultigridProjector.Logic;
 
 namespace MultigridProjectorClient.Utilities
