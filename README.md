@@ -9,10 +9,10 @@ Multigrid Projector for the Space Engineers game.
 ## Install the client plugin
 
 1. Subscribe to this mod
-2. Install [Plugin Loader](https://github.com/sepluginloader/SpaceEngineersLauncher)
+2. Install [Pulsar](https://github.com/SpaceGT/Pulsar) (use the installer linked from the README)
 3. Start the game
 4. Open the Plugins menu (should be in the Main Menu)
-5. Enable the Multigrid Projector plugin
+5. Add the Multigrid Projector plugin
 6. Click on Save, then Restart (below the plugin list)
 
 After enabling the plugin it will be active for all single player worlds you load.
@@ -33,7 +33,7 @@ In case of problems join the [SE Mods Discord](https://discord.gg/PYPFPGf3Ca) to
 
 [Torch plugin](https://torchapi.com/plugins/view/?guid=d9359ba0-9a69-41c3-971d-eb5170adb97e) (updated automatically by Torch)
 
-Add the plugin on Torch's UI, then restart the server. Make sure your players are aware of the Plugin Loader, so they can install the client plugin.
+Add the plugin on Torch's UI, then restart the server. Make sure your players are aware of Pulsar, so they can install the client plugin.
 
 ### Dedicated Server plugin installation
 
@@ -75,7 +75,7 @@ You may also want to save this file for later reuse.
 ## Want to know more?
 
 - [SE Mods Discord](https://discord.gg/PYPFPGf3Ca) FAQ, Troubleshooting, Support, Bug Reports, Discussion
-- [Plugin Loader Discord](https://discord.gg/6ETGRU3CzR) Everything about plugins
+- [Pulsar Discord](https://discord.gg/z8ZczP2YZY) Everything about plugins
 - [Torch plugin](https://torchapi.com/plugins/view/?guid=d9359ba0-9a69-41c3-971d-eb5170adb97e)
 - [Dedicated Server plugin](https://github.com/viktor-ferenczi/se-multigrid-projector//releases)
 - [Test world (Rings)](https://steamcommunity.com/sharedfiles/filedetails/?id=2420963329)
@@ -138,6 +138,7 @@ You may also want to save this file for later reuse.
 - LordJ
 
 ### Creators
+- Space - Pulsar, Multigrid Projector client side build support and extras
 - avaness - Plugin Loader, Racing Display
 - SwiftyTech - Stargate Dimensions
 - Mike Dude - Guardians SE
@@ -163,7 +164,7 @@ You may also want to save this file for later reuse.
 - [Space Engineers](https://spaceengineersgame.com)
 - [Torch](https://torchapi.com) extracted and executed once
 - [JetBrains Rider](https://jetbrains.com) or Visual Studio
-- [Plugin Loader](https://github.com/sepluginloader/SpaceEngineersLauncher)
+- [Pulsar](https://github.com/SpaceGT/Pulsar)
 
 ### Steps
 
