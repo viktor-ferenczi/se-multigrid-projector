@@ -6,3 +6,4 @@ Directory.Build.props
 /packages
 **/bin
 **/obj
+/Pulsar
