@@ -29,7 +29,10 @@ namespace MultigridProjector.Patches
                 // if (!Sync.IsServer)
                 //     return false;
 
-                // See #92 on `MyBlueprintIdTracker`: The change to preview block IDs are not registered.
+                // See #92 on `MyBlueprintIdTracker`: The change to preview block IDs do not need to be registered.
+                // Terminal block references are fixed on building blocks based on the relations found in the original
+                // blueprint. Therefore, they won't break on rebuilding blocks even if the object builder is remapped
+                // consistently and the preview block IDs all change. We don't need MyBlueprintIdTracker at all.
                 projector.RemapObjectBuilders();
                 
                 // Call patched SetNewBlueprint
