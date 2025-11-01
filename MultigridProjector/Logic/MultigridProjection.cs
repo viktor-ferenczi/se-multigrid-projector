@@ -10,7 +10,6 @@ using MultigridProjector.Api;
 using MultigridProjector.Utilities;
 using MultigridProjector.Extensions;
 using Sandbox;
-using Sandbox.Game;
 using Sandbox.Common.ObjectBuilders;
 using Sandbox.Definitions;
 using Sandbox.Engine.Multiplayer;
@@ -2156,7 +2155,7 @@ System.NullReferenceException: Object reference not set to an instance of an obj
                 clipboard.Deactivate();
                 clipboard.Clear();
                 Projector.SetOriginalGridBuilders(null);
-                MyBlueprintIdTracker.OnRemove(Projector, Projector.GetReservedIds());
+                // See #92 on `MyBlueprintIdTracker` on why MyBlueprintIdTracker.OnRemove is not called here 
             }
 
             Projector.UpdateSounds();
