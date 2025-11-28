@@ -1,61 +1,72 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003" ToolsVersion="4.0" DefaultTargets="Build">
-  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
-    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{D4F47DCB-9C07-4C1A-BC8C-CE42E87683EE}</ProjectGuid>
+    <TargetFramework>net481</TargetFramework>
     <OutputType>Library</OutputType>
-    <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>MultigridProjectorDedicated</RootNamespace>
     <AssemblyName>MultigridProjectorDedicated</AssemblyName>
-    <TargetFrameworkVersion>v4.8.1</TargetFrameworkVersion>
-    <FileAlignment>512</FileAlignment>
-    <LangVersion>7.3</LangVersion>
+    <LangVersion>13</LangVersion>
+
+    <!-- Keep existing AssemblyInfo.cs file -->
+    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+
+    <!-- Default configuration if none supplied -->
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+
+    <!-- Keep original behaviour for post/pre build events -->
+    <RunPostBuildEvent>OnBuildSuccess</RunPostBuildEvent>
   </PropertyGroup>
+
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <PlatformTarget>x64</PlatformTarget>
     <DebugSymbols>true</DebugSymbols>
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
     <OutputPath>bin\Debug\</OutputPath>
-    <DefineConstants>DEDICATED;DEBUG;TRACE</DefineConstants>
+    <DefineConstants>DEDICATED;TRACE;DEV_BUILD</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
+
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <PlatformTarget>x64</PlatformTarget>
     <DebugType>pdbonly</DebugType>
     <Optimize>true</Optimize>
     <OutputPath>bin\Release\</OutputPath>
-    <DefineConstants>DEDICATED;TRACE</DefineConstants>
+    <DefineConstants>DEDICATED;TRACE;DEV_BUILD</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
-  <PropertyGroup>
-    <RunPostBuildEvent>Always</RunPostBuildEvent>
-  </PropertyGroup>
+
   <ItemGroup>
     <Reference Include="Sandbox.Common, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null">
       <HintPath>$(Dedicated64)\Sandbox.Common.dll</HintPath>
+      <Private>False</Private>
     </Reference>
     <Reference Include="Sandbox.Game, Version=0.1.1.0, Culture=neutral, PublicKeyToken=null">
       <HintPath>$(Dedicated64)\Sandbox.Game.dll</HintPath>
+      <Private>False</Private>
     </Reference>
     <Reference Include="Sandbox.Game.XmlSerializers, Version=0.1.1.0, Culture=neutral, PublicKeyToken=null">
       <HintPath>$(Dedicated64)\Sandbox.Game.XmlSerializers.dll</HintPath>
+      <Private>False</Private>
     </Reference>
     <Reference Include="Sandbox.Graphics, Version=0.1.1.0, Culture=neutral, PublicKeyToken=null">
       <HintPath>$(Dedicated64)\Sandbox.Graphics.dll</HintPath>
+      <Private>False</Private>
     </Reference>
     <Reference Include="Sandbox.RenderDirect, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null">
       <HintPath>$(Dedicated64)\Sandbox.RenderDirect.dll</HintPath>
+      <Private>False</Private>
     </Reference>
     <Reference Include="SpaceEngineers.Game, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null">
       <HintPath>$(Dedicated64)\SpaceEngineers.Game.dll</HintPath>
+      <Private>False</Private>
     </Reference>
     <Reference Include="SpaceEngineers.ObjectBuilders, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null">
       <HintPath>$(Dedicated64)\SpaceEngineers.ObjectBuilders.dll</HintPath>
+      <Private>False</Private>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
@@ -63,67 +74,69 @@
     <Reference Include="System.Xml" />
     <Reference Include="VRage, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null">
       <HintPath>$(Dedicated64)\VRage.dll</HintPath>
+      <Private>False</Private>
     </Reference>
     <Reference Include="VRage.Game, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null">
       <HintPath>$(Dedicated64)\VRage.Game.dll</HintPath>
+      <Private>False</Private>
     </Reference>
     <Reference Include="VRage.Input, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null">
       <HintPath>$(Dedicated64)\VRage.Input.dll</HintPath>
+      <Private>False</Private>
     </Reference>
     <Reference Include="VRage.Library, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null">
       <HintPath>$(Dedicated64)\VRage.Library.dll</HintPath>
+      <Private>False</Private>
     </Reference>
     <Reference Include="VRage.Math, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null">
       <HintPath>$(Dedicated64)\VRage.Math.dll</HintPath>
+      <Private>False</Private>
     </Reference>
     <Reference Include="VRage.Network, Version=1.0.53.0, Culture=neutral, PublicKeyToken=null">
       <HintPath>$(Dedicated64)\VRage.Network.dll</HintPath>
+      <Private>False</Private>
     </Reference>
     <Reference Include="VRage.Scripting, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null">
       <HintPath>$(Dedicated64)\VRage.Scripting.dll</HintPath>
+      <Private>False</Private>
     </Reference>
   </ItemGroup>
+
   <ItemGroup>
-    <Compile Include="MultigridProjectorPlugin.cs" />
-    <Compile Include="PluginSession.cs" />
-    <Compile Include="Patches\MyMechanicalConnectionBlockBase_CreateTopPartAndAttach.cs" />
-    <Compile Include="Patches\MyMechanicalConnectionBlockBase_RaiseAttachedEntityChanged.cs" />
-    <Compile Include="Patches\MyProjectorBase_Build.cs" />
-    <Compile Include="Patches\MyProjectorBase_BuildInternal.cs" />
-    <Compile Include="Patches\MyProjectorBase_CanBuild.cs" />
-    <Compile Include="Patches\MyProjectorBase_GetObjectBuilderCubeBlock.cs" />
-    <Compile Include="Patches\MyProjectorBase_Init.cs" />
-    <Compile Include="Patches\MyProjectorBase_InitializeClipboard.cs" />
-    <Compile Include="Patches\MyProjectorBase_OnBlockAdded.cs" />
-    <Compile Include="Patches\MyProjectorBase_OnBlockRemoved.cs" />
-    <Compile Include="Patches\MyProjectorBase_Remap.cs" />
-    <Compile Include="Patches\MyProjectorBase_RemoveProjection.cs" />
-    <Compile Include="Patches\MyProjectorBase_UpdateAfterSimulation.cs" />
-    <Compile Include="Patches\MyProjectorBase_UpdateStats.cs" />
-    <Compile Include="Patches\MyProjectorClipboard_UpdateGridTransformations.cs" />
-    <Compile Include="Patches\MyShipWelder_FindProjectedBlocks.cs" />
-    <Compile Include="PluginLogger.cs" />
-    <Compile Include="Properties\AssemblyInfo.cs" />
-  </ItemGroup>
-  <ItemGroup>
-    <Content Include="deploy.bat" />
+    <Content Include="Deploy.bat" />
     <Content Include="manifest.xml">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <Content Include="Patches\MyProjectorBase_BuildInternal.original.il" />
     <Content Include="Patches\MyProjectorBase_BuildInternal.patched.il" />
   </ItemGroup>
+
   <ItemGroup>
     <PackageReference Include="Lib.Harmony" Version="2.3.6" />
-    <PackageReference Include="Newtonsoft.Json" Version="13.0.2" />
+    <!-- Uncomment to enable publicizer support  
+    <PackageReference Include="Krafs.Publicizer" Version="2.3.0">
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
+    -->
   </ItemGroup>
-  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+
+  <!-- Uncomment to enable publicizer support
+  <PropertyGroup>
+    <PublicizerClearCacheOnClean>true</PublicizerClearCacheOnClean>
+    <PublicizerRuntimeStrategies>Unsafe;IgnoresAccessChecksTo</PublicizerRuntimeStrategies>
+    <PublicizerLogFilePath>$(MSBuildProjectDirectory)\$(OutputPath)Krafs.Publicizer.log</PublicizerLogFilePath>
+  </PropertyGroup>
+  -->
+
+  <PropertyGroup>
+    <PreBuildEvent>call "$(MSBuildProjectDirectory)\..\verify_props.bat" "$(Dedicated64)"</PreBuildEvent>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <PostBuildEvent>call "$(MSBuildProjectDirectory)\Deploy.bat" "$(AssemblyName).dll" "$(MSBuildProjectDirectory)\$(OutputPath)$(TargetFramework)" "$(Dedicated64)"</PostBuildEvent>
+  </PropertyGroup>
+
   <Import Project="..\MultigridProjector\MultigridProjector.projitems" Label="Shared" />
-  <PropertyGroup>
-    <PreBuildEvent>call "$(SolutionDir)verify_props.bat" "$(Dedicated64)"</PreBuildEvent>
-  </PropertyGroup>
-  <PropertyGroup>
-    <PostBuildEvent>call "$(ProjectDir)deploy.bat" "$(TargetFileName)" "$(TargetDir)" "$(Dedicated64)"</PostBuildEvent>
-  </PropertyGroup>
   <Import Project="..\MultigridProjectorApi\MultigridProjectorApi.projitems" Label="Shared" />
 </Project>
