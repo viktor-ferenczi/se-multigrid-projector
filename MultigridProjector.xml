@@ -1,0 +1,35 @@
+<?xml version="1.0"?>
+<PluginData xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="GitHubPlugin">
+
+    <Id>viktor-ferenczi/se-multigrid-projector</Id>
+    <GroupId>viktor-ferenczi/se-multigrid-projector</GroupId>
+
+    <Author>Viktor</Author>
+
+    <FriendlyName>Multigrid Projector</FriendlyName>
+
+    <Tooltip>Allows loading blueprints of multiple sub-grids into projectors and welding them.</Tooltip>
+
+    <Description>This plugin allows loading blueprints of multiple sub-grids into projectors and welding the blocks. Head/base blocks are added automatically as needed to connect subgrids.
+
+For support join the SE Mods Discord:
+https://discord.gg/PYPFPGf3Ca
+
+Please consider supporting my work on Patreon:
+https://www.patreon.com/semods
+
+One time support via PayPal:
+https://www.paypal.com/paypalme/vferenczi/
+
+Thank you!
+    </Description>
+
+    <SourceDirectories>
+        <Directory>MultigridProjector</Directory>
+        <Directory>MultigridProjectorApi</Directory>
+        <Directory>MultigridProjectorClient</Directory>
+    </SourceDirectories>
+
+    <Commit>afb156dc6184cec46f6f0b3a5ed9c55a26ce08dd</Commit>
+
+</PluginData>
