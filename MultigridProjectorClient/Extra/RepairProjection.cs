@@ -51,7 +51,7 @@ namespace MultigridProjectorClient.Extra
             // KeepProjection is enabled by InitFromObjectBuilder if it is detected as a
             // repair blueprint. But just in case we make it explicit here, so even in the
             // case of an ambiguous repair projector it will still work as expected.
-            projector.SetValue("KeepProjection", true);
+            projector.SetKeepProjection(true);
         }
     }
 }

@@ -78,6 +78,11 @@ namespace MultigridProjector.Extensions
             return (Sync<bool, SyncDirection.BothWays>) KeepProjectionFieldInfo.GetValue(projector);
         }
 
+        public static void SetKeepProjection(this MyProjectorBase projector, bool value)
+        {
+            ((Sync<bool, SyncDirection.BothWays>) KeepProjectionFieldInfo.GetValue(projector)).Value = value;
+        }
+
         private static readonly FieldInfo InstantBuildingEnabledFieldInfo = Validation.EnsureInfo(AccessTools.Field(typeof(MyProjectorBase), "m_instantBuildingEnabled"));
 
         public static bool GetInstantBuildingEnabled(this MyProjectorBase projector)
