@@ -1,0 +1,1 @@
+﻿Carefully read and internalize `AGENTS.md` from the repository's root before doing anything else.

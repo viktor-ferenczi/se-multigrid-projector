@@ -3,7 +3,7 @@ if [%1] == [] goto EOF
 
 echo Parameters: %*
 
-set SRC=%1
+set SRC=%~1
 
 echo.
 echo Deploying Multigrid Projector Ingame API Test:

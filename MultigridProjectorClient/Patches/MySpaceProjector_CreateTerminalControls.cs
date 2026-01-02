@@ -6,12 +6,10 @@ using System.Reflection;
 using System.Reflection.Emit;
 using Entities.Blocks;
 using HarmonyLib;
-using MultigridProjector.Tools;
+using MultigridProjector.Utilities;
 using MultigridProjectorClient.Extra;
 using MultigridProjectorClient.Utilities;
 using Sandbox.Game.Gui;
-using Sandbox.Game.Localization;
-using VRage.Utils;
 
 namespace MultigridProjectorClient.Patches
 {
@@ -23,10 +21,10 @@ namespace MultigridProjectorClient.Patches
     public static class MySpaceProjector_CreateTerminalControls
     {
         // ReSharper disable once UnusedMember.Local
-        public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+        public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, MethodBase patchedMethod)
         {
             var il = instructions.ToList();
-            il.RecordOriginalCode();
+            il.RecordOriginalCode(patchedMethod);
 
             RemoveControl(il, "MarkMissingBlocks");
             RemoveControl(il, "MarkUnfinishedBlocks");
@@ -36,7 +34,7 @@ namespace MultigridProjectorClient.Patches
             il.Insert(i++, new CodeInstruction(OpCodes.Call, AccessTools.DeclaredMethod(typeof(MySpaceProjector_CreateTerminalControls), nameof(CreateControls))));
             il.Insert(i, new CodeInstruction(OpCodes.Call, AccessTools.DeclaredMethod(typeof(MySpaceProjector_CreateTerminalControls), nameof(CreateActions))));
 
-            il.RecordPatchedCode();
+            il.RecordPatchedCode(patchedMethod);
             return il.AsEnumerable();
         }
 

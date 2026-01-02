@@ -2,7 +2,7 @@
 if [%1]==[] goto usage
 
 SET name=MultigridProjector
-SET version=%1
+SET version=%~1
 SET p7z="C:\Program Files\7-Zip\7z.exe"
 
 SET harmony=MultigridProjectorClient\bin\Release\0Harmony.dll
