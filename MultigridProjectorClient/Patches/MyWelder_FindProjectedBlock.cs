@@ -38,7 +38,10 @@ namespace MultigridProjectorClient.Patches
             }
 #endif
 
+#pragma warning disable CS0162 // Unreachable code detected
+            // ReSharper disable once HeuristicUnreachableCode
             return false;
+#pragma warning restore CS0162 // Unreachable code detected
         }
     }
 }

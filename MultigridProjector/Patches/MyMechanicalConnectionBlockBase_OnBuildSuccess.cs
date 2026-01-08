@@ -1,10 +1,10 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Reflection;
 using System.Reflection.Emit;
 using HarmonyLib;
 using MultigridProjector.Logic;
-using MultigridProjector.Tools;
 using MultigridProjector.Utilities;
 using Sandbox.Game.Entities.Blocks;
 
@@ -21,10 +21,10 @@ namespace MultigridProjector.Patches
     public static class MyMechanicalConnectionBlockBase_OnBuildSuccess
     {
         [ServerOnly]
-        public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+        public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, MethodBase patchedMethod)
         {
             var il = instructions.ToList();
-            il.RecordOriginalCode();
+            il.RecordOriginalCode(patchedMethod);
 
             // Jump to ret if the mechanical base is built from projection (disables building the default top part)
             var j = il.FindIndex(i => i.opcode == OpCodes.Brfalse_S);
@@ -34,7 +34,7 @@ namespace MultigridProjector.Patches
             il.Insert(k++, new CodeInstruction(OpCodes.Call, AccessTools.DeclaredMethod(typeof(MultigridProjection), nameof(MultigridProjection.ShouldAllowBuildingDefaultTopBlock))));
             il.Insert(k, new CodeInstruction(OpCodes.Brfalse, il[j].operand));
 
-            il.RecordPatchedCode();
+            il.RecordPatchedCode(patchedMethod);
             return il.AsEnumerable();
         }
     }

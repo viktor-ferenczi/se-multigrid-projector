@@ -3,65 +3,82 @@ using System.Reflection;
 using System.Runtime.CompilerServices;
 using HarmonyLib;
 
-namespace MultigridProjector.Tools
+namespace MultigridProjector.Utilities;
+
+public static class Hashing
 {
-    public static class Hashing
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static int Hash(this string value)
     {
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static int HashBody(this MethodInfo methodInfo)
+        unchecked
         {
-            var code = PatchProcessor.GetCurrentInstructions(methodInfo);
-            return code.HashInstructions().CombineHashCodes();
-        }
+            const int offsetBasis = unchecked((int)2166136261);
+            const int prime = 16777619;
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static int HashBody(this ConstructorInfo constructorInfo)
-        {
-            var code = PatchProcessor.GetCurrentInstructions(constructorInfo);
-            return code.HashInstructions().CombineHashCodes();
-        }
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static IEnumerable<int> HashInstructions(this IEnumerable<CodeInstruction> instructions)
-        {
-            foreach (var instruction in instructions)
+            var hash = offsetBasis;
+            foreach (var t in value)
             {
-                yield return instruction.opcode.GetHashCode();
-
-                if (instruction.operand?.GetType().IsValueType == true)
-                    yield return instruction.operand.GetHashCode();
-
-                if (instruction.operand is string)
-                    yield return instruction.operand.GetHashCode();
-
-                foreach (var label in instruction.labels)
-                    yield return label.GetHashCode();
+                hash ^= t;
+                hash *= prime;
             }
+
+            return hash;
         }
+    }
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static int CombineHashCodes(this IEnumerable<int> hashCodes)
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static int HashBody(this MethodInfo methodInfo)
+    {
+        var code = PatchProcessor.GetCurrentInstructions(methodInfo);
+        return code.HashInstructions().CombineHashCodes();
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static int HashBody(this ConstructorInfo constructorInfo)
+    {
+        var code = PatchProcessor.GetCurrentInstructions(constructorInfo);
+        return code.HashInstructions().CombineHashCodes();
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static IEnumerable<int> HashInstructions(this IEnumerable<CodeInstruction> instructions)
+    {
+        foreach (var instruction in instructions)
         {
-            // https://stackoverflow.com/questions/1646807/quick-and-simple-hash-code-combinations
+            yield return instruction.opcode.GetHashCode();
 
-            unchecked
+            if (instruction.operand is string s)
+                yield return s.Hash();
+            else if (instruction.operand != null && instruction.operand.GetType().IsValueType)
+                yield return instruction.operand.GetHashCode();
+
+            foreach (var label in instruction.labels)
+                yield return label.GetHashCode();
+        }
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static int CombineHashCodes(this IEnumerable<int> hashCodes)
+    {
+        // https://stackoverflow.com/questions/1646807/quick-and-simple-hash-code-combinations
+
+        unchecked
+        {
+            var hash1 = (5381 << 16) + 5381;
+            var hash2 = hash1;
+
+            var i = 0;
+            foreach (var hashCode in hashCodes)
             {
-                var hash1 = (5381 << 16) + 5381;
-                var hash2 = hash1;
+                if (i % 2 == 0)
+                    hash1 = ((hash1 << 5) + hash1 + (hash1 >> 27)) ^ hashCode;
+                else
+                    hash2 = ((hash2 << 5) + hash2 + (hash2 >> 27)) ^ hashCode;
 
-                var i = 0;
-                foreach (var hashCode in hashCodes)
-                {
-                    if ((i & 1) == 0)
-                        hash1 = ((hash1 << 5) + hash1 + (hash1 >> 27)) ^ hashCode;
-                    else
-                        hash2 = ((hash2 << 5) + hash2 + (hash2 >> 27)) ^ hashCode;
-
-                    ++i;
-                }
-
-                return hash1 + hash2 * 1566083941;
+                ++i;
             }
+
+            return hash1 + hash2 * 1566083941;
         }
     }
 }

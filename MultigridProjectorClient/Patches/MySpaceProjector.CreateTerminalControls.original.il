@@ -1,4 +1,4 @@
-// 0b1a3a3e
+// f7299182
 call static System.Boolean Sandbox.Game.Gui.MyTerminalControlFactory::AreControlsCreated()
 brfalse.s L0
 ret
@@ -175,6 +175,156 @@ dup
 stsfld System.Func`2<Entities.Blocks.MySpaceProjector, System.Boolean> Entities.Blocks.<>c::<>9__2_9
 L11:
 stfld System.Func`2<Entities.Blocks.MySpaceProjector, System.Boolean> Sandbox.Game.Gui.MyTerminalControl`1<Entities.Blocks.MySpaceProjector>::Enabled
+call static System.Void Sandbox.Game.Gui.MyTerminalControlFactory::AddControl(Sandbox.Game.Gui.MyTerminalControl`1<Entities.Blocks.MySpaceProjector> control)
+ldstr "MarkMissingBlocks"
+ldsfld VRage.Utils.MyStringId Sandbox.Game.Localization.MySpaceTexts::BlockPropertyTitle_Projector_MarkMissingBlocks
+ldsfld VRage.Utils.MyStringId VRage.Utils.MyStringId::NullOrEmpty
+ldloca.s 0 (System.Nullable`1[VRage.Utils.MyStringId])
+initobj System.Nullable`1[VRage.Utils.MyStringId]
+ldloc.0
+ldloca.s 0 (System.Nullable`1[VRage.Utils.MyStringId])
+initobj System.Nullable`1[VRage.Utils.MyStringId]
+ldloc.0
+ldc.i4.0
+ldc.i4.0
+ldc.i4.0
+ldc.r4 1
+newobj System.Void Sandbox.Game.Gui.MyTerminalControlCheckbox`1<Entities.Blocks.MySpaceProjector>::.ctor(System.String id, VRage.Utils.MyStringId title, VRage.Utils.MyStringId tooltip, System.Nullable`1<VRage.Utils.MyStringId> on, System.Nullable`1<VRage.Utils.MyStringId> off, System.Boolean justify, System.Boolean isAutoscaleEnabled, System.Boolean isAutoEllipsisEnabled, System.Single maxWidth)
+dup
+ldsfld System.Func`2<Entities.Blocks.MySpaceProjector, System.Boolean> Entities.Blocks.<>c::<>9__2_10
+dup
+brtrue.s L12
+pop
+ldsfld Entities.Blocks.<>c Entities.Blocks.<>c::<>9
+ldftn System.Boolean Entities.Blocks.<>c::<CreateTerminalControls>b__2_10(Entities.Blocks.MySpaceProjector x)
+newobj System.Void System.Func`2<Entities.Blocks.MySpaceProjector, System.Boolean>::.ctor(System.Object object, System.IntPtr method)
+dup
+stsfld System.Func`2<Entities.Blocks.MySpaceProjector, System.Boolean> Entities.Blocks.<>c::<>9__2_10
+L12:
+stfld System.Func`2<Entities.Blocks.MySpaceProjector, System.Boolean> Sandbox.Game.Gui.MyTerminalControl`1<Entities.Blocks.MySpaceProjector>::Enabled
+dup
+ldsfld System.Func`2<Entities.Blocks.MySpaceProjector, System.Boolean> Entities.Blocks.<>c::<>9__2_11
+dup
+brtrue.s L13
+pop
+ldsfld Entities.Blocks.<>c Entities.Blocks.<>c::<>9
+ldftn System.Boolean Entities.Blocks.<>c::<CreateTerminalControls>b__2_11(Entities.Blocks.MySpaceProjector x)
+newobj System.Void System.Func`2<Entities.Blocks.MySpaceProjector, System.Boolean>::.ctor(System.Object object, System.IntPtr method)
+dup
+stsfld System.Func`2<Entities.Blocks.MySpaceProjector, System.Boolean> Entities.Blocks.<>c::<>9__2_11
+L13:
+stfld System.Func`2<Entities.Blocks.MySpaceProjector, System.Boolean> Sandbox.Game.Gui.MyTerminalControl`1<Entities.Blocks.MySpaceProjector>::Visible
+dup
+ldsfld Sandbox.Game.Screens.Terminal.Controls.GetterDelegate<Entities.Blocks.MySpaceProjector, System.Boolean> Entities.Blocks.<>c::<>9__2_12
+dup
+brtrue.s L14
+pop
+ldsfld Entities.Blocks.<>c Entities.Blocks.<>c::<>9
+ldftn System.Boolean Entities.Blocks.<>c::<CreateTerminalControls>b__2_12(Entities.Blocks.MySpaceProjector x)
+newobj System.Void Sandbox.Game.Screens.Terminal.Controls.GetterDelegate<Entities.Blocks.MySpaceProjector, System.Boolean>::.ctor(System.Object object, System.IntPtr method)
+dup
+stsfld Sandbox.Game.Screens.Terminal.Controls.GetterDelegate<Entities.Blocks.MySpaceProjector, System.Boolean> Entities.Blocks.<>c::<>9__2_12
+L14:
+callvirt System.Void Sandbox.Game.Screens.Terminal.Controls.MyTerminalValueControl`2<Entities.Blocks.MySpaceProjector, System.Boolean>::set_Getter(Sandbox.Game.Screens.Terminal.Controls.GetterDelegate<Entities.Blocks.MySpaceProjector, System.Boolean> value)
+dup
+ldsfld Sandbox.Game.Screens.Terminal.Controls.SetterDelegate<Entities.Blocks.MySpaceProjector, System.Boolean> Entities.Blocks.<>c::<>9__2_13
+dup
+brtrue.s L15
+pop
+ldsfld Entities.Blocks.<>c Entities.Blocks.<>c::<>9
+ldftn System.Void Entities.Blocks.<>c::<CreateTerminalControls>b__2_13(Entities.Blocks.MySpaceProjector x, System.Boolean v)
+newobj System.Void Sandbox.Game.Screens.Terminal.Controls.SetterDelegate<Entities.Blocks.MySpaceProjector, System.Boolean>::.ctor(System.Object object, System.IntPtr method)
+dup
+stsfld Sandbox.Game.Screens.Terminal.Controls.SetterDelegate<Entities.Blocks.MySpaceProjector, System.Boolean> Entities.Blocks.<>c::<>9__2_13
+L15:
+callvirt System.Void Sandbox.Game.Screens.Terminal.Controls.MyTerminalValueControl`2<Entities.Blocks.MySpaceProjector, System.Boolean>::set_Setter(Sandbox.Game.Screens.Terminal.Controls.SetterDelegate<Entities.Blocks.MySpaceProjector, System.Boolean> value)
+dup
+ldsfld Sandbox.Game.Gui.TooltipGetter<Entities.Blocks.MySpaceProjector> Entities.Blocks.<>c::<>9__2_14
+dup
+brtrue.s L16
+pop
+ldsfld Entities.Blocks.<>c Entities.Blocks.<>c::<>9
+ldftn System.String Entities.Blocks.<>c::<CreateTerminalControls>b__2_14(Entities.Blocks.MySpaceProjector x)
+newobj System.Void Sandbox.Game.Gui.TooltipGetter<Entities.Blocks.MySpaceProjector>::.ctor(System.Object object, System.IntPtr method)
+dup
+stsfld Sandbox.Game.Gui.TooltipGetter<Entities.Blocks.MySpaceProjector> Entities.Blocks.<>c::<>9__2_14
+L16:
+callvirt System.Void Sandbox.Game.Gui.MyTerminalControl`1<Entities.Blocks.MySpaceProjector>::set_DynamicTooltipGetter(Sandbox.Game.Gui.TooltipGetter<Entities.Blocks.MySpaceProjector> value)
+call static System.Void Sandbox.Game.Gui.MyTerminalControlFactory::AddControl(Sandbox.Game.Gui.MyTerminalControl`1<Entities.Blocks.MySpaceProjector> control)
+ldstr "MarkUnfinishedBlocks"
+ldsfld VRage.Utils.MyStringId Sandbox.Game.Localization.MySpaceTexts::BlockPropertyTitle_Projector_MarkUnfinishedBlocks
+ldsfld VRage.Utils.MyStringId VRage.Utils.MyStringId::NullOrEmpty
+ldloca.s 0 (System.Nullable`1[VRage.Utils.MyStringId])
+initobj System.Nullable`1[VRage.Utils.MyStringId]
+ldloc.0
+ldloca.s 0 (System.Nullable`1[VRage.Utils.MyStringId])
+initobj System.Nullable`1[VRage.Utils.MyStringId]
+ldloc.0
+ldc.i4.0
+ldc.i4.0
+ldc.i4.0
+ldc.r4 1
+newobj System.Void Sandbox.Game.Gui.MyTerminalControlCheckbox`1<Entities.Blocks.MySpaceProjector>::.ctor(System.String id, VRage.Utils.MyStringId title, VRage.Utils.MyStringId tooltip, System.Nullable`1<VRage.Utils.MyStringId> on, System.Nullable`1<VRage.Utils.MyStringId> off, System.Boolean justify, System.Boolean isAutoscaleEnabled, System.Boolean isAutoEllipsisEnabled, System.Single maxWidth)
+dup
+ldsfld System.Func`2<Entities.Blocks.MySpaceProjector, System.Boolean> Entities.Blocks.<>c::<>9__2_15
+dup
+brtrue.s L17
+pop
+ldsfld Entities.Blocks.<>c Entities.Blocks.<>c::<>9
+ldftn System.Boolean Entities.Blocks.<>c::<CreateTerminalControls>b__2_15(Entities.Blocks.MySpaceProjector x)
+newobj System.Void System.Func`2<Entities.Blocks.MySpaceProjector, System.Boolean>::.ctor(System.Object object, System.IntPtr method)
+dup
+stsfld System.Func`2<Entities.Blocks.MySpaceProjector, System.Boolean> Entities.Blocks.<>c::<>9__2_15
+L17:
+stfld System.Func`2<Entities.Blocks.MySpaceProjector, System.Boolean> Sandbox.Game.Gui.MyTerminalControl`1<Entities.Blocks.MySpaceProjector>::Enabled
+dup
+ldsfld System.Func`2<Entities.Blocks.MySpaceProjector, System.Boolean> Entities.Blocks.<>c::<>9__2_16
+dup
+brtrue.s L18
+pop
+ldsfld Entities.Blocks.<>c Entities.Blocks.<>c::<>9
+ldftn System.Boolean Entities.Blocks.<>c::<CreateTerminalControls>b__2_16(Entities.Blocks.MySpaceProjector x)
+newobj System.Void System.Func`2<Entities.Blocks.MySpaceProjector, System.Boolean>::.ctor(System.Object object, System.IntPtr method)
+dup
+stsfld System.Func`2<Entities.Blocks.MySpaceProjector, System.Boolean> Entities.Blocks.<>c::<>9__2_16
+L18:
+stfld System.Func`2<Entities.Blocks.MySpaceProjector, System.Boolean> Sandbox.Game.Gui.MyTerminalControl`1<Entities.Blocks.MySpaceProjector>::Visible
+dup
+ldsfld Sandbox.Game.Screens.Terminal.Controls.GetterDelegate<Entities.Blocks.MySpaceProjector, System.Boolean> Entities.Blocks.<>c::<>9__2_17
+dup
+brtrue.s L19
+pop
+ldsfld Entities.Blocks.<>c Entities.Blocks.<>c::<>9
+ldftn System.Boolean Entities.Blocks.<>c::<CreateTerminalControls>b__2_17(Entities.Blocks.MySpaceProjector x)
+newobj System.Void Sandbox.Game.Screens.Terminal.Controls.GetterDelegate<Entities.Blocks.MySpaceProjector, System.Boolean>::.ctor(System.Object object, System.IntPtr method)
+dup
+stsfld Sandbox.Game.Screens.Terminal.Controls.GetterDelegate<Entities.Blocks.MySpaceProjector, System.Boolean> Entities.Blocks.<>c::<>9__2_17
+L19:
+callvirt System.Void Sandbox.Game.Screens.Terminal.Controls.MyTerminalValueControl`2<Entities.Blocks.MySpaceProjector, System.Boolean>::set_Getter(Sandbox.Game.Screens.Terminal.Controls.GetterDelegate<Entities.Blocks.MySpaceProjector, System.Boolean> value)
+dup
+ldsfld Sandbox.Game.Screens.Terminal.Controls.SetterDelegate<Entities.Blocks.MySpaceProjector, System.Boolean> Entities.Blocks.<>c::<>9__2_18
+dup
+brtrue.s L20
+pop
+ldsfld Entities.Blocks.<>c Entities.Blocks.<>c::<>9
+ldftn System.Void Entities.Blocks.<>c::<CreateTerminalControls>b__2_18(Entities.Blocks.MySpaceProjector x, System.Boolean v)
+newobj System.Void Sandbox.Game.Screens.Terminal.Controls.SetterDelegate<Entities.Blocks.MySpaceProjector, System.Boolean>::.ctor(System.Object object, System.IntPtr method)
+dup
+stsfld Sandbox.Game.Screens.Terminal.Controls.SetterDelegate<Entities.Blocks.MySpaceProjector, System.Boolean> Entities.Blocks.<>c::<>9__2_18
+L20:
+callvirt System.Void Sandbox.Game.Screens.Terminal.Controls.MyTerminalValueControl`2<Entities.Blocks.MySpaceProjector, System.Boolean>::set_Setter(Sandbox.Game.Screens.Terminal.Controls.SetterDelegate<Entities.Blocks.MySpaceProjector, System.Boolean> value)
+dup
+ldsfld Sandbox.Game.Gui.TooltipGetter<Entities.Blocks.MySpaceProjector> Entities.Blocks.<>c::<>9__2_19
+dup
+brtrue.s L21
+pop
+ldsfld Entities.Blocks.<>c Entities.Blocks.<>c::<>9
+ldftn System.String Entities.Blocks.<>c::<CreateTerminalControls>b__2_19(Entities.Blocks.MySpaceProjector x)
+newobj System.Void Sandbox.Game.Gui.TooltipGetter<Entities.Blocks.MySpaceProjector>::.ctor(System.Object object, System.IntPtr method)
+dup
+stsfld Sandbox.Game.Gui.TooltipGetter<Entities.Blocks.MySpaceProjector> Entities.Blocks.<>c::<>9__2_19
+L21:
+callvirt System.Void Sandbox.Game.Gui.MyTerminalControl`1<Entities.Blocks.MySpaceProjector>::set_DynamicTooltipGetter(Sandbox.Game.Gui.TooltipGetter<Entities.Blocks.MySpaceProjector> value)
 call static System.Void Sandbox.Game.Gui.MyTerminalControlFactory::AddControl(Sandbox.Game.Gui.MyTerminalControl`1<Entities.Blocks.MySpaceProjector> control)
 ldstr "X"
 ldsfld VRage.Utils.MyStringId Sandbox.Game.Localization.MySpaceTexts::BlockPropertyTitle_ProjectionOffsetX
@@ -998,6 +1148,4 @@ ldc.r4 1
 ldc.r4 10000
 callvirt virtual System.Void Sandbox.Game.Gui.MyTerminalControlSlider`1<Entities.Blocks.MySpaceProjector>::SetLogLimits(System.Single min, System.Single max)
 call static System.Void Sandbox.Game.Gui.MyTerminalControlFactory::AddControl(Sandbox.Game.Gui.MyTerminalControl`1<Entities.Blocks.MySpaceProjector> control)
-call static System.Void MultigridProjectorClient.Patches.MySpaceProjector_CreateTerminalControls::CreateControls()
-call static System.Void MultigridProjectorClient.Patches.MySpaceProjector_CreateTerminalControls::CreateActions()
 ret

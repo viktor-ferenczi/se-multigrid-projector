@@ -1,10 +1,10 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Reflection.Emit;
 using HarmonyLib;
 using MultigridProjector.Logic;
-using MultigridProjector.Tools;
 using MultigridProjector.Utilities;
 using Sandbox.Game.Entities.Blocks;
 using VRageMath;
@@ -19,9 +19,9 @@ namespace MultigridProjectorClient.Patches
     public static class MyProjectorBase_BuildInternal
     {
         // ReSharper disable once UnusedMember.Global
-        public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+        public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, MethodBase patchedMethod)
         {
-            instructions.ToList().RecordOriginalCode();
+            instructions.ToList().RecordOriginalCode(patchedMethod);
 
             var il = new List<CodeInstruction>
             {
@@ -35,7 +35,7 @@ namespace MultigridProjectorClient.Patches
                 new CodeInstruction(OpCodes.Ret)
             };
 
-            il.RecordPatchedCode();
+            il.RecordPatchedCode(patchedMethod);
             return il.AsEnumerable();
         }
 
