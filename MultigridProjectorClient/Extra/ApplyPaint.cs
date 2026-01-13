@@ -22,8 +22,8 @@ namespace MultigridProjectorClient.Extra
                 MyStringId.GetOrCompute("Applies paint from the projection to the built blocks."),
                 ApplyPaintFromProjection)
             {
-                Visible = (projector) => !projector.AllowScaling && IsWorking(projector),
-                Enabled = IsProjecting,
+                Visible = projector => projector != null && !projector.AllowScaling && IsWorking(projector),
+                Enabled = projector => projector != null && IsProjecting(projector),
                 SupportsMultipleBlocks = false
             };
 

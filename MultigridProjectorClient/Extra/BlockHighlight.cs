@@ -40,7 +40,7 @@ namespace MultigridProjectorClient.Extra
                                         "Red - Obstructed by other block\n" +
                                         "No Highlight - Built or unconnected"))
             {
-                Getter = (projector) => TargetProjectors.Contains(projector),
+                Getter = projector => TargetProjectors.Contains(projector),
                 Setter = (projector, value) =>
                 {
                     if (value)
@@ -49,8 +49,8 @@ namespace MultigridProjectorClient.Extra
                         DisableHighlightBlocks(projector);
                 },
 
-                Visible = (projector) => Enabled && !projector.AllowScaling,
-                Enabled = IsProjecting,
+                Visible = projector => projector != null && Enabled && !projector.AllowScaling,
+                Enabled = projector => projector != null && IsProjecting(projector),
                 SupportsMultipleBlocks = false
             };
 

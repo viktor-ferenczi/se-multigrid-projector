@@ -1,8 +1,8 @@
 ﻿<component name="ProjectRunConfigurationManager">
-  <configuration default="false" name="Pulsar" type="RunExe" factoryName=".NET Executable">
-    <option name="EXE_PATH" value="$PROJECT_DIR$/Pulsar/Legacy.exe" />
+  <configuration default="false" name="Pulsar Interim" type="RunExe" factoryName=".NET Executable">
+    <option name="EXE_PATH" value="$USER_HOME$/AppData/Roaming/Pulsar/Interim.exe" />
     <option name="PROGRAM_PARAMETERS" value="-skipintro -sources" />
-    <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/Pulsar" />
+    <option name="WORKING_DIRECTORY" value="$USER_HOME$/AppData/Roaming/Pulsar" />
     <option name="PASS_PARENT_ENVS" value="1" />
     <option name="ENV_FILE_PATHS" value="" />
     <option name="REDIRECT_INPUT_PATH" value="" />
