@@ -38,7 +38,7 @@ namespace MultigridProjectorClient.Extra
                 MakeDialog)
             {
                 Visible = (_) => Enabled,
-                Enabled = AreAnyBlocksRemaining,
+                Enabled = projector => projector != null && AreAnyBlocksRemaining(projector),
                 SupportsMultipleBlocks = false
             };
 

@@ -137,8 +137,8 @@ namespace MultigridProjectorClient.Extra
                 MyStringId.GetOrCompute("Manually align the projection using keys familiar from block placement."),
                 ShowDialog)
             {
-                Visible = (_) => Enabled,
-                Enabled = IsProjecting,
+                Visible = _ => Enabled,
+                Enabled = projector => projector != null && IsProjecting(projector),
                 SupportsMultipleBlocks = false
             };
             yield return new CustomControl(ControlPlacement.After, "Blueprint", alignProjection);

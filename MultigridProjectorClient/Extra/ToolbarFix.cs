@@ -20,8 +20,8 @@ namespace MultigridProjectorClient.Extra
                 MyStringId.GetOrCompute("Fixes all toolbars from repair projection."),
                 FixToolbars)
             {
-                Visible = projector => projector.Enabled && !projector.AllowScaling && projector.IsWorking,
-                Enabled = projector => projector.IsProjecting(),
+                Visible = projector => projector != null && projector.Enabled && !projector.AllowScaling && projector.IsWorking,
+                Enabled = projector => projector != null && projector.IsProjecting(),
                 SupportsMultipleBlocks = false
             };
 
