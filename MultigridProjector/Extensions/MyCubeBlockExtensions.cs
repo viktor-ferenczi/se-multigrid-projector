@@ -106,16 +106,25 @@ namespace MultigridProjector.Extensions
                     return b.Toolbar;
                 case MyDefensiveCombatBlock b:
                     return b.GetWaypointActionsToolbar();
+                case MyOffensiveCombatBlock b:
+                    return b.GetWaypointActionsToolbar();
             }
 
             return null;
         }
 
-        private static readonly FieldInfo WaypointActionsToolbarField = AccessTools.DeclaredField(typeof(MyDefensiveCombatBlock), "m_waypointActionsToolbar");
+        private static readonly FieldInfo DefensiveCombatWaypointActionsToolbarField = AccessTools.DeclaredField(typeof(MyDefensiveCombatBlock), "m_waypointActionsToolbar");
 
         public static MyToolbar GetWaypointActionsToolbar(this MyDefensiveCombatBlock defensiveCombatBlock)
         {
-            return (MyToolbar)WaypointActionsToolbarField.GetValue(defensiveCombatBlock);
+            return (MyToolbar)DefensiveCombatWaypointActionsToolbarField.GetValue(defensiveCombatBlock);
+        }
+
+        private static readonly FieldInfo OffensiveCombatWaypointActionsToolbarField = AccessTools.DeclaredField(typeof(MyOffensiveCombatBlock), "m_waypointActionsToolbar");
+
+        public static MyToolbar GetWaypointActionsToolbar(this MyOffensiveCombatBlock offensiveCombatBlock)
+        {
+            return (MyToolbar)OffensiveCombatWaypointActionsToolbarField.GetValue(offensiveCombatBlock);
         }
 
         private static readonly FieldInfo BoundCameraSyncField = AccessTools.DeclaredField(typeof(MyRemoteControl), "m_bindedCamera" /* sic */);
