@@ -5,11 +5,10 @@ SET name=MultigridProjector
 SET version=%~1
 SET p7z="C:\Program Files\7-Zip\7z.exe"
 
-SET harmony=MultigridProjectorClient\bin\Release\0Harmony.dll
-
-SET client_build_dir=MultigridProjectorClient\bin\Release
-SET ds_build_dir=MultigridProjectorDedicated\bin\Release
-SET torch_build_dir=MultigridProjectorServer\bin\Release
+SET harmony=MultigridProjectorClient\bin\Release\net481\0Harmony.dll
+SET client_build_dir=MultigridProjectorClient\bin\Release\net481
+SET ds_build_dir=MultigridProjectorDedicated\bin\Release\net481
+SET torch_build_dir=MultigridProjectorServer\bin\Release\net481
 
 SET client_pkg=%name%-Client-%version%
 SET ds_pkg=%name%-DedicatedServer-%version%
