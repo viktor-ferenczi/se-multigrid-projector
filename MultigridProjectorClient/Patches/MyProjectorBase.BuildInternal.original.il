@@ -294,7 +294,7 @@ L25:
 ldloc.1
 ldfld VRage.Utils.MyStringHash Sandbox.Game.Entities.Cube.MySlimBlock::SkinSubtypeId
 ldloc.0
-call VRage.Utils.MyStringHash Sandbox.Game.SessionComponents.MySessionComponentGameInventory::ValidateArmor(VRage.Utils.MyStringHash armorId, System.UInt64 steamId)
+call VRage.Utils.MyStringHash Sandbox.Game.SessionComponents.MySessionComponentGameInventory::ValidateItem(VRage.Utils.MyStringHash itemSubtypeId, System.UInt64 steamId)
 L26:
 stloc.s 18 (VRage.Utils.MyStringHash)
 ldloc.s 15 (VRage.Game.MyObjectBuilder_CubeBlock)
