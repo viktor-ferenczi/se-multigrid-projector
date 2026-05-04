@@ -98,13 +98,10 @@ namespace MultigridProjector.Logic
                     break;
 
                 case MyObjectBuilder_OffensiveCombatBlock builder:
-                    if (!builder.ComponentContainer.TryGet<MyObjectBuilder_OffensiveCombatCircleOrbit>(out var offensiveCombatComponentBuilder))
-                        break;
-                    
-                    if (offensiveCombatComponentBuilder.SelectedWeapons == null)
-                        break;
-                    
-                    foreach (var blockId in offensiveCombatComponentBuilder.SelectedWeapons)
+                    foreach (var blockId in IterToolbarReferencedBlockIds(terminalBlockBuilder))
+                        yield return blockId;
+
+                    foreach (var blockId in IterOffensiveCombatReferencedBlockIds(builder))
                         yield return blockId;
 
                     break;
@@ -148,12 +145,30 @@ namespace MultigridProjector.Logic
             var toolbarBuilder = terminalBlockBuilder.GetToolbar();
             if (toolbarBuilder?.Slots == null)
                 yield break;
-            
+
             foreach (var slot in toolbarBuilder.Slots)
             {
                 if (slot.Data is MyObjectBuilder_ToolbarItemTerminalBlock terminalBlockItem)
                     yield return terminalBlockItem.BlockEntityId;
             }
+        }
+
+        private IEnumerable<long> IterOffensiveCombatReferencedBlockIds(MyObjectBuilder_OffensiveCombatBlock builder)
+        {
+            IList<long> selectedWeapons = null;
+
+            if (builder.ComponentContainer.TryGet<MyObjectBuilder_OffensiveCombatCircleOrbit>(out var circleOrbit))
+                selectedWeapons = circleOrbit.SelectedWeapons;
+            else if (builder.ComponentContainer.TryGet<MyObjectBuilder_OffensiveCombatHitAndRun>(out var hitAndRun))
+                selectedWeapons = hitAndRun.SelectedWeapons;
+            else if (builder.ComponentContainer.TryGet<MyObjectBuilder_OffensiveCombatStayAtRange>(out var stayAtRange))
+                selectedWeapons = stayAtRange.SelectedWeapons;
+
+            if (selectedWeapons == null)
+                yield break;
+
+            foreach (var blockId in selectedWeapons)
+                yield return blockId;
         }
 
         public bool TryMapPreviewToBuiltTerminalBlock<T>(long targetId, out T targetBlock) where T : MyTerminalBlock
@@ -243,7 +258,8 @@ namespace MultigridProjector.Logic
                     break;
 
                 case MyObjectBuilder_OffensiveCombatBlock _:
-                    modified = RestoreOffensiveCombat(projectedBlock);
+                    modified = RestoreToolbar(projectedBlock);
+                    modified = RestoreOffensiveCombat(projectedBlock) || modified;
                     break;
 
                 // AI Recorder block
@@ -483,20 +499,30 @@ namespace MultigridProjector.Logic
         private bool RestoreOffensiveCombat(ProjectedBlock projectedBlock)
         {
             var builder = (MyObjectBuilder_OffensiveCombatBlock)projectedBlock.Builder;
-            if (!builder.ComponentContainer.TryGet<MyObjectBuilder_OffensiveCombatCircleOrbit>(out var componentBuilder))
+
+            IList<long> builderSelectedWeapons = null;
+
+            if (builder.ComponentContainer.TryGet<MyObjectBuilder_OffensiveCombatCircleOrbit>(out var circleOrbitBuilder))
+                builderSelectedWeapons = circleOrbitBuilder.SelectedWeapons;
+            else if (builder.ComponentContainer.TryGet<MyObjectBuilder_OffensiveCombatHitAndRun>(out var hitAndRunBuilder))
+                builderSelectedWeapons = hitAndRunBuilder.SelectedWeapons;
+            else if (builder.ComponentContainer.TryGet<MyObjectBuilder_OffensiveCombatStayAtRange>(out var stayAtRangeBuilder))
+                builderSelectedWeapons = stayAtRangeBuilder.SelectedWeapons;
+
+            if (builderSelectedWeapons == null)
                 return false;
 
             var block = (MyOffensiveCombatBlock)projectedBlock.SlimBlock.FatBlock;
-            if (!block.Components.TryGet<MyOffensiveCombatCircleOrbit>(out var component))
+            if (!block.Components.TryGet<MyOffensiveWithWeaponsCombatComponent>(out var component))
                 return false;
 
-            var selectedWeapons = new List<long>(componentBuilder.SelectedWeapons.Count);
+            var selectedWeapons = new List<long>(builderSelectedWeapons.Count);
             component.GetSelectedWeapons(selectedWeapons);
 
             var removeIds = new HashSet<long>(selectedWeapons);
-            var addIds = new HashSet<long>(componentBuilder.SelectedWeapons.Count);
+            var addIds = new HashSet<long>(builderSelectedWeapons.Count);
 
-            foreach (var blockId in componentBuilder.SelectedWeapons)
+            foreach (var blockId in builderSelectedWeapons)
             {
                 if (!TryMapPreviewToBuiltTerminalBlock<MyTerminalBlock>(blockId, out var targetBlock))
                     continue;

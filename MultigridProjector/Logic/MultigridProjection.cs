@@ -1459,7 +1459,7 @@ System.NullReferenceException: Object reference not set to an instance of an obj
             var instantBuild = requestInstant && MySession.Static.CreativeToolsEnabled(MyEventContext.Current.Sender.Value);
             var component = MySession.Static.GetComponent<MySessionComponentGameInventory>();
             var steamId = MySession.Static.Players.TryGetSteamId(owner);
-            var skinId = component?.ValidateArmor(previewBlock.SkinSubtypeId, steamId) ?? MyStringHash.NullOrEmpty;
+            var skinId = component?.ValidateItem(previewBlock.SkinSubtypeId, steamId) ?? MyStringHash.NullOrEmpty;
             var visuals = new MyCubeGrid.MyBlockVisuals(previewBlock.ColorMaskHSV.PackHSVToUint(), skinId);
 
             // Actually build the block on both the server and all clients

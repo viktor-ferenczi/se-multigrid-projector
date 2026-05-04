@@ -26,7 +26,7 @@ namespace MultigridProjectorClient.Extra
     [HarmonyPatch(typeof(MyGuiScreenGamePlay))]
     [HarmonyPatch("HandleUnhandledInput")]
     [HarmonyPriority(Priority.High)]
-    [EnsureOriginal("7b40b489")]
+    [EnsureOriginal("f7303588")]
     // ReSharper disable once UnusedType.Global
     public static class MyGuiScreenGamePlay_HandleUnhandledInput
     {
@@ -48,7 +48,7 @@ namespace MultigridProjectorClient.Extra
     [HarmonyPatch(typeof(MyCubeBuilder))]
     [HarmonyPatch("HandleGameInput")]
     [HarmonyPriority(Priority.High)]
-    [EnsureOriginal("f665e093")]
+    [EnsureOriginal("4bad9d84")]
     // ReSharper disable once UnusedType.Global
     public static class MyCubeBuilder_HandleGameInput
     {
