@@ -57,11 +57,11 @@
     <PackageReference Include="SpaceEngineers.ScriptingReferences" Version="1.3.0" />
   </ItemGroup>
 
-  <PropertyGroup>
-    <PreBuildEvent>call "$(MSBuildProjectDirectory)\..\verify_props.bat" "$(Bin64)"</PreBuildEvent>
-  </PropertyGroup>
+  <Target Name="VerifyProps" BeforeTargets="BeforeBuild" Condition="$([MSBuild]::IsOSPlatform('Windows'))">
+    <Exec Command="call &quot;$(MSBuildProjectDirectory)\..\verify_props.bat&quot; &quot;$(Bin64)&quot;" />
+  </Target>
 
-  <PropertyGroup>
-    <PostBuildEvent>call "$(MSBuildProjectDirectory)\Deploy.bat" "$(MSBuildProjectDirectory)"</PostBuildEvent>
-  </PropertyGroup>
+  <Target Name="DeployIngameApiTest" AfterTargets="Build" Condition="'$(RunPostBuildEvent)' != 'Never' AND $([MSBuild]::IsOSPlatform('Windows'))">
+    <Exec Command="call &quot;$(MSBuildProjectDirectory)\Deploy.bat&quot; &quot;$(MSBuildProjectDirectory)&quot;" />
+  </Target>
 </Project>

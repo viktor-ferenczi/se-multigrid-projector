@@ -1,6 +1,6 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFramework>net481</TargetFramework>
+    <TargetFramework>net10.0</TargetFramework>
     <OutputType>Library</OutputType>
     <RootNamespace>MultigridProjectorClient</RootNamespace>
     <AssemblyName>MultigridProjectorClient</AssemblyName>
@@ -12,6 +12,27 @@
     <!-- Default configuration if none supplied -->
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+
+    <PathSeparator Condition="$([MSBuild]::IsOSPlatform('Windows'))">\</PathSeparator>
+    <PathSeparator Condition="!$([MSBuild]::IsOSPlatform('Windows'))">/</PathSeparator>
+
+    <!-- Auto-detect Bin64 by platform when not explicitly set in Directory.Build.props -->
+
+    <!-- Windows: Steam App registry key -->
+    <_SteamAppInstallLocation Condition=" '$(Bin64)' == '' AND $([MSBuild]::IsOSPlatform('Windows')) ">$(registry:HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\Steam App 244850@InstallLocation)</_SteamAppInstallLocation>
+    <Bin64 Condition=" '$(Bin64)' == '' AND '$(_SteamAppInstallLocation)' != '' ">$(_SteamAppInstallLocation)\Bin64</Bin64>
+
+    <!-- Windows: standard Steam install path -->
+    <Bin64 Condition=" '$(Bin64)' == '' AND $([MSBuild]::IsOSPlatform('Windows')) AND Exists('C:\Program Files (x86)\Steam\steamapps\common\SpaceEngineers\Bin64') ">C:\Program Files (x86)\Steam\steamapps\common\SpaceEngineers\Bin64</Bin64>
+
+    <!-- Linux: common Steam install locations under the user home -->
+    <_UserHome Condition=" '$(Bin64)' == '' AND !$([MSBuild]::IsOSPlatform('Windows')) ">$([System.Environment]::GetFolderPath(SpecialFolder.UserProfile))</_UserHome>
+    <Bin64 Condition=" '$(Bin64)' == '' AND '$(_UserHome)' != '' AND Exists('$(_UserHome)/.steam/steam/steamapps/common/SpaceEngineers/Bin64') ">$(_UserHome)/.steam/steam/steamapps/common/SpaceEngineers/Bin64</Bin64>
+    <Bin64 Condition=" '$(Bin64)' == '' AND '$(_UserHome)' != '' AND Exists('$(_UserHome)/.local/share/Steam/steamapps/common/SpaceEngineers/Bin64') ">$(_UserHome)/.local/share/Steam/steamapps/common/SpaceEngineers/Bin64</Bin64>
+    <Bin64 Condition=" '$(Bin64)' == '' AND '$(_UserHome)' != '' AND Exists('$(_UserHome)/.var/app/com.valvesoftware.Steam/.local/share/Steam/steamapps/common/SpaceEngineers/Bin64') ">$(_UserHome)/.var/app/com.valvesoftware.Steam/.local/share/Steam/steamapps/common/SpaceEngineers/Bin64</Bin64>
+
+    <Bin64Dir>$(Bin64)</Bin64Dir>
+    <Bin64Dir Condition=" '$(Bin64Dir)' != '' AND !HasTrailingSlash('$(Bin64Dir)') ">$(Bin64Dir)$(PathSeparator)</Bin64Dir>
 
     <!-- Keep original behaviour for post/pre build events -->
     <RunPostBuildEvent>OnBuildSuccess</RunPostBuildEvent>
@@ -44,27 +65,27 @@
 
   <ItemGroup>
     <Reference Include="Sandbox.Common, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null">
-      <HintPath>$(Bin64)\Sandbox.Common.dll</HintPath>
+      <HintPath>$(Bin64Dir)Sandbox.Common.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="Sandbox.Game, Version=0.1.1.0, Culture=neutral, PublicKeyToken=null">
-      <HintPath>$(Bin64)\Sandbox.Game.dll</HintPath>
+      <HintPath>$(Bin64Dir)Sandbox.Game.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="Sandbox.Graphics, Version=0.1.1.0, Culture=neutral, PublicKeyToken=null">
-      <HintPath>$(Bin64)\Sandbox.Graphics.dll</HintPath>
+      <HintPath>$(Bin64Dir)Sandbox.Graphics.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="Sandbox.RenderDirect, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null">
-      <HintPath>$(Bin64)\Sandbox.RenderDirect.dll</HintPath>
+      <HintPath>$(Bin64Dir)Sandbox.RenderDirect.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="SpaceEngineers.Game, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null">
-      <HintPath>$(Bin64)\SpaceEngineers.Game.dll</HintPath>
+      <HintPath>$(Bin64Dir)SpaceEngineers.Game.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="SpaceEngineers.ObjectBuilders, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null">
-      <HintPath>$(Bin64)\SpaceEngineers.ObjectBuilders.dll</HintPath>
+      <HintPath>$(Bin64Dir)SpaceEngineers.ObjectBuilders.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="System" />
@@ -72,49 +93,50 @@
     <Reference Include="System.Data" />
     <Reference Include="System.Xml" />
     <Reference Include="VRage, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null">
-      <HintPath>$(Bin64)\VRage.dll</HintPath>
+      <HintPath>$(Bin64Dir)VRage.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="VRage.Game, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null">
-      <HintPath>$(Bin64)\VRage.Game.dll</HintPath>
+      <HintPath>$(Bin64Dir)VRage.Game.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="VRage.Game.XmlSerializers, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null">
-      <HintPath>$(Bin64)\VRage.Game.XmlSerializers.dll</HintPath>
+      <HintPath>$(Bin64Dir)VRage.Game.XmlSerializers.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="VRage.Input, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null">
-      <HintPath>$(Bin64)\VRage.Input.dll</HintPath>
+      <HintPath>$(Bin64Dir)VRage.Input.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="VRage.Library, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null">
-      <HintPath>$(Bin64)\VRage.Library.dll</HintPath>
+      <HintPath>$(Bin64Dir)VRage.Library.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="VRage.Math, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null">
-      <HintPath>$(Bin64)\VRage.Math.dll</HintPath>
+      <HintPath>$(Bin64Dir)VRage.Math.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="VRage.Math.XmlSerializers, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null">
-      <HintPath>$(Bin64)\VRage.Math.XmlSerializers.dll</HintPath>
+      <HintPath>$(Bin64Dir)VRage.Math.XmlSerializers.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="VRage.Network, Version=1.0.53.0, Culture=neutral, PublicKeyToken=null">
-      <HintPath>$(Bin64)\VRage.Network.dll</HintPath>
+      <HintPath>$(Bin64Dir)VRage.Network.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="VRage.Render, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null">
-      <HintPath>$(Bin64)\VRage.Render.dll</HintPath>
+      <HintPath>$(Bin64Dir)VRage.Render.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="VRage.UserInterface, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null">
-      <HintPath>$(Bin64)\VRage.UserInterface.dll</HintPath>
+      <HintPath>$(Bin64Dir)VRage.UserInterface.dll</HintPath>
       <Private>False</Private>
     </Reference>
   </ItemGroup>
 
   <ItemGroup>
     <Content Include="Deploy.bat" />
+    <Content Include="Deploy.sh" />
     <Content Include="Patches\MyProjectorBase_BuildInternal.original.il" />
     <Content Include="Patches\MyProjectorBase_BuildInternal.patched.il" />
   </ItemGroup>
@@ -137,13 +159,22 @@
   </PropertyGroup>
   -->
 
-  <PropertyGroup>
-    <PreBuildEvent>call "$(SolutionDir)verify_props.bat" "$(Bin64)"</PreBuildEvent>
-  </PropertyGroup>
+  <Target Name="VerifyProps" BeforeTargets="BeforeBuild">
+    <Exec Condition="$([MSBuild]::IsOSPlatform('Windows'))"
+          Command="call &quot;$(MSBuildProjectDirectory)\..\verify_props.bat&quot; &quot;$(Bin64)&quot;" />
+    <Exec Condition="!$([MSBuild]::IsOSPlatform('Windows'))"
+          Command="sh &quot;$(MSBuildProjectDirectory)/../verify_props.sh&quot; &quot;$(Bin64)&quot;" />
+  </Target>
 
-  <PropertyGroup>
-    <PostBuildEvent>call "$(MSBuildProjectDirectory)\Deploy.bat" "$(AssemblyName).dll" "$(MSBuildProjectDirectory)\$(OutputPath)$(TargetFramework)"</PostBuildEvent>
-  </PropertyGroup>
+  <Target Name="DeployPlugin" AfterTargets="Build" Condition="'$(RunPostBuildEvent)' != 'Never'">
+    <PropertyGroup>
+      <DeploySourceDir>$(TargetDir)</DeploySourceDir>
+    </PropertyGroup>
+    <Exec Condition="$([MSBuild]::IsOSPlatform('Windows'))"
+          Command="call &quot;$(MSBuildProjectDirectory)\Deploy.bat&quot; &quot;$(AssemblyName).dll&quot; &quot;$(DeploySourceDir)&quot;" />
+    <Exec Condition="!$([MSBuild]::IsOSPlatform('Windows'))"
+          Command="sh &quot;$(MSBuildProjectDirectory)/Deploy.sh&quot; &quot;$(AssemblyName).dll&quot; &quot;$(DeploySourceDir)&quot;" />
+  </Target>
 
   <Import Project="..\MultigridProjector\MultigridProjector.projitems" Label="Shared" />
   <Import Project="..\MultigridProjectorApi\MultigridProjectorApi.projitems" Label="Shared" />
