@@ -52,7 +52,10 @@ namespace MultigridProjectorClient.Extra
                         builtBlock.SkinSubtypeId == previewBlock.SkinSubtypeId)
                         continue;
 
-                    builtGrid.SkinBlocks(position, position, previewBlock.ColorMaskHSV, previewBlock.SkinSubtypeId, false);
+                    // Transform the position from the preview grid to the built grid
+                    var builtPosition = subgrid.PreviewToBuiltBlockPosition(position);
+
+                    builtGrid.SkinBlocks(builtPosition, builtPosition, previewBlock.ColorMaskHSV, previewBlock.SkinSubtypeId, false);
                 }
             }
         }
