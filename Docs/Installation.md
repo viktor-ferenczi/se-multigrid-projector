@@ -1,5 +1,8 @@
 # Installation
 
+> Part of the [Documentation Handbook](Handbook.md). Developers: see
+> [Configuration](Reference/Configuration.md) for how these settings are implemented.
+
 Multigrid Projector ships as two plugins:
 
 - a **client plugin** loaded by [Pulsar](https://github.com/SpaceGT/Pulsar) in the game client, and

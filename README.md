@@ -62,12 +62,25 @@ Configuration file is `MultigridProjector.cfg`, created in the `SpaceEngineersDe
 **FIXME:** Include a default config here, because only the ones with non-default values are saved.
 </details>
 
-## Contents
+## Documentation
+
+Full documentation lives in the [Docs](Docs) folder. Start at the
+**[Documentation Handbook](Docs/Handbook.md)** — the entry point to everything below.
+
+**User guides**
 
 - [Installation](Docs/Installation.md) — client (Pulsar) and server (Quasar / standalone Magnetar)
 - [Troubleshooting](Docs/Troubleshooting.md) — common issues, Proton/Linux notes, getting help
 - [Building from source](Docs/Building.md) — prerequisites and local build/deploy
-- [Mod & PB API](Docs/API.md) - Scripting API for mods and programmable blocks
+- [Mod & PB API](Docs/API.md) — scripting API for mods and programmable blocks
+
+**Developer reference**
+
+- [Handbook](Docs/Handbook.md) — table of contents for all docs
+- [Architecture](Docs/Architecture.md) — how the plugin fits together (read this first)
+- [Source File Index](Docs/Index.md) — every source file, grouped and linked
+- [Reference pages](Docs/Reference) — per-subsystem developer reference (engine, patches, API, client, server, …)
+
 - [Credits](#credits)
 
 ## Installation

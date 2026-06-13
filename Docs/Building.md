@@ -1,5 +1,9 @@
 # Building from source
 
+> Part of the [Documentation Handbook](Handbook.md). For the solution structure, multi-targeting,
+> publicizer setup and deploy pipeline behind these commands, see
+> [Build & Project Layout](Reference/Build-And-Project-Layout.md).
+
 ## Prerequisites
 
 - [Space Engineers](https://store.steampowered.com/app/244850/Space_Engineers/) (for the client plugin)

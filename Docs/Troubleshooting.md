@@ -1,5 +1,8 @@
 # Troubleshooting
 
+> Part of the [Documentation Handbook](Handbook.md). Developers: the IL-verification check below is
+> implemented by `EnsureOriginal` — see [Shared Utilities](Reference/Shared-Utilities.md).
+
 In case of problems join the [SE Mods Discord](https://discord.gg/PYPFPGf3Ca) to get help. If you
 use a 3rd party game server hosting provider, please follow their documentation on how to install
 server plugins or contact their support.
