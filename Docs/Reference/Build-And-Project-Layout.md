@@ -84,9 +84,21 @@ side of this is the [`IgnoresAccessChecksToAttribute`](./Shared-Utilities.md) de
 [`GameAssembliesToPublicize.cs`](../../Shared/Utilities/GameAssembliesToPublicize.cs).
 
 > Where the publicizer makes a member directly accessible, the code calls it directly; the
-> [Shared Extension Methods](./Shared-Extensions.md) remain only for the field access that still
-> needs a wrapper. Older reflection-based access has largely been replaced by publicized access
+> [Shared Extension Methods](./Shared-Extensions.md) remain only for the access that still needs a
+> wrapper. Older reflection-based access has largely been replaced by publicized access
 > (see commit history).
+
+> **Caveat — `protected virtual` game members.** The two publicizers do not agree on every member.
+> Krafs (local `DEV_BUILD`) publicizes everything, so a local build compiles even when a member is
+> `protected virtual`. The Pulsar/Magnetar **source-compile** publicizer, however, leaves
+> `protected virtual`/`override`/`abstract` members `protected` — widening a virtual member's
+> accessibility would break override chains, since a C# `override` cannot change accessibility.
+> A direct call to such a member therefore builds locally but fails the production source-compile
+> with `CS0122`. These members (currently `MyProjectorBase.SetTransparency` and
+> `MyMechanicalConnectionBlockBase.Attach`, both `protected virtual`) must stay behind the
+> reflection wrappers in [Shared Extension Methods](./Shared-Extensions.md). Plain (non-virtual)
+> `protected`, `private`, and `internal` members are exposed by both publicizers and can be called
+> directly.
 
 Other key package references: **Lib.Harmony 2.4.2** (patching) and **Mono.Cecil 0.11.6** (IL
 inspection for the [`EnsureOriginal`](./Shared-Utilities.md) / [transpiler](./Shared-Utilities.md)

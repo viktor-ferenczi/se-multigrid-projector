@@ -1,4 +1,7 @@
 using System.Collections.Generic;
+using System.Reflection;
+using HarmonyLib;
+using MultigridProjector.Utilities;
 using Sandbox.Definitions;
 using Sandbox.Game.Entities;
 using Sandbox.Game.Entities.Blocks;
@@ -9,12 +12,25 @@ using VRageMath;
 namespace MultigridProjector.Extensions
 {
     // The projector's internal members are reached directly thanks to the Krafs publicizer.
-    // Game methods that became public (IsProjecting, RemoveProjection, SendNewBlueprint,
-    // UpdateSounds, UpdateText, SetTransparency, SetRotation, CheckMissingDlcs,
+    // Game methods that are private/internal or plain (non-virtual) protected (IsProjecting,
+    // RemoveProjection, SendNewBlueprint, UpdateSounds, UpdateText, SetRotation, CheckMissingDlcs,
     // RequestRemoveProjection, MyProjector_IsWorkingChanged) are now called on the instance
     // directly, so no wrapper extensions are needed for them.
+    //
+    // SetTransparency is the exception: it is protected *virtual*, which the Pulsar/Magnetar
+    // source-compile publicizer leaves protected (publicizing a virtual member would break
+    // override chains, since an override cannot change accessibility). It must therefore still
+    // be reached by reflection. In the local Krafs build the public instance method wins over
+    // this extension, so the wrapper is harmless there.
     public static class MyProjectorBaseExtensions
     {
+        private static readonly MethodInfo SetTransparencyMethodInfo = Validation.EnsureInfo(AccessTools.DeclaredMethod(typeof(MyProjectorBase), "SetTransparency"));
+
+        public static void SetTransparency(this MyProjectorBase projector, MySlimBlock cubeBlock, float transparency)
+        {
+            SetTransparencyMethodInfo.Invoke(projector, new object[] {cubeBlock, transparency});
+        }
+
         public static MyProjectorClipboard GetClipboard(this MyProjectorBase projector)
         {
             return projector.Clipboard;
