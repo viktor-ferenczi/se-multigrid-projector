@@ -1,5 +1,4 @@
-﻿using MultigridProjectorClient.Utilities;
-using Sandbox;
+﻿using Sandbox;
 using Sandbox.Graphics.GUI;
 using System;
 using System.Collections.Generic;
@@ -35,8 +34,8 @@ namespace MultigridProjectorClient.Menus
                 onClosing: onClosing
             );
 
-            // Get the (private) multiline text control so that we can change the text position
-            MyGuiControlMultilineText messageBoxText = (MyGuiControlMultilineText)Reflection.GetValue(messageBox, "m_messageBoxText");
+            // Get the (publicized) multiline text control so that we can change the text position
+            MyGuiControlMultilineText messageBoxText = messageBox.m_messageBoxText;
             messageBoxText.TextAlign = MyGuiDrawAlignEnum.HORISONTAL_CENTER_AND_VERTICAL_TOP;
             messageBoxText.Size = new Vector2(0.5f, 0.2f);
             messageBoxText.Position = new Vector2(0f, -0.27f);
@@ -93,11 +92,11 @@ namespace MultigridProjectorClient.Menus
 
             SortByColumn(componentTable, 3, true);
 
-            MyGuiControls controls = (MyGuiControls)Reflection.GetValue(typeof(MyGuiScreenBase), messageBox, "m_controls");
+            MyGuiControls controls = messageBox.Controls;
             controls.Add(componentTable);
 
             // Change the yes button text
-            MyGuiControlButton yesButton = (MyGuiControlButton)Reflection.GetValue(messageBox, "m_yesButton");
+            MyGuiControlButton yesButton = messageBox.m_yesButton;
             yesButton.Text = "Assemble Missing";
 
             int totalMissing = 0;
@@ -118,7 +117,7 @@ namespace MultigridProjectorClient.Menus
             }
 
             // Change the no button text
-            MyGuiControlButton noButton = (MyGuiControlButton)Reflection.GetValue(messageBox, "m_noButton");
+            MyGuiControlButton noButton = messageBox.m_noButton;
             noButton.Text = "Assemble Selected";
 
             noButton.SetToolTip(new MyToolTips("Assemble any selected 'Missing' components"));
@@ -127,7 +126,7 @@ namespace MultigridProjectorClient.Menus
             
             // Change to Cancel button text
             // FIXME: Prevent button from closing dialog
-            MyGuiControlButton cancelButton = (MyGuiControlButton)Reflection.GetValue(messageBox, "m_cancelButton");
+            MyGuiControlButton cancelButton = messageBox.m_cancelButton;
             cancelButton.Text = "Copy BoM";
             cancelButton.SetToolTip(new MyToolTips("Copy an Isy-compatible Bill of Materials to clipboard, for use with Special containers."));
             cancelButton.ButtonClicked += (_) => CopyBom(bomLines);

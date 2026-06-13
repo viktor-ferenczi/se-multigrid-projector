@@ -257,30 +257,47 @@
   <ItemGroup>
     <PackageReference Include="Lib.Harmony" Version="2.4.2" />
     <PackageReference Include="Mono.Cecil" Version="0.11.6" />
-    <!-- Uncomment to enable publicizer support  
     <PackageReference Include="Krafs.Publicizer" Version="2.3.0">
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
-    -->
   </ItemGroup>
 
-  <!-- Uncomment to enable publicizer support
   <PropertyGroup>
     <PublicizerClearCacheOnClean>true</PublicizerClearCacheOnClean>
     <PublicizerRuntimeStrategies>Unsafe;IgnoresAccessChecksTo</PublicizerRuntimeStrategies>
     <PublicizerLogFilePath>$(MSBuildProjectDirectory)\$(OutputPath)Krafs.Publicizer.log</PublicizerLogFilePath>
   </PropertyGroup>
-  
+
   <ItemGroup>
     <Publicize Include="Sandbox.Game"/>
     <Publicize Include="SpaceEngineers.Game"/>
+    <Publicize Include="Sandbox.Graphics"/>
+    <!-- Events must not be publicized: exposing their backing delegate field causes
+         CS0229 ambiguity at every += / -= / ?.Invoke site that uses the event. -->
     <DoNotPublicize Include="Sandbox.Game:Sandbox.Game.Entities.MyEntities.OnEntityAdd"/>
     <DoNotPublicize Include="Sandbox.Game:Sandbox.Game.Entities.MyEntities.OnEntityRemove"/>
+    <DoNotPublicize Include="Sandbox.Game:Sandbox.Game.Entities.MyEntities.OnEntityCreate"/>
     <DoNotPublicize Include="Sandbox.Game:Sandbox.Game.Entities.MyCubeGrid.OnStaticChanged"/>
-  </ItemGroup>  
-  -->
-    
+    <DoNotPublicize Include="Sandbox.Game:Sandbox.Game.Entities.MyCubeGrid.OnBlockAdded"/>
+    <DoNotPublicize Include="Sandbox.Game:Sandbox.Game.Entities.MyCubeGrid.OnBlockRemoved"/>
+    <DoNotPublicize Include="Sandbox.Game:Sandbox.Game.Entities.MyCubeGrid.OnBlockIntegrityChanged"/>
+    <DoNotPublicize Include="Sandbox.Game:Sandbox.Game.Entities.MyCubeGrid.OnFatBlockAdded"/>
+    <DoNotPublicize Include="Sandbox.Game:Sandbox.Game.Entities.MyCubeGrid.OnGridSplit"/>
+    <DoNotPublicize Include="Sandbox.Game:Sandbox.Game.Entities.MyCubeGrid.OnGridMerge"/>
+    <DoNotPublicize Include="Sandbox.Game:Sandbox.Game.Entities.MyCubeBlock.CheckConnectionChanged"/>
+    <DoNotPublicize Include="Sandbox.Game:Sandbox.Game.Entities.Blocks.MyMechanicalConnectionBlockBase.OnAttachedChanged"/>
+    <DoNotPublicize Include="Sandbox.Game:Sandbox.Game.Entities.Cube.MyTerminalBlock.PropertiesChanged"/>
+    <DoNotPublicize Include="Sandbox.Graphics:Sandbox.Graphics.GUI.MyGuiScreenBase.Closed"/>
+    <DoNotPublicize Include="Sandbox.Graphics:Sandbox.Graphics.GUI.MyGuiScreenBase.DataUnloading"/>
+    <DoNotPublicize Include="Sandbox.Graphics:Sandbox.Graphics.GUI.MyGuiControlButton.ButtonClicked"/>
+    <DoNotPublicize Include="Sandbox.Graphics:Sandbox.Graphics.GUI.MyGuiControlTextbox.TextChanged"/>
+    <DoNotPublicize Include="Sandbox.Graphics:Sandbox.Graphics.GUI.MyGuiControlTable.ColumnClicked"/>
+    <DoNotPublicize Include="Sandbox.Graphics:Sandbox.Graphics.GUI.MyGuiControlTable.ItemSelected"/>
+    <DoNotPublicize Include="Sandbox.Graphics:Sandbox.Graphics.GUI.MyGuiControlCombobox.ItemSelected"/>
+    <DoNotPublicize Include="Sandbox.Graphics:Sandbox.Graphics.GUI.MyGuiScreenDialogAmount.OnConfirmed"/>
+  </ItemGroup>
+
   <PropertyGroup Condition=" $([MSBuild]::IsOSPlatform('Windows')) ">
     <PreBuildEvent>call "$(SolutionDir)\verify_props.bat" "$(Bin64)"</PreBuildEvent>
     <PostBuildEvent>call "$(MSBuildProjectDirectory)\Deploy.bat" "$(AssemblyName).dll" "$(MSBuildProjectDirectory)\$(OutputPath)$(TargetFramework)"</PostBuildEvent>

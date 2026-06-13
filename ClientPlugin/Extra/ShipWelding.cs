@@ -117,7 +117,7 @@ namespace MultigridProjectorClient.Extra
             if (welder.Enabled == false)
                 return targets;
 
-            BoundingSphere detectorSphere = (BoundingSphere)Reflection.GetValue(welder, "m_detectorSphere");
+            BoundingSphere detectorSphere = welder.DetectorSphere;
             BoundingSphereD boundingSphere = new BoundingSphereD(
                 Vector3D.Transform(detectorSphere.Center, welder.CubeGrid.WorldMatrix),
                 detectorSphere.Radius);

@@ -1,5 +1,4 @@
-﻿using MultigridProjectorClient.Utilities;
-using Sandbox.Game;
+﻿using Sandbox.Game;
 using Sandbox.Graphics.GUI;
 using System;
 using System.Text;
@@ -99,8 +98,8 @@ namespace MultigridProjectorClient.Menus
             // Make the background color less transparent, as the default is very faint and this is an important message
             messageBox.BackgroundColor = new Vector4(1f, 1f, 1f, 10.0f);
 
-            // Get the (private) multiline text control so that we can change the text alignment
-            MyGuiControlMultilineText messageBoxText = (MyGuiControlMultilineText)Reflection.GetValue(messageBox, "m_messageBoxText");
+            // Get the (publicized) multiline text control so that we can change the text alignment
+            MyGuiControlMultilineText messageBoxText = messageBox.m_messageBoxText;
             messageBoxText.TextAlign = MyGuiDrawAlignEnum.HORISONTAL_LEFT_AND_VERTICAL_TOP;
 
             // Make another multiline text control but with the text aligned to the opposite side
@@ -123,12 +122,12 @@ namespace MultigridProjectorClient.Menus
                 textScale: 0.8f,
                 textAlign: MyGuiDrawAlignEnum.HORISONTAL_CENTER_AND_VERTICAL_TOP);
 
-            MyGuiControls controls = (MyGuiControls)Reflection.GetValue(typeof(MyGuiScreenBase), messageBox, "m_controls");
+            MyGuiControls controls = messageBox.Controls;
             controls.Add(keybindText);
             controls.Add(centerText);
 
             // Change the button text
-            MyGuiControlButton button = (MyGuiControlButton)Reflection.GetValue(messageBox, "m_yesButton");
+            MyGuiControlButton button = messageBox.m_yesButton;
             button.Text = "Acknowledge";
 
             return messageBox;

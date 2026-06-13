@@ -9,7 +9,7 @@ using VRage.Utils;
 using VRageMath;
 using Sandbox.Game.Multiplayer;
 using Sandbox.Definitions;
-using System.Linq.Expressions;
+using Sandbox.Engine.Multiplayer;
 using VRage.Game;
 using VRage.Network;
 using VRage;
@@ -46,60 +46,32 @@ namespace MultigridProjectorClient.Utilities
         {
             MyCubeBuilder cubeBuilder = (MyCubeBuilder)MyAPIGateway.CubeBuilder;
 
-            // Specify the position of the block. This is of the private type BuildData and therefore must be made at runtime.
-            object position = Activator.CreateInstance(Reflection.GetType(cubeBuilder, "BuildData"));
-            Reflection.SetValue(position, "Position", worldMatrix.Translation);
+            // Specify the position of the block. BuildData, Author and GridSpawnRequestData are nested
+            // types of MyCubeBuilder, publicized so they can be constructed and filled in directly.
+            // This mirrors MyCubeBuilder's own RaiseStaticEvent call for spawning a grid.
+            MyCubeBuilder.BuildData position = default;
+            position.Position = worldMatrix.Translation;
 
             if (MySession.Static.ControlledEntity != null)
-                Reflection.SetValue(position, "Position", worldMatrix.Translation - MySession.Static.ControlledEntity.Entity.PositionComp.GetPosition());
+                position.Position -= MySession.Static.ControlledEntity.Entity.PositionComp.GetPosition();
             else
-                Reflection.SetValue(position, "AbsolutePosition", true);
+                position.AbsolutePosition = true;
 
-            Reflection.SetValue(position, "Forward", (Vector3)worldMatrix.Forward);
-            Reflection.SetValue(position, "Up", (Vector3)worldMatrix.Up);
+            position.Forward = (Vector3)worldMatrix.Forward;
+            position.Up = (Vector3)worldMatrix.Up;
 
-            // Specify the author of the block. This is of the private type Author and therefore must be made at runtime.
-            object authorData = Activator.CreateInstance(
-                Reflection.GetType(cubeBuilder, "Author"), 
-                MySession.Static.LocalCharacterEntityId, 
-                MySession.Static.LocalPlayerId);
-
-            // Create the data to be used in the multiplayer request. This is of the private type GridSpawnRequestData and therefore must be made at runtime.
-            object requestData = Activator.CreateInstance(
-                Reflection.GetType(cubeBuilder, "GridSpawnRequestData"), 
-                authorData, 
-                (DefinitionIdBlit) blockDefinition.Id, 
-                position, 
-                MySession.Static.CreativeToolsEnabled(Sync.MyId), 
-                false, 
+            var requestData = new MyCubeBuilder.GridSpawnRequestData(
+                new MyCubeBuilder.Author(MySession.Static.LocalCharacterEntityId, MySession.Static.LocalPlayerId),
+                blockDefinition.Id,
+                position,
+                MySession.Static.CreativeToolsEnabled(Sync.MyId),
+                false,
                 visuals);
 
-            // Get the method that is (indirectly) passed into the multiplayer request
-            Delegate requestGridSpawn = Reflection.GetMethod(typeof(MyCubeBuilder), "RequestGridSpawn");
+            MyMultiplayer.RaiseStaticEvent((IMyEventOwner s) => MyCubeBuilder.RequestGridSpawn, requestData);
 
-            // Create the lambda that is passed to the multiplayer request and returns the RequestGridSpawn method when called.
-            // The game requires that it takes a parameter despite it not being used in any way.
-            // As the return type is only known at runtime it must also be compiled it at runtime.
-            var lambda = Expression.Lambda(
-                Expression.Constant(requestGridSpawn),
-                Expression.Parameter(typeof(IMyEventOwner), "s"));
-
-            var requestGridSpawnWrapper = lambda.Compile();
-
-            // Get the RaiseStaticEvent function that is used for multiplayer communication.
-            // This is a generic method so after finding it we need to create one for the GridSpawnRequestData type
-            var raiseStaticEvent = Reflection.GetGenericMethod(
-                typeof(Sandbox.Engine.Multiplayer.MyMultiplayer),
-                (m) => m.Name == "RaiseStaticEvent" && m.IsGenericMethodDefinition && m.GetParameters().Length == 4,
-                new Type[]
-                {
-                    Reflection.GetType(cubeBuilder, "GridSpawnRequestData")
-                });
-
-            // Invoke the method with the wrapper function, request data, and default optional parameters
-            raiseStaticEvent.DynamicInvoke(requestGridSpawnWrapper, requestData, default(EndpointId), null);
-
-            // Call everything subscribed to the OnBlockAdded event
+            // Call everything subscribed to the OnBlockAdded event. C# does not allow raising another
+            // type's event, so the backing delegate is still reached via reflection.
             var eventDelegate = (Delegate) Reflection.GetValue(cubeBuilder, "OnBlockAdded");
 
             if (eventDelegate == null)

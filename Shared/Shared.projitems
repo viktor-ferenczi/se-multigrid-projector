@@ -18,7 +18,6 @@
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\MyCubeBlockExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\MyCubeGridExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\MyMechanicalConnectionBlockBaseExtensions.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Extensions\MyMotorStatorExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\MyObjectBuilderExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\MyProjectorBaseExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Logic\BlockMinLocation.cs" />

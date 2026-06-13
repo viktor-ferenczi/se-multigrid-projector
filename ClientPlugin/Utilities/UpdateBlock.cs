@@ -24,8 +24,7 @@ namespace MultigridProjectorClient.Utilities
             Events.InvokeOnGameThread(() =>
             {
                 long eventId = ((Sandbox.ModAPI.IMyEventControllerBlock)sourceBlock).SelectedEvent.UniqueSelectionId;
-                Delegate selectEvent = Reflection.GetMethod(typeof(MyEventControllerBlock), destinationBlock, "SelectEvent");
-                selectEvent.DynamicInvoke(eventId);
+                destinationBlock.SelectEvent(eventId);
             }, 30);
 
             Events.InvokeOnGameThread(() => { CopyEventControllerCondition(sourceBlock, destinationBlock); }, 15);
@@ -40,8 +39,8 @@ namespace MultigridProjectorClient.Utilities
             if (previewBlock.Components.TryGet<MyEventAngleChanged>(out var sourceComp) &&
                 builtBlock.Components.TryGet<MyEventAngleChanged>(out var destinationComp))
             {
-                Sync<float, SyncDirection.BothWays> sourceAngle = (Sync<float, SyncDirection.BothWays>)Reflection.GetValue(sourceComp, "m_angle");
-                Sync<float, SyncDirection.BothWays> destinationAngle = (Sync<float, SyncDirection.BothWays>)Reflection.GetValue(destinationComp, "m_angle");
+                Sync<float, SyncDirection.BothWays> sourceAngle = sourceComp.m_angle;
+                Sync<float, SyncDirection.BothWays> destinationAngle = destinationComp.m_angle;
 
                 destinationAngle.Value = sourceAngle.Value;
             }
@@ -200,13 +199,12 @@ namespace MultigridProjectorClient.Utilities
 
         private static void CopyBlueprints(MyProjectorBase sourceBlock, MyProjectorBase destinationBlock)
         {
-            var projectedGrids = (List<MyObjectBuilder_CubeGrid>)Reflection.GetValue(sourceBlock, "m_savedProjections");
-            var initFromObjectBuilder = Reflection.GetMethod(typeof(MyProjectorBase), destinationBlock, "InitFromObjectBuilder");
+            var projectedGrids = sourceBlock.m_savedProjections;
 
             if (projectedGrids == null)
                 return;
 
-            initFromObjectBuilder.DynamicInvoke(projectedGrids, null);
+            destinationBlock.InitFromObjectBuilder(projectedGrids, null);
         }
     }
 }

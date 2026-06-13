@@ -1,5 +1,4 @@
 ﻿using Entities.Blocks;
-using HarmonyLib;
 using MultigridProjector.Extensions;
 using MultigridProjector.Logic;
 using MultigridProjectorClient.Utilities;
@@ -119,13 +118,7 @@ namespace MultigridProjectorClient.Extra
 
         private static MyAssembler GetProductionAssembler()
         {
-            MyAssembler assembler = Traverse.Create<MyGuiScreenTerminal>()
-                .Field("m_instance")
-                .Field("m_controllerProduction")
-                .Field("m_selectedAssembler")
-                .GetValue<MyAssembler>();
-
-            return assembler;
+            return MyGuiScreenTerminal.m_instance?.m_controllerProduction?.m_selectedAssembler;
         }
 
         private static Dictionary<MyDefinitionId, int> GetBlueprintComponents(MyProjectorBase projector)
@@ -320,10 +313,7 @@ namespace MultigridProjectorClient.Extra
 
         public static void SwitchToProductionTab()
         {
-            MyGuiControlTabControl terminalTabs = Traverse.Create<MyGuiScreenTerminal>()
-                .Field("m_instance")
-                .Field("m_terminalTabs")
-                .GetValue<MyGuiControlTabControl>();
+            MyGuiControlTabControl terminalTabs = MyGuiScreenTerminal.m_instance.m_terminalTabs;
 
             terminalTabs.SelectedPage = (int) MyTerminalPageEnum.Production;
         }

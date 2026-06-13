@@ -1,7 +1,4 @@
-using System.Reflection;
 using System.Runtime.CompilerServices;
-using HarmonyLib;
-using MultigridProjector.Utilities;
 using Sandbox.Game.Entities;
 using Sandbox.Game.Entities.Blocks;
 using Sandbox.Game.Entities.Cube;
@@ -9,7 +6,6 @@ using System.Collections.Generic;
 using System.Linq;
 using Sandbox.Game.Screens.Helpers;
 using Sandbox.ModAPI;
-using Sandbox.Graphics.GUI;
 using SpaceEngineers.Game.Entities.Blocks;
 using VRage.Game;
 using VRage.ObjectBuilder;
@@ -46,12 +42,8 @@ namespace MultigridProjector.Extensions
                    previewBlock.Orientation.Up == blockBuilder.BlockOrientation.Up;
         }
 
-        private static readonly MethodInfo RecreateTopInfo = Validation.EnsureInfo(AccessTools.DeclaredMethod(typeof(MyMechanicalConnectionBlockBase), "RecreateTop"));
-
-        public static void RecreateTop(this MyMechanicalConnectionBlockBase stator, long? builderId = null, MyMechanicalConnectionBlockBase.MyTopBlockSize topSize = MyMechanicalConnectionBlockBase.MyTopBlockSize.Normal, bool instantBuild = false)
-        {
-            RecreateTopInfo.Invoke(stator, new object[] { builderId, topSize, instantBuild });
-        }
+        // RecreateTop is now public on MyMechanicalConnectionBlockBase (via the publicizer),
+        // so callers invoke it directly without a reflection wrapper.
 
         // Aligns the grid of the block to a corresponding block on another grid
         public static void AlignGrid(this MyCubeBlock block, MyCubeBlock referenceBlock)
@@ -113,63 +105,38 @@ namespace MultigridProjector.Extensions
             return null;
         }
 
-        private static readonly FieldInfo DefensiveCombatWaypointActionsToolbarField = AccessTools.DeclaredField(typeof(MyDefensiveCombatBlock), "m_waypointActionsToolbar");
-
         public static MyToolbar GetWaypointActionsToolbar(this MyDefensiveCombatBlock defensiveCombatBlock)
         {
-            return (MyToolbar)DefensiveCombatWaypointActionsToolbarField.GetValue(defensiveCombatBlock);
+            return defensiveCombatBlock.m_waypointActionsToolbar;
         }
-
-        private static readonly FieldInfo OffensiveCombatWaypointActionsToolbarField = AccessTools.DeclaredField(typeof(MyOffensiveCombatBlock), "m_waypointActionsToolbar");
 
         public static MyToolbar GetWaypointActionsToolbar(this MyOffensiveCombatBlock offensiveCombatBlock)
         {
-            return (MyToolbar)OffensiveCombatWaypointActionsToolbarField.GetValue(offensiveCombatBlock);
+            return offensiveCombatBlock.m_waypointActionsToolbar;
         }
-
-        private static readonly FieldInfo BoundCameraSyncField = AccessTools.DeclaredField(typeof(MyRemoteControl), "m_bindedCamera" /* sic */);
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Sync<long, SyncDirection.BothWays> GetBoundCameraSync(this MyRemoteControl remoteControlBlock)
         {
-            return (Sync<long, SyncDirection.BothWays>)BoundCameraSyncField.GetValue(remoteControlBlock);
+            return remoteControlBlock.m_bindedCamera /* sic */;
         }
-
-        private static readonly FieldInfo SelectedBlockIdsField = AccessTools.DeclaredField(typeof(MyEventControllerBlock), "m_selectedBlockIds");
 
         public static MySerializableList<long> GetSelectedBlockIds(this MyEventControllerBlock eventControllerBlock)
         {
-            return (MySerializableList<long>)SelectedBlockIdsField.GetValue(eventControllerBlock);
+            return eventControllerBlock.m_selectedBlockIds;
         }
 
         public static void SetSelectedBlockIds(this MyEventControllerBlock eventControllerBlock, MySerializableList<long> selectedBlockIds)
         {
-            SelectedBlockIdsField.SetValue(eventControllerBlock, selectedBlockIds);
+            eventControllerBlock.m_selectedBlockIds = selectedBlockIds;
         }
-
-        private static readonly FieldInfo SelectedBlocksField = AccessTools.DeclaredField(typeof(MyEventControllerBlock), "m_selectedBlocks");
 
         public static Dictionary<long, IMyTerminalBlock> GetSelectedBlocks(this MyEventControllerBlock eventControllerBlock)
         {
-            return (Dictionary<long, IMyTerminalBlock>)SelectedBlocksField.GetValue(eventControllerBlock);
+            return eventControllerBlock.m_selectedBlocks;
         }
 
-        private static readonly MethodInfo SelectAvailableBlocksMethod = AccessTools.DeclaredMethod(typeof(MyEventControllerBlock), "SelectAvailableBlocks");
-
-        // ReSharper disable once UnusedMember.Global
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void SelectAvailableBlocks(this MyEventControllerBlock block, List<MyGuiControlListbox.Item> selection)
-        {
-            SelectAvailableBlocksMethod.Invoke(block, new object[] { selection });
-        }
-
-        private static readonly MethodInfo SelectButtonMethod = AccessTools.DeclaredMethod(typeof(MyEventControllerBlock), "SelectButton");
-
-        // ReSharper disable once UnusedMember.Global
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void SelectButton(this MyEventControllerBlock block)
-        {
-            SelectButtonMethod.Invoke(block, new object[] { });
-        }
+        // SelectAvailableBlocks and SelectButton are now public on MyEventControllerBlock (via the
+        // publicizer), so callers invoke them directly without reflection wrappers.
     }
 }

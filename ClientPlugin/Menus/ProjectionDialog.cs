@@ -1,5 +1,4 @@
-﻿using MultigridProjectorClient.Utilities;
-using ClientPlugin;
+﻿using ClientPlugin;
 using Sandbox.Graphics.GUI;
 using System.Text;
 using VRage.Utils;
@@ -74,13 +73,13 @@ namespace MultigridProjectorClient.Menus
             // Make the background color less transparent, as the default is very faint and this is an important message
             messageBox.BackgroundColor = new Vector4(1f, 1f, 1f, 10.0f);
 
-            // Get the (private) multiline text control so that we can change the text alignment
-            MyGuiControlMultilineText messageBoxText = (MyGuiControlMultilineText)Reflection.GetValue(messageBox, "m_messageBoxText");
+            // Get the (publicized) multiline text control so that we can change the text alignment
+            MyGuiControlMultilineText messageBoxText = messageBox.m_messageBoxText;
             messageBoxText.TextAlign = MyGuiDrawAlignEnum.HORISONTAL_LEFT_AND_VERTICAL_TOP;
 
 
             // Change the button text
-            MyGuiControlButton button = (MyGuiControlButton)Reflection.GetValue(messageBox, "m_yesButton");
+            MyGuiControlButton button = messageBox.m_yesButton;
             button.Text = "Acknowledge";
 
             return messageBox;
@@ -98,7 +97,7 @@ namespace MultigridProjectorClient.Menus
             messageBox.BackgroundColor = new Vector4(1f, 1f, 1f, 10.0f);
 
             // Change the button text
-            MyGuiControlButton button = (MyGuiControlButton)Reflection.GetValue(messageBox, "m_yesButton");
+            MyGuiControlButton button = messageBox.m_yesButton;
             button.Text = "Acknowledge";
 
             return messageBox;

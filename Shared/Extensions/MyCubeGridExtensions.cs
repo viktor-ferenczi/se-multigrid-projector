@@ -1,12 +1,8 @@
 using System.Collections.Generic;
-using System.Reflection;
 using System.Runtime.CompilerServices;
-using HarmonyLib;
-using MultigridProjector.Utilities;
 using Sandbox.Game.Entities;
 using Sandbox.Game.Entities.Cube;
 using Sandbox.Game.GameSystems;
-using VRageMath;
 
 namespace MultigridProjector.Extensions
 {
@@ -24,22 +20,12 @@ namespace MultigridProjector.Extensions
             return $"{grid.GetSafeName()} [{grid.EntityId}]";
         }
 
-        private static readonly MethodInfo RayCastBlocksAllOrderedInfo = Validation.EnsureInfo(AccessTools.DeclaredMethod(typeof(MyCubeGrid), "RayCastBlocksAllOrdered"));
-        public static List<MyCube> RayCastBlocksAllOrdered(this MyCubeGrid obj, Vector3D worldStart, Vector3D worldEnd)
-        {
-            return RayCastBlocksAllOrderedInfo.Invoke(obj, new object[] {worldStart, worldEnd}) as List<MyCube>;
-        }
+        // RayCastBlocksAllOrdered and AddGroup are now public on MyCubeGrid (via the publicizer),
+        // so callers invoke them directly without reflection wrappers.
 
-        private static readonly FieldInfo BlockGroupsInfo = Validation.EnsureInfo(AccessTools.Field(typeof(MyCubeGrid), "BlockGroups"));
         public static List<MyBlockGroup> GetBlockGroups(this MyCubeGrid grid)
         {
-            return (List<MyBlockGroup>)BlockGroupsInfo.GetValue(grid);
-        }
-
-        private static readonly MethodInfo AddGroupInfo = Validation.EnsureInfo(AccessTools.DeclaredMethod(typeof(MyCubeGrid), "AddGroup", new []{typeof(MyBlockGroup), typeof(bool)}));
-        public static void AddGroup(this MyCubeGrid obj, MyBlockGroup group, bool unionSameNameGroups = true)
-        {
-            AddGroupInfo.Invoke(obj, new object[] {group, unionSameNameGroups});
+            return grid.BlockGroups;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]

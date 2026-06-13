@@ -168,7 +168,7 @@ namespace MultigridProjectorClient.Extra
             }
             else
             {
-                MyGuiScreenTerminal instance = (MyGuiScreenTerminal) Reflection.GetValue(typeof(MyGuiScreenTerminal), "m_instance");
+                MyGuiScreenTerminal instance = MyGuiScreenTerminal.m_instance;
                 instance.DataUnloading += (_) => Instance?.Assign(projector);
             }
 

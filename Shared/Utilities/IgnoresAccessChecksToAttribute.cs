@@ -6,8 +6,6 @@
 namespace System.Runtime.CompilerServices
 {
     
-    /* Uncomment to enable publicizer support
-     
     // This code is required in "production" when Pulsar builds the plugin
     [AttributeUsage(AttributeTargets.Assembly, AllowMultiple = true)]
     public sealed class IgnoresAccessChecksToAttribute : Attribute
@@ -19,9 +17,7 @@ namespace System.Runtime.CompilerServices
 
         public string AssemblyName { get; }
     }
-    
-    */
-    
+
 }
 
 #endif

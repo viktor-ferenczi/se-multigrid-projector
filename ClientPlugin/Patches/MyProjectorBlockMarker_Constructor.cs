@@ -11,8 +11,8 @@ namespace MultigridProjectorClient.Patches
         // ReSharper disable once UnusedMember.Local
         private static MethodBase TargetMethod()
         {
-            var type = AccessTools.Inner(typeof(Sandbox.Game.Entities.Blocks.MyProjectorBase), "MyProjectorBlockMarker");
-            return AccessTools.Constructor(type, new[] { typeof(int), typeof(int) });
+            // MyProjectorBlockMarker is a nested type publicized by Krafs, so it can be referenced directly.
+            return AccessTools.Constructor(typeof(Sandbox.Game.Entities.Blocks.MyProjectorBase.MyProjectorBlockMarker), new[] { typeof(int), typeof(int) });
         }
 
         // ReSharper disable once UnusedMember.Local

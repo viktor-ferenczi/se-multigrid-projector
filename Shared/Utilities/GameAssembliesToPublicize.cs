@@ -1,9 +1,8 @@
 using System.Runtime.CompilerServices;
 
-/* Uncomment to enable publicizer support, extend with the game assemblies you need to publicize
-
-// Remove SE_LAUNCHER_COMPATIBILITY when/if the publicizer is enabled.
-[assembly: SE_LAUNCHER_COMPATIBILITY IgnoresAccessChecksTo("Sandbox.Game")]
-[assembly: SE_LAUNCHER_COMPATIBILITY IgnoresAccessChecksTo("SpaceEngineers.Game")]
-
-*/
+// Keep these IgnoresAccessChecksTo entries in sync with the <Publicize> entries in
+// ClientPlugin.csproj and ServerPlugin.csproj. Extra entries (e.g. Sandbox.Graphics is
+// only publicized by the client) are harmless for assemblies that do not access them.
+[assembly: IgnoresAccessChecksTo("Sandbox.Game")]
+[assembly: IgnoresAccessChecksTo("SpaceEngineers.Game")]
+[assembly: IgnoresAccessChecksTo("Sandbox.Graphics")]

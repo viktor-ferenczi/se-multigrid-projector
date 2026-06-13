@@ -2,7 +2,6 @@
 using Sandbox.Graphics.GUI;
 using System;
 using System.Collections.Generic;
-using System.Reflection;
 using System.Text;
 using ClientPlugin.Settings.Tools;
 using VRage.Game;
@@ -113,22 +112,12 @@ internal class KeybindAttribute : Attribute, IElement
         if (userData.Device == MyGuiInputDeviceEnum.Mouse)
             messageText = MyCommonTexts.AssignControlMouse;
 
-        // KEEN!!! MyGuiScreenOptionsMouseKeyboard.MyGuiControlAssignKeyMessageBox is PRIVATE!
-        var screenClass = typeof(MyGuiScreenOptionsMouseKeyboard).GetNestedType(
-            "MyGuiControlAssignKeyMessageBox",
-            BindingFlags.NonPublic);
-
-        var editBindingDialog = (MyGuiScreenBase)Activator.CreateInstance(
-            screenClass,
-            BindingFlags.CreateInstance,
-            null,
-            new object[]
-            {
-                userData.Device,
-                userData.Control,
-                messageText
-            },
-            null);
+        // MyGuiScreenOptionsMouseKeyboard.MyGuiControlAssignKeyMessageBox is a private nested type,
+        // publicized by Krafs so it can be constructed directly.
+        var editBindingDialog = new MyGuiScreenOptionsMouseKeyboard.MyGuiControlAssignKeyMessageBox(
+            userData.Device,
+            userData.Control,
+            messageText);
 
         editBindingDialog.Closed += (s, isUnloading) => StoreControl(button);
         MyGuiSandbox.AddScreen(editBindingDialog);
