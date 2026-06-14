@@ -1,9 +1,12 @@
 <Project>
+    <!-- Plugin version (committed, shared by all contributors) -->
+    <Import Project="Version.Build.props" />
+
     <PropertyGroup>
         <!-- Folder containing SpaceEngineers.exe.
              Fill the path between the tags to override; leave empty to use the
              platform-specific auto-detection below. -->
-        <Bin64>/home/viktor/.steam/debian-installation/steamapps/common/SpaceEngineers/Bin64</Bin64>
+        <Bin64 />
 
         <!-- Folder containing the Pulsar installation (the directory that holds
              Libraries/Legacy/PluginSdk.dll). Fill the path between the tags to override;
@@ -18,7 +21,7 @@
         <!-- Folder containing SpaceEngineersDedicated.exe.
              Fill the path between the tags to override; leave empty to use the
              platform-specific auto-detection below. -->
-        <Dedicated64>/home/viktor/.steam/debian-installation/steamapps/common/SpaceEngineersDedicatedServer/DedicatedServer64</Dedicated64>
+        <Dedicated64 />
     </PropertyGroup>
 
     <!-- User home, resolved once for the Linux auto-detection below -->
@@ -68,7 +71,20 @@
         <Magnetar Condition=" '$(Magnetar)' == '' AND $([MSBuild]::IsOSPlatform('Windows')) ">$([System.Environment]::GetFolderPath(SpecialFolder.ApplicationData))\Magnetar</Magnetar>
         <Magnetar Condition=" '$(Magnetar)' == '' AND '$(_UserHome)' != '' ">$(_UserHome)/.local/share/Magnetar</Magnetar>
 
-        <MagnetarBin Condition=" '$(MagnetarBin)' == '' AND '$(Magnetar)' != '' ">$([System.IO.Path]::Combine('$(Magnetar)', 'Bin'))</MagnetarBin>
+        <!-- Linux: flat Bin layout. -->
+        <MagnetarBin Condition=" '$(MagnetarBin)' == '' AND '$(Magnetar)' != '' AND !$([MSBuild]::IsOSPlatform('Windows')) ">$([System.IO.Path]::Combine('$(Magnetar)', 'Bin'))</MagnetarBin>
+
+        <!-- Windows: Target framework dependent layout under Libraries:
+               .NET Framework (net4x) -> Libraries/MagnetarLegacy
+               .NET (Core, net5+)     -> Libraries/MagnetarInterim
+             This is resolved here (props) rather than in Directory.Build.targets
+             because the ServerPlugin PreBuildEvent (verify_props) consumes
+             $(MagnetarBin), and PreBuildEvent is evaluated before the targets
+             import. Unlike $(TargetFrameworkIdentifier) (derived after props),
+             the raw $(TargetFramework) is available here: in a multi-targeting
+             inner build it is passed as a global property. -->
+        <MagnetarBin Condition=" '$(MagnetarBin)' == '' AND '$(Magnetar)' != '' AND $([MSBuild]::IsOSPlatform('Windows')) AND $(TargetFramework.StartsWith('net4')) ">$([System.IO.Path]::Combine('$(Magnetar)', 'Libraries', 'MagnetarLegacy'))</MagnetarBin>
+        <MagnetarBin Condition=" '$(MagnetarBin)' == '' AND '$(Magnetar)' != '' AND $([MSBuild]::IsOSPlatform('Windows')) AND '$(TargetFramework)' != '' AND !$(TargetFramework.StartsWith('net4')) ">$([System.IO.Path]::Combine('$(Magnetar)', 'Libraries', 'MagnetarInterim'))</MagnetarBin>
     </PropertyGroup>
 
     <!-- Auto-detect Dedicated64 (Dedicated Server, Steam app 298740) when not explicitly set above -->
