@@ -11,7 +11,7 @@
     <FriendlyName>Multigrid Projector</FriendlyName>
 
     <!-- The author name that you want to appear in the plugin list -->
-    <Author>Viktor Ferenczi</Author>
+    <Author>Viktor</Author>
 
     <!-- Optional tooltip for the plugin in the plugin list -->
     <Tooltip>Build and repair multigrid projections (PDCs, mechs and more), in survival and creative, single player and multiplayer.</Tooltip>

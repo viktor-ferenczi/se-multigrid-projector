@@ -11,7 +11,7 @@
     <FriendlyName>Multigrid Projector</FriendlyName>
 
     <!-- The author name that you want to appear in the plugin list -->
-    <Author>Viktor Ferenczi</Author>
+    <Author>Viktor</Author>
 
     <!-- Optional tooltip for the plugin in the plugin list -->
     <Tooltip>Server-side support for building and repairing multigrid projections. Pairs with the Multigrid Projector client plugin.</Tooltip>
