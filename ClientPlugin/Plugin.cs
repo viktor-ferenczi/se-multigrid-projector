@@ -1,5 +1,4 @@
 using System;
-using System.Reflection;
 using ClientPlugin.Settings;
 using ClientPlugin.Settings.Layouts;
 using HarmonyLib;
@@ -53,7 +52,7 @@ public class Plugin : IPlugin
             EnsureOriginal.VerifyAll();
         }
 
-        Harmony.PatchAll(Assembly.GetExecutingAssembly());
+        PatchHelpers.PatchAll(Harmony);
 
         PluginLog.Info("Client plugin loaded");
     }

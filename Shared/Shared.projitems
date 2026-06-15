@@ -50,6 +50,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\IPluginLogger.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\MultigridProjectorConfig.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\OrientationAlgebra.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Utilities\PatchHelpers.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\PluginLog.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\RwLock.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\RwLockDictionary.cs" />
