@@ -118,9 +118,15 @@ namespace MultigridProjector.Logic
                     {
                         foreach (var waypointActionBuilder in waypoint.Actions)
                         {
-                            if (waypointActionBuilder is MyObjectBuilder_ToolbarItemTerminalBlock waypointTerminalBlockActionBuilder)
+                            switch (waypointActionBuilder)
                             {
-                                yield return waypointTerminalBlockActionBuilder.BlockEntityId;
+                                case MyObjectBuilder_ToolbarItemTerminalBlock waypointTerminalBlockActionBuilder:
+                                    yield return waypointTerminalBlockActionBuilder.BlockEntityId;
+                                    break;
+
+                                case MyObjectBuilder_ToolbarItemTerminalGroup waypointTerminalGroupActionBuilder:
+                                    yield return waypointTerminalGroupActionBuilder.BlockEntityId;
+                                    break;
                             }
                         }
                     }
@@ -148,8 +154,20 @@ namespace MultigridProjector.Logic
 
             foreach (var slot in toolbarBuilder.Slots)
             {
-                if (slot.Data is MyObjectBuilder_ToolbarItemTerminalBlock terminalBlockItem)
-                    yield return terminalBlockItem.BlockEntityId;
+                switch (slot.Data)
+                {
+                    // Single-block item: targets the block directly.
+                    case MyObjectBuilder_ToolbarItemTerminalBlock terminalBlockItem:
+                        yield return terminalBlockItem.BlockEntityId;
+                        break;
+
+                    // Group item: anchored to a grid by BlockEntityId. Register a dependency on the
+                    // anchor block so this block's toolbar is re-restored once the anchor is welded
+                    // (otherwise a group-only toolbar registers no dependencies and never retries).
+                    case MyObjectBuilder_ToolbarItemTerminalGroup terminalGroupItem:
+                        yield return terminalGroupItem.BlockEntityId;
+                        break;
+                }
             }
         }
 
@@ -235,10 +253,18 @@ namespace MultigridProjector.Logic
         private void RestoreOneWay(ProjectedBlock projectedBlock)
         {
             if (projectedBlock.State != BlockState.BeingBuilt && projectedBlock.State != BlockState.FullyBuilt)
+            {
+                // TEMP[RestoreTrace]
+                PluginLog.Info($"[RestoreTrace] RestoreOneWay: skip {projectedBlock.Builder.GetType().Name} id={projectedBlock.Builder.EntityId} — state={projectedBlock.State} (not built)");
                 return;
+            }
 
             if (!(projectedBlock.SlimBlock?.FatBlock is MyTerminalBlock terminalBlock) || terminalBlock.Closed || !terminalBlock.InScene)
+            {
+                // TEMP[RestoreTrace]
+                PluginLog.Info($"[RestoreTrace] RestoreOneWay: skip {projectedBlock.Builder.GetType().Name} id={projectedBlock.Builder.EntityId} — no live fat block (slim={projectedBlock.SlimBlock != null}, fat={projectedBlock.SlimBlock?.FatBlock != null})");
                 return;
+            }
 
             var modified = false;
             switch (projectedBlock.Builder)
@@ -281,6 +307,9 @@ namespace MultigridProjector.Logic
                     break;
             }
 
+            // TEMP[RestoreTrace]
+            PluginLog.Info($"[RestoreTrace] RestoreOneWay: {projectedBlock.Builder.GetType().Name} \"{terminalBlock.CustomName}\" id={terminalBlock.EntityId} modified={modified}");
+
             // Optimization: Raise properties changed only if there has been any modification
             if (modified)
                 terminalBlock.RaisePropertiesChanged();
@@ -296,27 +325,53 @@ namespace MultigridProjector.Logic
             var modified = false;
             foreach (var slot in builder.Slots)
             {
-                if (!(slot.Data is MyObjectBuilder_ToolbarItemTerminalBlock terminalBlockItemBuilder))
-                    continue;
-
                 var i = slot.Index;
                 if (i < 0 || i >= toolbar.ItemCount)
                     continue;
 
-                if (!TryMapPreviewToBuiltTerminalBlock<MyTerminalBlock>(terminalBlockItemBuilder.BlockEntityId, out var targetBlock))
+                // A single-block toolbar item targets one block directly by BlockEntityId.
+                if (slot.Data is MyObjectBuilder_ToolbarItemTerminalBlock terminalBlockItemBuilder)
+                {
+                    if (!TryMapPreviewToBuiltTerminalBlock<MyTerminalBlock>(terminalBlockItemBuilder.BlockEntityId, out var targetBlock))
+                        continue;
+
+                    // Optimization: Do not change the toolbar item if it already has the right target ID
+                    if (toolbar.GetItemAtIndex(i) is MyToolbarItem toolbarItem &&
+                        toolbarItem.GetObjectBuilder() is MyObjectBuilder_ToolbarItemTerminalBlock toolbarItemBuilder &&
+                        toolbarItemBuilder.BlockEntityId == targetBlock.EntityId)
+                        continue;
+
+                    var itemBuilder = (MyObjectBuilder_ToolbarItemTerminalBlock)terminalBlockItemBuilder.Clone();
+                    itemBuilder.BlockEntityId = targetBlock.EntityId;
+                    toolbar.SetItemAtIndex(i, MyToolbarItemFactory.CreateToolbarItem(itemBuilder));
+                    modified = true;
                     continue;
+                }
 
-                // Optimization: Do not change the toolbar item if it already has the right target ID 
-                if (toolbar.GetItemAtIndex(i) is MyToolbarItem toolbarItem &&
-                    toolbarItem.GetObjectBuilder() is MyObjectBuilder_ToolbarItemTerminalBlock toolbarItemBuilder &&
-                    toolbarItemBuilder.BlockEntityId == targetBlock.EntityId)
-                    continue;
+                // A group toolbar item is anchored to a grid by BlockEntityId: at runtime the group is
+                // resolved from that block's CubeGrid and matched by group name (see
+                // MyToolbarItemTerminalGroup.GetBlocks). After welding a projection the stored anchor
+                // still points at the preview block, so it must be remapped to the built block or the
+                // group resolves to no blocks and the slot renders empty. The group's membership itself
+                // is restored separately (Subgrid block-group restoration).
+                if (slot.Data is MyObjectBuilder_ToolbarItemTerminalGroup terminalGroupItemBuilder)
+                {
+                    if (!TryMapPreviewToBuiltTerminalBlock<MyTerminalBlock>(terminalGroupItemBuilder.BlockEntityId, out var targetBlock))
+                        continue;
 
-                var itemBuilder = (MyObjectBuilder_ToolbarItemTerminalBlock)terminalBlockItemBuilder.Clone();
-                itemBuilder.BlockEntityId = targetBlock.EntityId;
-                toolbar.SetItemAtIndex(i, MyToolbarItemFactory.CreateToolbarItem(itemBuilder));
+                    // Optimization: Do not change the toolbar item if it already has the right anchor ID
+                    if (toolbar.GetItemAtIndex(i) is MyToolbarItem toolbarItem &&
+                        toolbarItem.GetObjectBuilder() is MyObjectBuilder_ToolbarItemTerminalGroup toolbarItemBuilder &&
+                        toolbarItemBuilder.BlockEntityId == targetBlock.EntityId)
+                        continue;
 
-                modified = true;
+                    var itemBuilder = (MyObjectBuilder_ToolbarItemTerminalGroup)terminalGroupItemBuilder.Clone();
+                    itemBuilder.BlockEntityId = targetBlock.EntityId;
+                    toolbar.SetItemAtIndex(i, MyToolbarItemFactory.CreateToolbarItem(itemBuilder));
+                    modified = true;
+
+                    PluginLog.Info($"Restored group action on toolbar slot {i}: '{terminalGroupItemBuilder.GroupName}' (anchor {terminalGroupItemBuilder.BlockEntityId} -> {targetBlock.EntityId})");
+                }
             }
 
             // Toolbar items do not need change notifications to be sent, because ItemChanged
@@ -334,18 +389,42 @@ namespace MultigridProjector.Logic
                     break;
 
                 var actionBuilder = actionBuilders[i];
+
+                // A single-block action targets one block directly by BlockEntityId.
                 if (actionBuilder is MyObjectBuilder_ToolbarItemTerminalBlock terminalBlockItemBuilder)
                 {
                     if (!TryMapPreviewToBuiltTerminalBlock<MyTerminalBlock>(terminalBlockItemBuilder.BlockEntityId, out var targetBlock))
                         continue;
 
-                    // Optimization: Do not change the action if it already has the right target ID 
+                    // Optimization: Do not change the action if it already has the right target ID
                     if (actions[i] != null &&
                         actions[i].GetObjectBuilder() is MyObjectBuilder_ToolbarItemTerminalBlock toolbarItemBuilder &&
                         toolbarItemBuilder.BlockEntityId == targetBlock.EntityId)
                         continue;
 
                     var itemBuilder = (MyObjectBuilder_ToolbarItemTerminalBlock)terminalBlockItemBuilder.Clone();
+                    itemBuilder.BlockEntityId = targetBlock.EntityId;
+                    actions[i] = MyToolbarItemFactory.CreateToolbarItem(itemBuilder);
+
+                    modified = true;
+                    continue;
+                }
+
+                // A group action is anchored to a grid by BlockEntityId and resolved by group name at
+                // runtime (see RestoreToolbar and MyToolbarItemTerminalGroup.GetBlocks); remap the anchor
+                // from the preview block to the built block or the group resolves to nothing.
+                if (actionBuilder is MyObjectBuilder_ToolbarItemTerminalGroup terminalGroupItemBuilder)
+                {
+                    if (!TryMapPreviewToBuiltTerminalBlock<MyTerminalBlock>(terminalGroupItemBuilder.BlockEntityId, out var targetBlock))
+                        continue;
+
+                    // Optimization: Do not change the action if it already has the right anchor ID
+                    if (actions[i] != null &&
+                        actions[i].GetObjectBuilder() is MyObjectBuilder_ToolbarItemTerminalGroup toolbarItemBuilder &&
+                        toolbarItemBuilder.BlockEntityId == targetBlock.EntityId)
+                        continue;
+
+                    var itemBuilder = (MyObjectBuilder_ToolbarItemTerminalGroup)terminalGroupItemBuilder.Clone();
                     itemBuilder.BlockEntityId = targetBlock.EntityId;
                     actions[i] = MyToolbarItemFactory.CreateToolbarItem(itemBuilder);
 

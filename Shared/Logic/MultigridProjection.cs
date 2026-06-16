@@ -280,13 +280,24 @@ namespace MultigridProjector.Logic
         private void OnTerminalBlockAdded(Subgrid subgrid, MyTerminalBlock terminalBlock)
         {
             if (!subgrid.TryGetProjectedBlock(subgrid.BuiltToPreviewBlockPosition(terminalBlock.Position), out var projectedBlock))
+            {
+                // TEMP[RestoreTrace]
+                PluginLog.Info($"[RestoreTrace] OnTerminalBlockAdded: {terminalBlock.GetType().Name} id={terminalBlock.EntityId} has no projected block at its position — not part of this projection (IsServer={Sync.IsServer})");
                 return;
+            }
 
             if (terminalBlock.BlockDefinition.Id != projectedBlock.Preview.BlockDefinition.Id)
+            {
+                // TEMP[RestoreTrace]
+                PluginLog.Info($"[RestoreTrace] OnTerminalBlockAdded: {terminalBlock.GetType().Name} id={terminalBlock.EntityId} definition mismatch ({terminalBlock.BlockDefinition.Id} vs preview {projectedBlock.Preview.BlockDefinition.Id}) (IsServer={Sync.IsServer})");
                 return;
+            }
 
             if (!terminalBlockAddedQueue.Contains(projectedBlock))
                 terminalBlockAddedQueue.Add(projectedBlock);
+
+            // TEMP[RestoreTrace]
+            PluginLog.Info($"[RestoreTrace] OnTerminalBlockAdded: queued {terminalBlock.GetType().Name} \"{terminalBlock.CustomName}\" id={terminalBlock.EntityId} state={projectedBlock.State} (IsServer={Sync.IsServer})");
 
             subgrid.RequestUpdate();
         }
@@ -649,13 +660,26 @@ namespace MultigridProjector.Logic
 
         private void ScheduleTerminalBlocksForRestore()
         {
+            // TEMP[RestoreTrace] counters
+            var tracedToRestore = 0;
+            var tracedToRetry = 0;
             while (terminalBlockAddedQueue.TryDequeueBack(out var projectedBlock))
             {
                 if (projectedBlock.State == BlockState.BeingBuilt || projectedBlock.State == BlockState.FullyBuilt)
+                {
                     terminalBlockRestoreQueue.Add(projectedBlock);
+                    tracedToRestore++;
+                }
                 else
+                {
                     terminalBlockRetryQueue.Add(projectedBlock);
+                    tracedToRetry++;
+                }
             }
+
+            // TEMP[RestoreTrace]
+            if (tracedToRestore != 0 || tracedToRetry != 0)
+                PluginLog.Info($"[RestoreTrace] ScheduleTerminalBlocksForRestore: {tracedToRestore} -> restoreQueue, {tracedToRetry} -> retryQueue (IsServer={Sync.IsServer})");
 
             terminalBlockAddedQueue.AddRange(terminalBlockRetryQueue);
             terminalBlockRetryQueue.Clear();
@@ -666,6 +690,9 @@ namespace MultigridProjector.Logic
             // This is called periodically from the main thread
             while (terminalBlockRestoreQueue.TryDequeueBack(out var projectedBlock))
             {
+                // TEMP[RestoreTrace]
+                PluginLog.Info($"[RestoreTrace] RestoreTerminalBlocks: restoring {projectedBlock.Builder.GetType().Name} id={projectedBlock.Builder.EntityId} state={projectedBlock.State} (IsServer={Sync.IsServer})");
+
                 if (Sync.IsServer)
 #if DEBUG
                     referenceFixer.Restore(projectedBlock);
