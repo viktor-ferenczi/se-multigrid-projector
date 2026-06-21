@@ -578,21 +578,37 @@ namespace MultigridProjector.Logic
         private bool RestoreOffensiveCombat(ProjectedBlock projectedBlock)
         {
             var builder = (MyObjectBuilder_OffensiveCombatBlock)projectedBlock.Builder;
-
-            IList<long> builderSelectedWeapons = null;
-
-            if (builder.ComponentContainer.TryGet<MyObjectBuilder_OffensiveCombatCircleOrbit>(out var circleOrbitBuilder))
-                builderSelectedWeapons = circleOrbitBuilder.SelectedWeapons;
-            else if (builder.ComponentContainer.TryGet<MyObjectBuilder_OffensiveCombatHitAndRun>(out var hitAndRunBuilder))
-                builderSelectedWeapons = hitAndRunBuilder.SelectedWeapons;
-            else if (builder.ComponentContainer.TryGet<MyObjectBuilder_OffensiveCombatStayAtRange>(out var stayAtRangeBuilder))
-                builderSelectedWeapons = stayAtRangeBuilder.SelectedWeapons;
-
-            if (builderSelectedWeapons == null)
+            if (builder.ComponentContainer == null)
                 return false;
 
             var block = (MyOffensiveCombatBlock)projectedBlock.SlimBlock.FatBlock;
-            if (!block.Components.TryGet<MyOffensiveWithWeaponsCombatComponent>(out var component))
+
+            // The selected weapons are stored per attack strategy sub-component. All strategy components are
+            // force-created on both client and server (see EntityContainers.sbc), each registered in the block's
+            // component container under its own concrete type. Therefore the live components must be looked up by
+            // concrete type; MyComponentContainer.TryGet does an exact-type lookup, so the abstract base class
+            // MyOffensiveWithWeaponsCombatComponent would never match (it is not a registration key).
+            var modified = false;
+
+            if (builder.ComponentContainer.TryGet<MyObjectBuilder_OffensiveCombatCircleOrbit>(out var circleOrbitBuilder))
+                modified = RestoreOffensiveCombatWeapons<MyOffensiveCombatCircleOrbit>(block, circleOrbitBuilder.SelectedWeapons) || modified;
+
+            if (builder.ComponentContainer.TryGet<MyObjectBuilder_OffensiveCombatHitAndRun>(out var hitAndRunBuilder))
+                modified = RestoreOffensiveCombatWeapons<MyOffensiveCombatHitAndRun>(block, hitAndRunBuilder.SelectedWeapons) || modified;
+
+            if (builder.ComponentContainer.TryGet<MyObjectBuilder_OffensiveCombatStayAtRange>(out var stayAtRangeBuilder))
+                modified = RestoreOffensiveCombatWeapons<MyOffensiveCombatStayAtRange>(block, stayAtRangeBuilder.SelectedWeapons) || modified;
+
+            return modified;
+        }
+
+        private bool RestoreOffensiveCombatWeapons<T>(MyOffensiveCombatBlock block, IList<long> builderSelectedWeapons)
+            where T : MyOffensiveWithWeaponsCombatComponent
+        {
+            if (builderSelectedWeapons == null || builderSelectedWeapons.Count == 0)
+                return false;
+
+            if (!block.Components.TryGet<T>(out var component))
                 return false;
 
             var selectedWeapons = new List<long>(builderSelectedWeapons.Count);
@@ -622,18 +638,41 @@ namespace MultigridProjector.Logic
         private bool RestorePathRecorder(ProjectedBlock projectedBlock)
         {
             var builder = (MyObjectBuilder_PathRecorderBlock)projectedBlock.Builder;
-            if (!builder.ComponentContainer.TryGet<MyObjectBuilder_PathRecorderComponent>(out var componentBuilder))
+            if (builder.ComponentContainer == null || !builder.ComponentContainer.TryGet<MyObjectBuilder_PathRecorderComponent>(out var componentBuilder))
                 return false;
 
             var block = (MyPathRecorderBlock)projectedBlock.SlimBlock.FatBlock;
             if (!block.Components.TryGet<MyPathRecorderComponent>(out var component))
                 return false;
 
+            var waypointBuilders = componentBuilder.Waypoints;
+            if (waypointBuilders == null || waypointBuilders.Count == 0)
+                return false;
+
             var modified = false;
-            var waypointCount = Math.Min(componentBuilder.Waypoints.Count, component.Waypoints.Count);
-            for (int waypointIndex = 0; waypointIndex < waypointCount; waypointIndex++)
+
+            // In multiplayer the server welds a clean block whose path recorder component has no waypoints,
+            // because waypoints are only loaded from the component object builder at init time (see
+            // MyPathRecorderComponent.OnAddedToContainer), which the freshly welded block does not have.
+            // Reconstruct the missing waypoints from the blueprint exactly the way the component would build
+            // them from its own object builder, so the recorded path and its per-waypoint toolbar actions
+            // exist on the server. MyPathRecorderComponent.Serialize writes the waypoints back into the
+            // component object builder, so clients receive them when the block is replicated.
+            var waypoints = component.Waypoints;
+            for (var waypointIndex = waypoints.Count; waypointIndex < waypointBuilders.Count; waypointIndex++)
             {
-                modified = RestoreToolbarActions(component.Waypoints[waypointIndex].Actions, componentBuilder.Waypoints[waypointIndex].Actions) || modified;
+                waypoints.Add(new MyAutopilotWaypoint(waypointBuilders[waypointIndex]));
+                modified = true;
+            }
+
+            // Remap the block references in each waypoint's toolbar actions from the preview blocks to the
+            // built blocks, the same way as for any other restored toolbar.
+            var waypointCount = Math.Min(waypointBuilders.Count, waypoints.Count);
+            for (var waypointIndex = 0; waypointIndex < waypointCount; waypointIndex++)
+            {
+                var builderActions = waypointBuilders[waypointIndex].Actions;
+                var liveActions = waypoints[waypointIndex].Actions;
+                modified = RestoreToolbarActions(liveActions, builderActions) || modified;
             }
 
             return modified;
