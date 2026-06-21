@@ -1,0 +1,10 @@
+<Project>
+    <!-- PulsarBin depends on TargetFrameworkIdentifier, which is only derived from
+         TargetFramework after Directory.Build.props is imported. It is resolved
+         here (Directory.Build.targets, imported after TF inference) instead.
+         .NET Framework -> Legacy libraries, .NET (Core) -> Interim libraries. -->
+    <PropertyGroup>
+        <PulsarBin Condition=" '$(PulsarBin)' == '' AND '$(Pulsar)' != '' AND '$(TargetFrameworkIdentifier)' == '.NETFramework' ">$([System.IO.Path]::Combine('$(Pulsar)', 'Libraries', 'Legacy'))</PulsarBin>
+        <PulsarBin Condition=" '$(PulsarBin)' == '' AND '$(Pulsar)' != '' AND '$(TargetFrameworkIdentifier)' == '.NETCoreApp' ">$([System.IO.Path]::Combine('$(Pulsar)', 'Libraries', 'Interim'))</PulsarBin>
+    </PropertyGroup>
+</Project>

@@ -1,87 +1,103 @@
-# Multigrid Projector
+# Multigrid Projector for Space Engineers
 
-Multigrid Projector for the Space Engineers game.
+Enables seamless building projections with multiple subgrids, also provides a few projector related QoL improvements.
 
 - Build and repair PDCs, mechs and more
 - Works both in survival and creative
 - Works both in single player and multiplayer
 
-## Install the client plugin
+- **Client plugin** — loaded by [Pulsar](https://github.com/SpaceGT/Pulsar) in the game client.
+- **Server plugin** — loaded by [Magnetar](https://magnetar.se) on the dedicated server, managed
+  remotely via [Quasar](https://github.com/viktor-ferenczi/Quasar).
 
-1. Subscribe to this mod
-2. Install [Pulsar](https://github.com/SpaceGT/Pulsar) (use the installer linked from the README)
-3. Start the game
-4. Open the Plugins menu (should be in the Main Menu)
-5. Add the Multigrid Projector plugin
-6. Click on Save, then Restart (below the plugin list)
+_In multiplayer full functionality is supported only if the server also has the Multigrid Projector plugin loaded.
+If only the client has the plugin, then some limited functionality is still available, but it is not seamless._
 
-After enabling the plugin it will be active for all single player worlds you load.
-In case of multiplayer full functionality is supported if the server also has the
-MGP plugin installed, but most of the multigrid welding will still work if not.
+For support please join the [Pulsar Discord](https://discord.gg/z8ZczP2YZY).
 
 Please consider supporting my work on [Patreon](https://www.patreon.com/semods) or one time via [PayPal](https://www.paypal.com/paypalme/vferenczi/).
 
 *Thank you and enjoy!*
 
-## Server plugins
+## Installation
 
-In case of problems join the [SE Mods Discord](https://discord.gg/PYPFPGf3Ca) to get help.
+### Client
 
-**If you are using a 3rd party game server hosting provider**, then please follow their documentation on how to install the server plugin or contanct their support with your questions.
+Have [Pulsar](https://github.com/SpaceGT/Pulsar) installed. Link to the Installer is in the README there.
 
-### Torch server plugin installation
+1. Enable the **Multigrid Projector** plugin from the **Plugins** dialog.
+2. Apply and restart the game.
 
-[Torch plugin](https://torchapi.com/plugins/view/?guid=d9359ba0-9a69-41c3-971d-eb5170adb97e) (updated automatically by Torch)
+### Server
 
-Add the plugin on Torch's UI, then restart the server. Make sure your players are aware of Pulsar, so they can install the client plugin.
+<details>
+<summary>Quasar</summary>
 
-### Dedicated Server plugin installation
+Have [Quasar](https://github.com/viktor-ferenczi/Quasar) installed and a server created.
 
-[Plugin download](https://github.com/viktor-ferenczi/se-multigrid-projector//releases/) (requires manual updating)
+1. Enable the **Multigrid Projector** plugin in your config profile(s).
+2. Restart the server, so it picks up the plugin
 
-- Open: https://github.com/viktor-ferenczi/se-multigrid-projector//releases/
-- Download and extract the latest release: `MultigridProjectorDedicated-*.zip` 
-- Keep `0Harmony.dll` and `MultigridProjectorDedicated.dll` in the same folder.
-- Right click on each of the DLLs, select **Unblock** in the **Properties** dialog if you have such a button (Windows protection). 
-- Start the Dedicated Server and continue to the configuration.
-- Under the Plugins tab add the `MultigridProjectorDedicated.dll` file as a plugin.
-- Start your server.
+The configuration is on Quasar's Web UI.
+</details>
 
-### Special case on Linux (Proton)
+<details>
+<summary>Magnetar</summary>
 
-Please define the `SE_PLUGIN_DISABLE_METHOD_VERIFICATION` environment variable
-to disable IL code verification.
+For standalone [Magnetar](https://github.com/viktor-ferenczi/Magnetar/)
+you need to reference the Performance plugin from the `Current` profile.
 
-Reason for the IL code verification is to detect potentially breaking code changes 
-introduced over game updates. In such a cases the verification blocks the plugin
-from loading instead of crashing later.
+Edit the profile:
+- Linux: `~/.config/Magnetar/Profiles/Current.xml`
+- Windows: `%AppData%\Magnetar\Logacy\Profiles\Current.xml`
 
-You can detect this case by looking in the game's log file for this text: 
-`Refusing to load the plugin due to potentially incompatible code changes`
+Directly inside the `<GitHub>` element insert:
+```xml
+    <GitHubPluginConfig>
+      <Id>viktor-ferenczi/se-multigrid-projector</Id>
+    </GitHubPluginConfig>
+```
 
-## Building from source
+Configuration file is `MultigridProjector.cfg`, created in the `SpaceEngineersDedicated` folder.
+**FIXME:** Include a default config here, because only the ones with non-default values are saved.
+</details>
 
-The top level plugin projects have dependencies on their respective game files.
-The game assemblies (DLLs) are referenced from the directories defined in the
-`Directory.Build.props` file. This file is not part of the repository, 
-you need to create it yourself from a template:
+## Documentation
 
-- Copy: `Directory.Build.template.props` => `Directory.Build.props`
-- Edit `Directory.Build.props` to match your local setup
+Full documentation lives in the [Docs](Docs) folder. Start at the
+**[Documentation Handbook](Docs/Handbook.md)** — the entry point to everything below.
 
-You need to do this only once per working copy. 
-You may also want to save this file for later reuse.
+**User guides**
+
+- [Installation](Docs/Installation.md) — client (Pulsar) and server (Quasar / standalone Magnetar)
+- [Troubleshooting](Docs/Troubleshooting.md) — common issues, Proton/Linux notes, getting help
+- [Building from source](Docs/Building.md) — prerequisites and local build/deploy
+- [Mod & PB API](Docs/API.md) — scripting API for mods and programmable blocks
+
+**Developer reference**
+
+- [Handbook](Docs/Handbook.md) — table of contents for all docs
+- [Architecture](Docs/Architecture.md) — how the plugin fits together (read this first)
+- [Source File Index](Docs/Index.md) — every source file, grouped and linked
+- [Reference pages](Docs/Reference) — per-subsystem developer reference (engine, patches, API, client, server, …)
+
+- [Credits](#credits)
+
+## Installation
+
+- **Client:** install via [Pulsar](https://github.com/SpaceGT/Pulsar) — see
+  [Docs/Installation.md](Docs/Installation.md#client-plugin-pulsar).
+- **Server:** install via [Quasar](https://github.com/viktor-ferenczi/Quasar), or into a standalone
+  [Magnetar](https://magnetar.se) by editing its profile — see
+  [Docs/Installation.md](Docs/Installation.md#server-plugin-magnetar--quasar).
+
+Torch and the legacy Dedicated Server plugin loader are no longer supported.
 
 ## Want to know more?
 
-- [SE Mods Discord](https://discord.gg/PYPFPGf3Ca) FAQ, Troubleshooting, Support, Bug Reports, Discussion
-- [Pulsar Discord](https://discord.gg/z8ZczP2YZY) Everything about plugins
-- [Torch plugin](https://torchapi.com/plugins/view/?guid=d9359ba0-9a69-41c3-971d-eb5170adb97e)
-- [Dedicated Server plugin](https://github.com/viktor-ferenczi/se-multigrid-projector//releases)
+- [SE Mods Discord](https://discord.gg/PYPFPGf3Ca) — FAQ, troubleshooting, support, bug reports, discussion
+- [Pulsar Discord](https://discord.gg/z8ZczP2YZY) — everything about plugins
 - [Test world (Rings)](https://steamcommunity.com/sharedfiles/filedetails/?id=2420963329)
-- [Source code](https://github.com/viktor-ferenczi/se-multigrid-projector/)
-- [Mod API](https://github.com/viktor-ferenczi/se-multigrid-projector//tree/main/ModApiTest)
-- [PB API](https://github.com/viktor-ferenczi/se-multigrid-projector//tree/main/IngameApiTest)
 
 ## Credits
 
@@ -94,7 +110,7 @@ You may also want to save this file for later reuse.
   * Build system fixes, better linking of dependencies
 - @mkaito
   * Crash fix
-  * Copy BoM 
+  * Copy BoM
 - @Pas2704
   * Bug fixes
 
@@ -149,34 +165,6 @@ You may also want to save this file for later reuse.
 
 **Thank you very much for all your support and hard work on testing!**
 
-## Development
+## License
 
-### Projects
-
-- MultigridProjector: Shared project with the general data model and logic of MGP
-- MultigridProjectorClient: Client plugin "loader"
-- MultigridProjectorServer: Torch server plugin "loader"
-- API: Examples to access MGP from mods and ingame scripts
-
-### Prerequisites
-
-- .NET Framework 4.8.1
-- [Space Engineers](https://spaceengineersgame.com)
-- [Torch](https://torchapi.com) extracted and executed once
-- [JetBrains Rider](https://jetbrains.com) or Visual Studio
-- [Pulsar](https://github.com/SpaceGT/Pulsar)
-
-### Steps
-
-1. Clone the repository to have a local working copy
-2. Edit paths in batch file, the run it: `Edit-and-run-before-opening-solution.bat`
-3. Open the solution
-4. Build the solution
-5. Deploy locally and run
-  - JetBrains: Select a run configuration for local deployment
-  - Visual Studio: See the batch files in the projects
-
-### Debugging
-
-- Torch: Use the `Torch Debug` run configuration
-- Space Engineers: Use the `Space Engineers Debug` run configuration, then attach the debugger to the game before loading the world
+See [LICENSE](LICENSE).

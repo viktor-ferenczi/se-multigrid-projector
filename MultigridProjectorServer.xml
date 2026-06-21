@@ -1,0 +1,37 @@
+<?xml version="1.0"?>
+<PluginData xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="GitHubPlugin">
+
+    <!-- The ID of your plugin, never change this -->
+    <Id>B91FD7B3-E1AC-4B57-8765-C677A7AC1F5F</Id>
+
+    <!-- GitHub repository ID -->
+    <RepoId>viktor-ferenczi/se-multigrid-projector</RepoId>
+
+    <!-- The name of your plugin that will appear in the plugin list -->
+    <FriendlyName>Multigrid Projector</FriendlyName>
+
+    <!-- The author name that you want to appear in the plugin list -->
+    <Author>Viktor</Author>
+
+    <!-- Optional tooltip for the plugin in the plugin list -->
+    <Tooltip>Server-side support for building and repairing multigrid projections. Pairs with the Multigrid Projector client plugin.</Tooltip>
+
+    <!-- Optional plugin description. If omitted, this will be the same as the Tooltip. 1000 characters max. -->
+    <Description>Server-side plugin for Multigrid Projector. Enables full multigrid projection welding and repair for all players on the server.
+
+        Install it via Quasar (the Magnetar control plane), or into a standalone Magnetar by editing its profile. Configure it remotely from Quasar.
+
+        For help, troubleshooting and bug reports join the SE Mods Discord: https://discord.gg/PYPFPGf3Ca
+    </Description>
+
+    <!-- Only source code in the Directory entries listed in SourceDirectories is compiled. Exclude any test projects or similar. -->
+    <SourceDirectories>
+        <Directory>ServerPlugin</Directory>
+        <Directory>Shared</Directory>
+        <Directory>MultigridProjectorApi</Directory>
+    </SourceDirectories>
+
+    <!-- The current plugin version's commit hash -->
+    <Commit>TODO Git commit hash</Commit>
+
+</PluginData>

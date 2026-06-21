@@ -1,0 +1,700 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using MultigridProjector.Api;
+using MultigridProjector.Extensions;
+using MultigridProjector.Utilities;
+using Sandbox.Common.ObjectBuilders;
+using Sandbox.Game.Entities;
+using Sandbox.Game.Entities.Cube;
+using Sandbox.Game.EntityComponents;
+using Sandbox.Game.Multiplayer;
+using Sandbox.Game.Screens.Helpers;
+using Sandbox.Graphics.GUI;
+using SpaceEngineers.Game.Entities.Blocks;
+using SpaceEngineers.Game.EntityComponents.Blocks;
+using SpaceEngineers.Game.ModAPI.Ingame;
+using VRage.Game;
+using VRage.ObjectBuilder;
+using IngameIMyFunctionalBlock = Sandbox.ModAPI.Ingame.IMyFunctionalBlock;
+
+namespace MultigridProjector.Logic
+{
+    public class ReferenceFixer
+    {
+        // Terminal blocks by their ID in the blueprint, which must be consistent and stable
+        private readonly Dictionary<long, ProjectedBlock> blocksById = new Dictionary<long, ProjectedBlock>();
+
+        // Set of terminal block IDs referenced by each terminal block,
+        // it is required to know which existing blocks to update when a new block is built
+        // Key: The ID of the referenced block (which is on the toolbar slot, for example)
+        // Value: Set of IDs of the blocks referencing the block identified by the keys (referrals)
+        private readonly Dictionary<long, HashSet<long>> referenceMap = new Dictionary<long, HashSet<long>>();
+
+        public ReferenceFixer(IEnumerable<Subgrid> subgrids)
+        {
+            foreach (var subgrid in subgrids)
+            {
+                foreach (var projectedBlock in subgrid.Blocks.Values)
+                {
+                    var blockBuilder = projectedBlock.Builder;
+                    if (!(blockBuilder is MyObjectBuilder_TerminalBlock terminalBlockBuilder))
+                        continue;
+
+                    blocksById[blockBuilder.EntityId] = projectedBlock;
+
+                    foreach (var referencedBlockId in IterReferencedBlockIds(terminalBlockBuilder))
+                    {
+                        if (referencedBlockId == 0)
+                            continue;
+
+                        if (!referenceMap.TryGetValue(referencedBlockId, out var referrals))
+                        {
+                            referrals = new HashSet<long>();
+                            referenceMap.Add(referencedBlockId, referrals);
+                        }
+
+                        referrals.Add(blockBuilder.EntityId);
+                    }
+                }
+            }
+        }
+
+        private IEnumerable<long> IterReferencedBlockIds(MyObjectBuilder_TerminalBlock terminalBlockBuilder)
+        {
+            switch (terminalBlockBuilder)
+            {
+                case MyObjectBuilder_RemoteControl builder:
+                    foreach (var blockId in IterToolbarReferencedBlockIds(terminalBlockBuilder))
+                        yield return blockId;
+
+                    yield return builder.BindedCamera;
+                    break;
+
+                case MyObjectBuilder_EventControllerBlock builder:
+                    foreach (var blockId in IterToolbarReferencedBlockIds(terminalBlockBuilder))
+                        yield return blockId;
+
+                    if (builder.SelectedBlocks == null)
+                        break;
+                    
+                    foreach (var blockId in builder.SelectedBlocks)
+                        yield return blockId;
+
+                    break;
+
+                case MyObjectBuilder_TurretControlBlock builder:
+                    if (builder.ToolIds != null)
+                    {
+                        foreach (var blockId in builder.ToolIds)
+                        {
+                            yield return blockId;
+                        }
+                    }
+
+                    yield return builder.AzimuthId;
+                    yield return builder.ElevationId;
+                    yield return builder.CameraId;
+                    break;
+
+                case MyObjectBuilder_OffensiveCombatBlock builder:
+                    foreach (var blockId in IterToolbarReferencedBlockIds(terminalBlockBuilder))
+                        yield return blockId;
+
+                    foreach (var blockId in IterOffensiveCombatReferencedBlockIds(builder))
+                        yield return blockId;
+
+                    break;
+
+                // AI Recorder block
+                case MyObjectBuilder_PathRecorderBlock builder:
+                    if (!builder.ComponentContainer.TryGet<MyObjectBuilder_PathRecorderComponent>(out var pathRecorderComponentBuilder))
+                        break;
+                    
+                    if (pathRecorderComponentBuilder.Waypoints == null)
+                        break;
+                    
+                    foreach (var waypoint in pathRecorderComponentBuilder.Waypoints)
+                    {
+                        foreach (var waypointActionBuilder in waypoint.Actions)
+                        {
+                            switch (waypointActionBuilder)
+                            {
+                                case MyObjectBuilder_ToolbarItemTerminalBlock waypointTerminalBlockActionBuilder:
+                                    yield return waypointTerminalBlockActionBuilder.BlockEntityId;
+                                    break;
+
+                                case MyObjectBuilder_ToolbarItemTerminalGroup waypointTerminalGroupActionBuilder:
+                                    yield return waypointTerminalGroupActionBuilder.BlockEntityId;
+                                    break;
+                            }
+                        }
+                    }
+
+                    break;
+
+                case MyObjectBuilder_ButtonPanel _:
+                case MyObjectBuilder_DefensiveCombatBlock _:
+                case MyObjectBuilder_SensorBlock _:
+                case MyObjectBuilder_FlightMovementBlock _:
+                case MyObjectBuilder_ShipController _:
+                case MyObjectBuilder_TimerBlock _:
+                    foreach (var blockId in IterToolbarReferencedBlockIds(terminalBlockBuilder))
+                        yield return blockId;
+
+                    break;
+            }
+        }
+
+        private IEnumerable<long> IterToolbarReferencedBlockIds(MyObjectBuilder_TerminalBlock terminalBlockBuilder)
+        {
+            var toolbarBuilder = terminalBlockBuilder.GetToolbar();
+            if (toolbarBuilder?.Slots == null)
+                yield break;
+
+            foreach (var slot in toolbarBuilder.Slots)
+            {
+                switch (slot.Data)
+                {
+                    // Single-block item: targets the block directly.
+                    case MyObjectBuilder_ToolbarItemTerminalBlock terminalBlockItem:
+                        yield return terminalBlockItem.BlockEntityId;
+                        break;
+
+                    // Group item: anchored to a grid by BlockEntityId. Register a dependency on the
+                    // anchor block so this block's toolbar is re-restored once the anchor is welded
+                    // (otherwise a group-only toolbar registers no dependencies and never retries).
+                    case MyObjectBuilder_ToolbarItemTerminalGroup terminalGroupItem:
+                        yield return terminalGroupItem.BlockEntityId;
+                        break;
+                }
+            }
+        }
+
+        private IEnumerable<long> IterOffensiveCombatReferencedBlockIds(MyObjectBuilder_OffensiveCombatBlock builder)
+        {
+            IList<long> selectedWeapons = null;
+
+            if (builder.ComponentContainer.TryGet<MyObjectBuilder_OffensiveCombatCircleOrbit>(out var circleOrbit))
+                selectedWeapons = circleOrbit.SelectedWeapons;
+            else if (builder.ComponentContainer.TryGet<MyObjectBuilder_OffensiveCombatHitAndRun>(out var hitAndRun))
+                selectedWeapons = hitAndRun.SelectedWeapons;
+            else if (builder.ComponentContainer.TryGet<MyObjectBuilder_OffensiveCombatStayAtRange>(out var stayAtRange))
+                selectedWeapons = stayAtRange.SelectedWeapons;
+
+            if (selectedWeapons == null)
+                yield break;
+
+            foreach (var blockId in selectedWeapons)
+                yield return blockId;
+        }
+
+        public bool TryMapPreviewToBuiltTerminalBlock<T>(long targetId, out T targetBlock) where T : MyTerminalBlock
+        {
+            targetBlock = null;
+            if (blocksById.TryGetValue(targetId, out var projectedBlock))
+            {
+                if (projectedBlock.State != BlockState.BeingBuilt && projectedBlock.State != BlockState.FullyBuilt)
+                    return false;
+
+                targetBlock = projectedBlock.SlimBlock?.FatBlock as T;
+            }
+
+            return targetBlock != null && !targetBlock.Closed && targetBlock.InScene;
+        }
+
+        public void RestoreSafe(ProjectedBlock projectedBlock)
+        {
+            try
+            {
+                Restore(projectedBlock);
+            }
+            catch (Exception e)
+            {
+                PluginLog.Error(e, $"ReferenceFixer: RestoreSafe failed: projectedBlock.Builder.SubtypeName=\"{projectedBlock.Builder.SubtypeName}\"");
+            }
+        }
+
+        public void Restore(ProjectedBlock projectedBlock)
+        {
+            RestoreOneWay(projectedBlock);
+
+            // Find all blocks referencing the one which was restored above
+            if (!referenceMap.TryGetValue(projectedBlock.Builder.EntityId, out var referencingBlockIds))
+                return;
+
+            // Restore each referencing block, so any slots referencing projectedBlock is corrected
+            foreach (var referencingBlockId in referencingBlockIds)
+            {
+                RestoreOneWay(blocksById[referencingBlockId]);
+            }
+        }
+
+        public void RestoreAllSafe()
+        {
+            try
+            {
+                RestoreAll();
+            }
+            catch (Exception e)
+            {
+                PluginLog.Error(e, $"ReferenceFixer: RestoreAll failed");
+            }
+        }
+
+        public void RestoreAll()
+        {
+            foreach (var projectedBlock in blocksById.Values)
+            {
+                RestoreOneWay(projectedBlock);
+            }
+        }
+
+        private void RestoreOneWay(ProjectedBlock projectedBlock)
+        {
+            if (projectedBlock.State != BlockState.BeingBuilt && projectedBlock.State != BlockState.FullyBuilt)
+            {
+                // TEMP[RestoreTrace]
+                PluginLog.Info($"[RestoreTrace] RestoreOneWay: skip {projectedBlock.Builder.GetType().Name} id={projectedBlock.Builder.EntityId} — state={projectedBlock.State} (not built)");
+                return;
+            }
+
+            if (!(projectedBlock.SlimBlock?.FatBlock is MyTerminalBlock terminalBlock) || terminalBlock.Closed || !terminalBlock.InScene)
+            {
+                // TEMP[RestoreTrace]
+                PluginLog.Info($"[RestoreTrace] RestoreOneWay: skip {projectedBlock.Builder.GetType().Name} id={projectedBlock.Builder.EntityId} — no live fat block (slim={projectedBlock.SlimBlock != null}, fat={projectedBlock.SlimBlock?.FatBlock != null})");
+                return;
+            }
+
+            var modified = false;
+            switch (projectedBlock.Builder)
+            {
+                case MyObjectBuilder_RemoteControl _:
+                    modified = RestoreToolbar(projectedBlock);
+                    modified = RestoreRemoteControl(projectedBlock) || modified;
+                    break;
+
+                case MyObjectBuilder_EventControllerBlock _:
+                    modified = RestoreToolbar(projectedBlock);
+                    modified = RestoreEventController(projectedBlock) || modified;
+                    break;
+
+                case MyObjectBuilder_TurretControlBlock _:
+                    modified = RestoreTurretController(projectedBlock);
+                    break;
+
+                case MyObjectBuilder_OffensiveCombatBlock _:
+                    modified = RestoreToolbar(projectedBlock);
+                    modified = RestoreOffensiveCombat(projectedBlock) || modified;
+                    break;
+
+                // AI Recorder block
+                case MyObjectBuilder_PathRecorderBlock _:
+                    modified = RestorePathRecorder(projectedBlock);
+                    break;
+
+                case MyObjectBuilder_ButtonPanel _:
+                    modified = RestoreToolbar(projectedBlock);
+                    modified = RestoreButtonPanel(projectedBlock) || modified;
+                    break;
+
+                case MyObjectBuilder_DefensiveCombatBlock _:
+                case MyObjectBuilder_SensorBlock _:
+                case MyObjectBuilder_FlightMovementBlock _:
+                case MyObjectBuilder_ShipController _:
+                case MyObjectBuilder_TimerBlock _:
+                    modified = RestoreToolbar(projectedBlock);
+                    break;
+            }
+
+            // TEMP[RestoreTrace]
+            PluginLog.Info($"[RestoreTrace] RestoreOneWay: {projectedBlock.Builder.GetType().Name} \"{terminalBlock.CustomName}\" id={terminalBlock.EntityId} modified={modified}");
+
+            // Optimization: Raise properties changed only if there has been any modification
+            if (modified)
+                terminalBlock.RaisePropertiesChanged();
+        }
+
+        private bool RestoreToolbar(ProjectedBlock projectedBlock)
+        {
+            var builder = ((MyObjectBuilder_TerminalBlock)projectedBlock.Builder).GetToolbar();
+            var toolbar = ((MyTerminalBlock)projectedBlock.SlimBlock?.FatBlock)?.GetToolbar();
+            if (builder == null || toolbar == null)
+                return false;
+
+            var modified = false;
+            foreach (var slot in builder.Slots)
+            {
+                var i = slot.Index;
+                if (i < 0 || i >= toolbar.ItemCount)
+                    continue;
+
+                // A single-block toolbar item targets one block directly by BlockEntityId.
+                if (slot.Data is MyObjectBuilder_ToolbarItemTerminalBlock terminalBlockItemBuilder)
+                {
+                    if (!TryMapPreviewToBuiltTerminalBlock<MyTerminalBlock>(terminalBlockItemBuilder.BlockEntityId, out var targetBlock))
+                        continue;
+
+                    // Optimization: Do not change the toolbar item if it already has the right target ID
+                    if (toolbar.GetItemAtIndex(i) is MyToolbarItem toolbarItem &&
+                        toolbarItem.GetObjectBuilder() is MyObjectBuilder_ToolbarItemTerminalBlock toolbarItemBuilder &&
+                        toolbarItemBuilder.BlockEntityId == targetBlock.EntityId)
+                        continue;
+
+                    var itemBuilder = (MyObjectBuilder_ToolbarItemTerminalBlock)terminalBlockItemBuilder.Clone();
+                    itemBuilder.BlockEntityId = targetBlock.EntityId;
+                    toolbar.SetItemAtIndex(i, MyToolbarItemFactory.CreateToolbarItem(itemBuilder));
+                    modified = true;
+                    continue;
+                }
+
+                // A group toolbar item is anchored to a grid by BlockEntityId: at runtime the group is
+                // resolved from that block's CubeGrid and matched by group name (see
+                // MyToolbarItemTerminalGroup.GetBlocks). After welding a projection the stored anchor
+                // still points at the preview block, so it must be remapped to the built block or the
+                // group resolves to no blocks and the slot renders empty. The group's membership itself
+                // is restored separately (Subgrid block-group restoration).
+                if (slot.Data is MyObjectBuilder_ToolbarItemTerminalGroup terminalGroupItemBuilder)
+                {
+                    if (!TryMapPreviewToBuiltTerminalBlock<MyTerminalBlock>(terminalGroupItemBuilder.BlockEntityId, out var targetBlock))
+                        continue;
+
+                    // Optimization: Do not change the toolbar item if it already has the right anchor ID
+                    if (toolbar.GetItemAtIndex(i) is MyToolbarItem toolbarItem &&
+                        toolbarItem.GetObjectBuilder() is MyObjectBuilder_ToolbarItemTerminalGroup toolbarItemBuilder &&
+                        toolbarItemBuilder.BlockEntityId == targetBlock.EntityId)
+                        continue;
+
+                    var itemBuilder = (MyObjectBuilder_ToolbarItemTerminalGroup)terminalGroupItemBuilder.Clone();
+                    itemBuilder.BlockEntityId = targetBlock.EntityId;
+                    toolbar.SetItemAtIndex(i, MyToolbarItemFactory.CreateToolbarItem(itemBuilder));
+                    modified = true;
+
+                    PluginLog.Info($"Restored group action on toolbar slot {i}: '{terminalGroupItemBuilder.GroupName}' (anchor {terminalGroupItemBuilder.BlockEntityId} -> {targetBlock.EntityId})");
+                }
+            }
+
+            // Toolbar items do not need change notifications to be sent, because ItemChanged
+            // has already been invoked by SetItemAtIndex whenever required
+
+            return modified;
+        }
+
+        private bool RestoreToolbarActions(MyToolbarItem[] actions, List<MyObjectBuilder_ToolbarItem> actionBuilders)
+        {
+            var modified = false;
+            for (var i = 0; i < actions.Length; i++)
+            {
+                if (i == actionBuilders.Count)
+                    break;
+
+                var actionBuilder = actionBuilders[i];
+
+                // A single-block action targets one block directly by BlockEntityId.
+                if (actionBuilder is MyObjectBuilder_ToolbarItemTerminalBlock terminalBlockItemBuilder)
+                {
+                    if (!TryMapPreviewToBuiltTerminalBlock<MyTerminalBlock>(terminalBlockItemBuilder.BlockEntityId, out var targetBlock))
+                        continue;
+
+                    // Optimization: Do not change the action if it already has the right target ID
+                    if (actions[i] != null &&
+                        actions[i].GetObjectBuilder() is MyObjectBuilder_ToolbarItemTerminalBlock toolbarItemBuilder &&
+                        toolbarItemBuilder.BlockEntityId == targetBlock.EntityId)
+                        continue;
+
+                    var itemBuilder = (MyObjectBuilder_ToolbarItemTerminalBlock)terminalBlockItemBuilder.Clone();
+                    itemBuilder.BlockEntityId = targetBlock.EntityId;
+                    actions[i] = MyToolbarItemFactory.CreateToolbarItem(itemBuilder);
+
+                    modified = true;
+                    continue;
+                }
+
+                // A group action is anchored to a grid by BlockEntityId and resolved by group name at
+                // runtime (see RestoreToolbar and MyToolbarItemTerminalGroup.GetBlocks); remap the anchor
+                // from the preview block to the built block or the group resolves to nothing.
+                if (actionBuilder is MyObjectBuilder_ToolbarItemTerminalGroup terminalGroupItemBuilder)
+                {
+                    if (!TryMapPreviewToBuiltTerminalBlock<MyTerminalBlock>(terminalGroupItemBuilder.BlockEntityId, out var targetBlock))
+                        continue;
+
+                    // Optimization: Do not change the action if it already has the right anchor ID
+                    if (actions[i] != null &&
+                        actions[i].GetObjectBuilder() is MyObjectBuilder_ToolbarItemTerminalGroup toolbarItemBuilder &&
+                        toolbarItemBuilder.BlockEntityId == targetBlock.EntityId)
+                        continue;
+
+                    var itemBuilder = (MyObjectBuilder_ToolbarItemTerminalGroup)terminalGroupItemBuilder.Clone();
+                    itemBuilder.BlockEntityId = targetBlock.EntityId;
+                    actions[i] = MyToolbarItemFactory.CreateToolbarItem(itemBuilder);
+
+                    modified = true;
+                }
+            }
+
+            return modified;
+        }
+
+        private bool RestoreRemoteControl(ProjectedBlock projectedBlock)
+        {
+            var builder = (MyObjectBuilder_RemoteControl)projectedBlock.Builder;
+            var block = (MyRemoteControl)projectedBlock.SlimBlock.FatBlock;
+
+            if (!TryMapPreviewToBuiltTerminalBlock<MyRemoteControl>(builder.BindedCamera, out var cameraBlock))
+                return false;
+
+            var boundCameraSync = block.GetBoundCameraSync();
+
+            // Optimization: Set the value only if it is different
+            if (boundCameraSync.Value == cameraBlock.EntityId)
+                return false;
+
+            boundCameraSync.Value = cameraBlock.EntityId;
+            return true;
+        }
+
+        private bool RestoreEventController(ProjectedBlock projectedBlock)
+        {
+            var builder = (MyObjectBuilder_EventControllerBlock)projectedBlock.Builder;
+            var block = (MyEventControllerBlock)projectedBlock.SlimBlock.FatBlock;
+
+            var ids = builder.SelectedBlocks
+                .Select(id => TryMapPreviewToBuiltTerminalBlock<MyTerminalBlock>(id, out var selectedBlock) ? selectedBlock : null)
+                .Where(tb => tb != null)
+                .Select(tb => tb.EntityId)
+                .ToHashSet();
+
+            ids.ExceptWith(block.GetSelectedBlocks().Keys);
+
+            var selectedBlockIds = block.GetSelectedBlockIds();
+            if (selectedBlockIds != null)
+                ids.ExceptWith(selectedBlockIds);
+
+            if (ids.Count == 0)
+                return false;
+
+            if (selectedBlockIds == null)
+            {
+                selectedBlockIds = new MySerializableList<long>(ids.Count);
+                block.SetSelectedBlockIds(selectedBlockIds);
+            }
+
+            selectedBlockIds.AddRange(ids);
+
+            if (!Sync.IsServer)
+            {
+                // Do exactly what the UI does, so the changes are synced to the server
+                // SelectAvailableBlocks and SelectButton expect MyGuiControlListbox.Item
+                var listItems = selectedBlockIds.Select(blockId => new MyGuiControlListbox.Item(userData: blockId)).ToList();
+                block.SetSelectedBlockIds(null);
+                block.SelectAvailableBlocks(listItems);
+                block.SelectButton();
+            }
+
+            return true;
+        }
+
+        private bool RestoreTurretController(ProjectedBlock projectedBlock)
+        {
+            var builder = (MyObjectBuilder_TurretControlBlock)projectedBlock.Builder;
+            var block = (IMyTurretControlBlock)projectedBlock.SlimBlock.FatBlock;
+
+            var modified = false;
+
+            if (TryMapPreviewToBuiltTerminalBlock<MyMotorStator>(builder.AzimuthId, out var azimuthRotor) && block.AzimuthRotor != azimuthRotor)
+            {
+                try
+                {
+                    block.AzimuthRotor = azimuthRotor;
+                }
+                catch (Exception e)
+                {
+                    PluginLog.Error(e, "RestoreTurretController(): Error setting AzimuthRotor");
+                }
+
+                modified = true;
+            }
+
+            if (TryMapPreviewToBuiltTerminalBlock<MyMotorStator>(builder.ElevationId, out var elevationRotor) && block.ElevationRotor != elevationRotor)
+            {
+                try
+                {
+                    block.ElevationRotor = elevationRotor;
+                }
+                catch (Exception e)
+                {
+                    PluginLog.Error(e, "RestoreTurretController(): Error setting ElevationRotor");
+                }
+
+                modified = true;
+            }
+
+            if (TryMapPreviewToBuiltTerminalBlock<MyCameraBlock>(builder.CameraId, out var camera) && block.Camera != camera)
+            {
+                try
+                {
+                    block.Camera = camera;
+                }
+                catch (Exception e)
+                {
+                    PluginLog.Error(e, "RestoreTurretController(): Error setting Camera");
+                }
+
+                modified = true;
+            }
+
+            var tools = new List<IngameIMyFunctionalBlock>();
+            block.GetTools(tools);
+
+            var removeTools = new HashSet<IngameIMyFunctionalBlock>(tools);
+            var addTools = new HashSet<IngameIMyFunctionalBlock>(builder.ToolIds.Count);
+            foreach (var toolId in builder.ToolIds)
+            {
+                if (!TryMapPreviewToBuiltTerminalBlock<MyTerminalBlock>(toolId, out var targetBlock))
+                    continue;
+
+                if (!(targetBlock is IngameIMyFunctionalBlock targetFunctionalBlock))
+                    continue;
+
+                removeTools.Remove(targetFunctionalBlock);
+                addTools.Add(targetFunctionalBlock);
+            }
+
+            if (removeTools.Count != 0)
+            {
+                block.RemoveTools(removeTools.ToList());
+                modified = true;
+            }
+
+            if (addTools.Count != 0)
+            {
+                block.AddTools(addTools.ToList());
+                modified = true;
+            }
+
+            return modified;
+        }
+
+        private bool RestoreOffensiveCombat(ProjectedBlock projectedBlock)
+        {
+            var builder = (MyObjectBuilder_OffensiveCombatBlock)projectedBlock.Builder;
+            if (builder.ComponentContainer == null)
+                return false;
+
+            var block = (MyOffensiveCombatBlock)projectedBlock.SlimBlock.FatBlock;
+
+            // The selected weapons are stored per attack strategy sub-component. All strategy components are
+            // force-created on both client and server (see EntityContainers.sbc), each registered in the block's
+            // component container under its own concrete type. Therefore the live components must be looked up by
+            // concrete type; MyComponentContainer.TryGet does an exact-type lookup, so the abstract base class
+            // MyOffensiveWithWeaponsCombatComponent would never match (it is not a registration key).
+            var modified = false;
+
+            if (builder.ComponentContainer.TryGet<MyObjectBuilder_OffensiveCombatCircleOrbit>(out var circleOrbitBuilder))
+                modified = RestoreOffensiveCombatWeapons<MyOffensiveCombatCircleOrbit>(block, circleOrbitBuilder.SelectedWeapons) || modified;
+
+            if (builder.ComponentContainer.TryGet<MyObjectBuilder_OffensiveCombatHitAndRun>(out var hitAndRunBuilder))
+                modified = RestoreOffensiveCombatWeapons<MyOffensiveCombatHitAndRun>(block, hitAndRunBuilder.SelectedWeapons) || modified;
+
+            if (builder.ComponentContainer.TryGet<MyObjectBuilder_OffensiveCombatStayAtRange>(out var stayAtRangeBuilder))
+                modified = RestoreOffensiveCombatWeapons<MyOffensiveCombatStayAtRange>(block, stayAtRangeBuilder.SelectedWeapons) || modified;
+
+            return modified;
+        }
+
+        private bool RestoreOffensiveCombatWeapons<T>(MyOffensiveCombatBlock block, IList<long> builderSelectedWeapons)
+            where T : MyOffensiveWithWeaponsCombatComponent
+        {
+            if (builderSelectedWeapons == null || builderSelectedWeapons.Count == 0)
+                return false;
+
+            if (!block.Components.TryGet<T>(out var component))
+                return false;
+
+            var selectedWeapons = new List<long>(builderSelectedWeapons.Count);
+            component.GetSelectedWeapons(selectedWeapons);
+
+            var removeIds = new HashSet<long>(selectedWeapons);
+            var addIds = new HashSet<long>(builderSelectedWeapons.Count);
+
+            foreach (var blockId in builderSelectedWeapons)
+            {
+                if (!TryMapPreviewToBuiltTerminalBlock<MyTerminalBlock>(blockId, out var targetBlock))
+                    continue;
+
+                var targetBlockId = targetBlock.EntityId;
+                removeIds.Remove(targetBlockId);
+                addIds.Add(targetBlockId);
+            }
+
+            // Optimization: Change the weapon selection only if it has changed
+            if (removeIds.Count == 0 && addIds.Count == selectedWeapons.Count)
+                return false;
+
+            component.SetSelectedWeapons(addIds.ToList());
+            return true;
+        }
+
+        private bool RestorePathRecorder(ProjectedBlock projectedBlock)
+        {
+            var builder = (MyObjectBuilder_PathRecorderBlock)projectedBlock.Builder;
+            if (builder.ComponentContainer == null || !builder.ComponentContainer.TryGet<MyObjectBuilder_PathRecorderComponent>(out var componentBuilder))
+                return false;
+
+            var block = (MyPathRecorderBlock)projectedBlock.SlimBlock.FatBlock;
+            if (!block.Components.TryGet<MyPathRecorderComponent>(out var component))
+                return false;
+
+            var waypointBuilders = componentBuilder.Waypoints;
+            if (waypointBuilders == null || waypointBuilders.Count == 0)
+                return false;
+
+            var modified = false;
+
+            // In multiplayer the server welds a clean block whose path recorder component has no waypoints,
+            // because waypoints are only loaded from the component object builder at init time (see
+            // MyPathRecorderComponent.OnAddedToContainer), which the freshly welded block does not have.
+            // Reconstruct the missing waypoints from the blueprint exactly the way the component would build
+            // them from its own object builder, so the recorded path and its per-waypoint toolbar actions
+            // exist on the server. MyPathRecorderComponent.Serialize writes the waypoints back into the
+            // component object builder, so clients receive them when the block is replicated.
+            var waypoints = component.Waypoints;
+            for (var waypointIndex = waypoints.Count; waypointIndex < waypointBuilders.Count; waypointIndex++)
+            {
+                waypoints.Add(new MyAutopilotWaypoint(waypointBuilders[waypointIndex]));
+                modified = true;
+            }
+
+            // Remap the block references in each waypoint's toolbar actions from the preview blocks to the
+            // built blocks, the same way as for any other restored toolbar.
+            var waypointCount = Math.Min(waypointBuilders.Count, waypoints.Count);
+            for (var waypointIndex = 0; waypointIndex < waypointCount; waypointIndex++)
+            {
+                var builderActions = waypointBuilders[waypointIndex].Actions;
+                var liveActions = waypoints[waypointIndex].Actions;
+                modified = RestoreToolbarActions(liveActions, builderActions) || modified;
+            }
+
+            return modified;
+        }
+
+        private bool RestoreButtonPanel(ProjectedBlock projectedBlock)
+        {
+            var builder = (MyObjectBuilder_ButtonPanel)projectedBlock.Builder;
+            var block = (MyButtonPanel)projectedBlock.SlimBlock.FatBlock;
+
+            var modified = false;
+            foreach (var pos in builder.CustomButtonNames.Dictionary.Keys)
+            {
+                var customName = builder.CustomButtonNames[pos];
+                if (customName != null)
+                {
+                    block.SetCustomButtonName(customName, pos);
+                    modified = true;
+                }
+            }
+
+            return modified;
+        }
+    }
+}

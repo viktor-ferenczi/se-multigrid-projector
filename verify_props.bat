@@ -1,5 +1,7 @@
-REM This file is ran in a pre-build event when data from "Directory.Build.props" is required
-REM It assumes "Directory.Build.props" and "verify_props" are both in the solution directory
+REM This file is ran in a pre-build event when data from "Directory.Build.props" or
+REM "Directory.Build.targets" is required.
+REM It assumes "Directory.Build.props", "Directory.Build.targets" and "verify_props"
+REM are all in the solution directory
 
 @echo off
 setlocal
@@ -13,7 +15,7 @@ for %%a in (%*) do (
     if not exist "%%~a" (
 
         REM Raise an error for each bad path - this will prevent the build from completing.
-        echo ERROR: Invalid path "%%~a" in "%SOLUTION%Directory.Build.Props" 1>&2
+        echo ERROR: Invalid path "%%~a" in "%SOLUTION%Directory.Build.props" or "%SOLUTION%Directory.Build.targets" 1>&2
     )
 )
 
