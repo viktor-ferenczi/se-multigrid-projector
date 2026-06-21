@@ -1,6 +1,6 @@
 # Shared Utilities & Infrastructure
 
-The `Shared/Utilities` folder is the cross-cutting infrastructure layer compiled into **both** the client plugin and the dedicated-server plugin. It is organised into seven concerns: (1) **logging abstraction** (`IPluginLogger`, `PluginLog`) that hides the concrete logger supplied by Pulsar/Magnetar; (2) **IL verification and Harmony transpiler helpers** (`EnsureOriginal`, `TranspilerHelpers`, `Hashing`, `Arithmetic`) that hash game-method bodies at startup and throw a descriptive error if the game has been updated in an incompatible way; (3) **concurrency** (`RwLock`, `RwLockDictionary`) providing a lightweight spin-based reader/writer lock used wherever projection state is read from the game thread while background threads may write; (4) **multiplayer comms** (`Comms`, `ExecLocation`) for detecting the runtime role (single-player / server / client) and routing plugin-to-plugin handshake packets; (5) **game-thread event helpers** (`Events`) for scheduling deferred work and subscribing to one-shot game events safely; (6) **environment detection** (`WineDetector`) to identify Wine/Proton hosts; and (7) **small math and build-time helpers** (`OrientationAlgebra`, `Validation`, `IgnoresAccessChecksToAttribute`, `GameAssembliesToPublicize`, `MultigridProjectorConfig`).
+The `Shared/Utilities` folder is the cross-cutting infrastructure layer compiled into **both** the client plugin and the dedicated-server plugin. It is organised into seven concerns: (1) **logging abstraction** (`IPluginLogger`, `PluginLog`) that hides the concrete logger supplied by Pulsar/Magnetar; (2) **patch application, IL verification and Harmony transpiler helpers** (`PatchHelpers`, `EnsureOriginal`, `TranspilerHelpers`, `Hashing`, `Arithmetic`) that apply the plugin's Harmony patches (logging exactly which game methods were patched), hash game-method bodies at startup, and throw a descriptive error if the game has been updated in an incompatible way; (3) **concurrency** (`RwLock`, `RwLockDictionary`) providing a lightweight spin-based reader/writer lock used wherever projection state is read from the game thread while background threads may write; (4) **multiplayer comms** (`Comms`, `ExecLocation`) for detecting the runtime role (single-player / server / client) and routing plugin-to-plugin handshake packets; (5) **game-thread event helpers** (`Events`) for scheduling deferred work and subscribing to one-shot game events safely; (6) **environment detection** (`WineDetector`) to identify Wine/Proton hosts; and (7) **small math and build-time helpers** (`OrientationAlgebra`, `Validation`, `IgnoresAccessChecksToAttribute`, `GameAssembliesToPublicize`, `MultigridProjectorConfig`).
 
 See also [Core-Projection-Engine.md](./Core-Projection-Engine.md) for how the projection engine consumes these helpers, [Shared-Patches.md](./Shared-Patches.md) for how Harmony patches use `EnsureOriginal` and `TranspilerHelpers`, [Build-And-Project-Layout.md](./Build-And-Project-Layout.md) for the publicizer/access-checks build pipeline, and [../Troubleshooting.md](../Troubleshooting.md) for diagnosing `EnsureOriginal` failures and Wine/Proton environment issues.
 
@@ -13,6 +13,7 @@ See also [Core-Projection-Engine.md](./Core-Projection-Engine.md) for how the pr
 | [`TranspilerHelpers.cs`](../../Shared/Utilities/TranspilerHelpers.cs) | 256 | Extension methods on `List<CodeInstruction>` for searching, mutating, hashing, and recording IL; `CodeInstructionNotFound` exception. |
 | [`Comms.cs`](../../Shared/Utilities/Comms.cs) | 123 | Multiplayer role detection, secure-message routing, and server-has-plugin handshake. |
 | [`EnsureOriginal.cs`](../../Shared/Utilities/EnsureOriginal.cs) | 111 | Class-level attribute that hashes game-method IL at startup and refuses to load if the hash does not match. |
+| [`PatchHelpers.cs`](../../Shared/Utilities/PatchHelpers.cs) | 103 | Applies the plugin's Harmony patches (all / uncategorized / by category) and Info-logs exactly which game methods were patched, so a run can be verified from the log alone. |
 | [`Events.cs`](../../Shared/Utilities/Events.cs) | 138 | Helpers for deferring actions to the game thread and subscribing to one-shot game events. |
 | [`RwLock.cs`](../../Shared/Utilities/RwLock.cs) | 93 | Lightweight spin-based reader/writer lock with `using`-compatible `Reader`/`Writer` scope guards. |
 | [`Hashing.cs`](../../Shared/Utilities/Hashing.cs) | 84 | FNV-1a string hash, IL instruction sequence hasher, and hash-code combiner (extension methods). |
@@ -86,6 +87,35 @@ internal static class MyProjectorBase_Build
     static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions) { … }
 }
 ```
+
+---
+
+## PatchHelpers
+
+_`public static class PatchHelpers` — namespace `MultigridProjector.Utilities`_
+
+The single entry point both plugins use to apply their Harmony patches. It wraps Harmony's
+`PatchAll` family so that **every applied patch is logged**, and supports the dedicated server's
+two-phase startup (apply most patches early, defer a category to `IPlugin.Init`).
+
+**Why the per-patch lines log at `Info`, not `Debug`:** the game's `MyLog.Default.Debug` is
+`[Conditional("DEBUG")]` and is therefore compiled out of the Release builds that ship to Magnetar and
+Pulsar. `Info` is the lowest level that survives into the build users actually run, so it is the only
+level at which patch application can be verified from the logs. Each applied patch is logged as
+`Namespace.Type.Method(argTypes) <- PatchClass[, …]` with a running count, followed by a summary line.
+
+| Member | Kind | Description |
+|---|---|---|
+| `LateCategory` | `const string` (`"Late"`) | Harmony patch category for patches deferred to `IPlugin.Init` because their target assembly is not loaded yet at the dedicated server's early bootstrap point. No patch currently uses it; the mechanism is kept for future late-loaded targets, which opt in with `[HarmonyPatchCategory(PatchHelpers.LateCategory)]`. |
+| `PatchAll(Harmony)` | static method | Applies **every** patch in the executing assembly (`PatchAll`). Used by the **client** (Pulsar), whose `IPlugin.Init` already runs before world load. |
+| `PatchUncategorized(Harmony)` | static method | Applies everything **except** the `"Late"` category (`PatchAllUncategorized`). Used by the **dedicated server's early bootstrap**, before world-load compilation. |
+| `PatchCategory(Harmony, category)` | static method | Applies only the patches in the given category. Used by the dedicated server from `IPlugin.Init`, once late-loaded target assemblies exist. |
+
+Internally `ApplyAndLog` snapshots `harmony.GetPatchedMethods()` before applying, then reports exactly
+the methods the current phase added — `GetPatchedMethods()` is scoped to `harmony.Id`, so the
+before/after delta isolates each phase even though the dedicated server applies two phases under the
+same id. See [Server-Plugin.md → Lifecycle](./Server-Plugin.md#lifecycle) for the two-phase flow; the
+Info-level patch lines let patch timing be verified from the server and client logs.
 
 ---
 
@@ -330,6 +360,7 @@ A placeholder for future plugin configuration (block-limit and PCU-limit toggles
     {"path": "Shared/Utilities/TranspilerHelpers.cs", "summary": "Extension methods on List<CodeInstruction> for searching, mutating, hashing, and recording IL; CodeInstructionNotFound exception."},
     {"path": "Shared/Utilities/Comms.cs", "summary": "Multiplayer role detection, secure-message handler registration, and server-has-plugin handshake."},
     {"path": "Shared/Utilities/EnsureOriginal.cs", "summary": "Class-level attribute that hashes game-method IL at startup and refuses to load if the hash does not match any allowed digest."},
+    {"path": "Shared/Utilities/PatchHelpers.cs", "summary": "Applies the plugin's Harmony patches (all / uncategorized / by category) and Info-logs exactly which game methods were patched; supports the dedicated server's two-phase (early + Late category) startup."},
     {"path": "Shared/Utilities/Events.cs", "summary": "InvokeOnGameThread wrapper with release-build safety, plus one-shot game-event subscription helpers."},
     {"path": "Shared/Utilities/RwLock.cs", "summary": "Spin-based reader/writer lock with using-compatible Reader/Writer scope guards."},
     {"path": "Shared/Utilities/Hashing.cs", "summary": "FNV-1a string hash, IL instruction sequence hasher, and hash-code combiner as extension methods."},
@@ -347,6 +378,7 @@ A placeholder for future plugin configuration (block-limit and PCU-limit toggles
   ],
   "key_types": [
     "EnsureOriginal — class-level attribute that hashes game-method IL at startup and aborts plugin load on mismatch",
+    "PatchHelpers — applies Harmony patches (all/uncategorized/category) with Info-level per-patch logging; LateCategory constant for the dedicated server's two-phase startup",
     "TranspilerHelpers — extension methods for searching/mutating/hashing IL instruction lists in Harmony transpilers",
     "Hashing — FNV-1a string hash and IL instruction-sequence hasher used by TranspilerHelpers and EnsureOriginal",
     "Arithmetic — standalone hash-code combiner used by EnsureOriginal",
@@ -377,6 +409,6 @@ A placeholder for future plugin configuration (block-limit and PCU-limit toggles
     "Docs/Reference/Build-And-Project-Layout.md",
     "Docs/Troubleshooting.md"
   ],
-  "notes": "EnsureOriginal hashes game-method IL at plugin load and throws NotSupportedException listing every changed method, preventing silent misbehaviour after game updates. TranspilerHelpers.VerifyCodeHash offers the same safety inline in transpiler methods and can be bypassed with SE_PLUGIN_DISABLE_METHOD_VERIFICATION. RwLock is a pure spin-wait lock with no kernel waits, suited to the short critical sections in projection state access. Comms auto-detects SinglePlayer/MultiplayerServer/MultiplayerClient/DedicatedServer at construction time and sends a 8-byte signature handshake so clients can confirm the server also has the plugin. WineDetector uses P/Invoke on ntdll.dll plus environment-variable fallbacks to distinguish native Windows from Wine/Proton on Linux."
+  "notes": "PatchHelpers is the single entry point both plugins use to apply Harmony patches, logging every patched game method at Info (not Debug, which is compiled out of release builds) so patch application and timing can be verified from the shipped logs; PatchAll for the client, PatchUncategorized + PatchCategory(Late) for the dedicated server's two-phase early/late startup. EnsureOriginal hashes game-method IL at plugin load and throws NotSupportedException listing every changed method, preventing silent misbehaviour after game updates. TranspilerHelpers.VerifyCodeHash offers the same safety inline in transpiler methods and can be bypassed with SE_PLUGIN_DISABLE_METHOD_VERIFICATION. RwLock is a pure spin-wait lock with no kernel waits, suited to the short critical sections in projection state access. Comms auto-detects SinglePlayer/MultiplayerServer/MultiplayerClient/DedicatedServer at construction time and sends a 8-byte signature handshake so clients can confirm the server also has the plugin. WineDetector uses P/Invoke on ntdll.dll plus environment-variable fallbacks to distinguish native Windows from Wine/Proton on Linux."
 }
 ```

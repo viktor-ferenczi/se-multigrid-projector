@@ -15,9 +15,9 @@ parent [../Architecture.md](../Architecture.md) and [../API.md](../API.md).
 
 | File | Lines | Purpose |
 |------|------:|---------|
-| [MultigridProjection.cs](../../Shared/Logic/MultigridProjection.cs) | 2338 | Central per-projector class: lifecycle, subgrid/connection bookkeeping, build & placement checks, the update loop, and all Harmony entry points. |
+| [MultigridProjection.cs](../../Shared/Logic/MultigridProjection.cs) | 2365 | Central per-projector class: lifecycle, subgrid/connection bookkeeping, build & placement checks, the update loop, and all Harmony entry points. |
 | [Subgrid.cs](../../Shared/Logic/Subgrid.cs) | 784 | One blueprint subgrid: preview grid, optional built grid, block models, connections, grid-event handling, and background block-state scanning. |
-| [ReferenceFixer.cs](../../Shared/Logic/ReferenceFixer.cs) | 582 | Restores inter-block references (toolbars, controllers, weapon/tool selections) on freshly built blocks by mapping blueprint IDs to built EntityIds. |
+| [ReferenceFixer.cs](../../Shared/Logic/ReferenceFixer.cs) | 700 | Restores inter-block references (toolbars, toolbar group items, controllers, weapon/tool selections, AI waypoints) on freshly built blocks by mapping blueprint IDs to built EntityIds. |
 | [MultigridProjectorApiProvider.cs](../../Shared/Logic/MultigridProjectorApiProvider.cs) | 228 | Implements `IMultigridProjectorApi` and publishes the Mod API (mod message) and Programmable Block API (terminal property). |
 | [ProjectedBlock.cs](../../Shared/Logic/ProjectedBlock.cs) | 157 | Pairs a preview block with its blueprint builder; detects build/grind state and drives preview transparency visuals. |
 | [MultigridUpdateWork.cs](../../Shared/Logic/MultigridUpdateWork.cs) | 127 | `IWork` background task that scans all supported subgrids off the main thread and raises a completion event. |
@@ -335,6 +335,32 @@ block by id and to build a `referenceMap` of who references whom. When a block i
 a range of specific block types (remote control, event controller, turret controller, offensive combat,
 AI path recorder, button panel, ship controllers, timers, sensors).
 
+Toolbar restoration handles both kinds of toolbar item:
+
+- **Single-block items** (`MyObjectBuilder_ToolbarItemTerminalBlock`) target one block directly by
+  `BlockEntityId`; that id is remapped from the preview block to the built block.
+- **Group items** (`MyObjectBuilder_ToolbarItemTerminalGroup`) are anchored to a grid by `BlockEntityId`
+  and resolved at runtime by group name (`MyToolbarItemTerminalGroup.GetBlocks`). After welding, the
+  stored anchor still points at the preview block, so it is remapped to the built block — otherwise the
+  group resolves to no blocks and the slot/action renders empty. The group's *membership* is restored
+  separately by the Subgrid block-group restoration. Group items also register a dependency on their
+  anchor block in `referenceMap`, so a group-only toolbar is re-restored once the anchor is welded
+  (without it, such a toolbar would register no dependencies and never retry).
+
+Two block types needed multiplayer-specific handling, because on the server the freshly welded block
+is "clean" — it carries none of the blueprint's component object-builder state:
+
+- **Offensive combat** — the selected weapons are stored per *attack strategy* sub-component
+  (circle-orbit, hit-and-run, stay-at-range), each force-created and registered under its own concrete
+  type. `MyComponentContainer.TryGet` does an exact-type lookup, so each strategy's weapons are restored
+  individually via the generic `RestoreOffensiveCombatWeapons<T>` rather than through the abstract base
+  `MyOffensiveWithWeaponsCombatComponent` (which is not a registration key and would never match).
+- **AI path recorder** — in multiplayer the server welds a block whose path-recorder component has no
+  waypoints (waypoints are only loaded from the component object builder at init time, which a freshly
+  welded block lacks). `RestorePathRecorder` reconstructs the missing `MyAutopilotWaypoint`s from the
+  blueprint, then remaps each waypoint's toolbar-action block references; `MyPathRecorderComponent.Serialize`
+  writes them back so clients receive them on replication.
+
 | Member | Kind | Description |
 |--------|------|-------------|
 | `blocksById` | field (private) | Terminal `ProjectedBlock`s by blueprint EntityId. |
@@ -345,8 +371,9 @@ AI path recorder, button panel, ship controllers, timers, sensors).
 | `Restore` / `RestoreSafe` | method | Restore a built block's references plus its referrers (Safe wraps in try/catch). |
 | `RestoreAll` / `RestoreAllSafe` | method | Restore every indexed block. |
 | `RestoreOneWay` | method (private) | Restore one block's outgoing references by builder type. |
-| `RestoreToolbar` / `RestoreToolbarActions` | method (private) | Rewrite toolbar slot / action targets. |
-| `RestoreRemoteControl` / `RestoreEventController` / `RestoreTurretController` / `RestoreOffensiveCombat` / `RestorePathRecorder` / `RestoreButtonPanel` | method (private) | Type-specific reference restoration. |
+| `RestoreToolbar` / `RestoreToolbarActions` | method (private) | Rewrite toolbar slot / action targets; handle both single-block and group toolbar items. |
+| `RestoreRemoteControl` / `RestoreEventController` / `RestoreTurretController` / `RestoreOffensiveCombat` / `RestorePathRecorder` / `RestoreButtonPanel` | method (private) | Type-specific reference restoration. `RestorePathRecorder` also reconstructs missing waypoints on server-welded blocks. |
+| `RestoreOffensiveCombatWeapons<T>` | method (private) | Restore the selected-weapons list for one offensive-combat attack-strategy component `T` (exact-type `Components.TryGet`). |
 
 ## MultigridProjectorApiProvider
 

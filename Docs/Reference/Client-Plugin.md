@@ -17,7 +17,7 @@ See also:
 
 | File | Lines | Purpose |
 |------|-------|---------|
-| [Plugin.cs](../../ClientPlugin/Plugin.cs) | 80 | `IPlugin` entry point: logging setup, config bridge, IL verification, `Harmony.PatchAll`, config dialog. |
+| [Plugin.cs](../../ClientPlugin/Plugin.cs) | 79 | `IPlugin` entry point: logging setup, config bridge, IL verification, `PatchHelpers.PatchAll`, config dialog. |
 | [Config.cs](../../ClientPlugin/Config.cs) | 128 | Persistent user configuration; implements `IPluginConfig`; exposes all feature-toggle properties with Settings UI attributes. |
 | [PluginSession.cs](../../ClientPlugin/PluginSession.cs) | 52 | `MySessionComponentBase` session object: constructs/disposes `MultigridProjectorSession`; drives per-frame update of highlight, welding, and projection engine. |
 | [PluginLogger.cs](../../ClientPlugin/PluginLogger.cs) | 46 | `IPluginLogger` implementation that forwards to `MyLog.Default`; surfaces errors to the player via `MyAPIGateway.Utilities.ShowMessage`. |
@@ -38,8 +38,8 @@ Plugin.Init(gameInstance)
   │                                   ← bridges client Config into shared code
   ├─ [net48 only, not Wine/Proton, env var not set]
   │    EnsureOriginal.VerifyAll()     ← throws NotSupportedException if game IL changed
-  └─ Harmony.PatchAll(Assembly.GetExecutingAssembly())
-                                      ← all [HarmonyPatch] classes in the assembly
+  └─ PatchHelpers.PatchAll(Harmony)
+                                      ← all [HarmonyPatch] classes in the assembly, each logged at Info
         │
         ▼  (game running)
 Plugin.Update()                       ← called each frame (currently no-op; logic is in PluginSession)
@@ -86,7 +86,7 @@ Plugin.Dispose()
 
 *`public class Plugin : IPlugin` — namespace `ClientPlugin`*
 
-The top-level `IPlugin` implementation. Pulsar instantiates exactly one instance and calls its lifecycle methods. It acts as a composition root: it wires the logger, bridges config to shared code, gates IL verification, and triggers `Harmony.PatchAll`.
+The top-level `IPlugin` implementation. Pulsar instantiates exactly one instance and calls its lifecycle methods. It acts as a composition root: it wires the logger, bridges config to shared code, gates IL verification, and triggers `PatchHelpers.PatchAll` (which applies all `[HarmonyPatch]` classes and Info-logs each patched method — see [Shared-Utilities.md → PatchHelpers](./Shared-Utilities.md#patchhelpers)).
 
 | Member | Kind | Description |
 |--------|------|-------------|

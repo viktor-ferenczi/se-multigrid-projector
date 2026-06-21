@@ -26,10 +26,11 @@ source compiles into each target rather than being shared as a binary.
 
 | File | Lines | Purpose |
 | ---- | ----: | ------- |
-| [MultigridProjector.sln](../../MultigridProjector.sln) | 92 | Visual Studio / Rider solution tying the projects together. |
-| [Directory.Build.props](../../Directory.Build.props) | 88 | Auto-detects local install paths (`Bin64`, `Dedicated64`, `Pulsar`, `Magnetar`) on Windows and Linux; overridable. |
-| [Directory.Build.targets](../../Directory.Build.targets) | 11 | Resolves `PulsarBin` after target-framework inference (Legacy for `net48`, Interim for `net10.0`). |
-| [setup.py](../../setup.py) | 329 | Interactive helper to fill the install paths in `Directory.Build.props`. |
+| [MultigridProjector.sln](../../MultigridProjector.sln) | 92 | Visual Studio / Rider solution tying the projects together. `Version.Build.props` is included as a solution item. |
+| [Version.Build.props](../../Version.Build.props) | 8 | **Committed.** Single source of the plugin `Version` (`AssemblyVersion`/`FileVersion`); shared by all contributors and imported by `Directory.Build.props`. |
+| [Directory.Build.props.template](../../Directory.Build.props.template) | 104 | **Committed template.** Imports `Version.Build.props`, then declares the (initially empty) local install paths (`Bin64`, `Dedicated64`, `Pulsar`, `Magnetar`) with Windows/Linux auto-detection. `setup.py` copies it to `Directory.Build.props` (which is **gitignored**, since it holds machine-specific paths). |
+| [Directory.Build.targets](../../Directory.Build.targets) | 10 | Resolves `PulsarBin` after target-framework inference (Legacy for `net48`, Interim for `net10.0`). |
+| [setup.py](../../setup.py) | 338 | Interactive helper that generates `Directory.Build.props` from the template and fills in the local install paths. |
 | [verify_props.sh](../../verify_props.sh) / [verify_props.bat](../../verify_props.bat) | 15 / 23 | Pre-build check that the configured game/host paths exist (fails fast with a clear message). |
 | [clean.sh](../../clean.sh) / [Clean.bat](../../Clean.bat) | 8 / 11 | Remove `bin`/`obj` build output. |
 | [.github/FUNDING.yml](../../.github/FUNDING.yml) | 14 | GitHub sponsor links. |
@@ -49,8 +50,11 @@ Both plugin projects declare:
 
 `LangVersion` is 14 and `GenerateAssemblyInfo` is on (so the SDK emits assembly attributes — the
 example projects keep a hand-written `AssemblyInfo.cs`, the plugins do not). The version (`0.9.2`)
-is set in the `.csproj` and, for Pulsar source-compiled client builds, asserted in
-[`ClientPlugin/Plugin.cs`](../../ClientPlugin/Plugin.cs).
+is defined in one place — [`Version.Build.props`](../../Version.Build.props) — and imported into both
+plugins via `Directory.Build.props`. For Pulsar/Magnetar source-compiled builds (where the props
+import may not apply) the same version is asserted via an `[assembly: AssemblyVersion]` guarded by
+`#if !DEV_BUILD` in [`ClientPlugin/Plugin.cs`](../../ClientPlugin/Plugin.cs) and
+[`ServerPlugin/Plugin.cs`](../../ServerPlugin/Plugin.cs).
 
 ### Build constants
 
