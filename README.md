@@ -7,8 +7,8 @@ Enables seamless building projections with multiple subgrids, also provides a fe
 - Works both in single player and multiplayer
 
 - **Client plugin** — loaded by [Pulsar](https://github.com/SpaceGT/Pulsar) in the game client.
-- **Server plugin** — loaded by [Magnetar](https://magnetar.se) on the dedicated server, managed
-  remotely via [Quasar](https://github.com/viktor-ferenczi/Quasar).
+- **Server plugin** — loaded by [Magnetar](https://github.com/CometWorks/magnetar) on the dedicated server, managed
+  remotely via [Quasar](https://github.com/CometWorks/quasar).
 
 _In multiplayer full functionality is supported only if the server also has the Multigrid Projector plugin loaded.
 If only the client has the plugin, then some limited functionality is still available, but it is not seamless._
