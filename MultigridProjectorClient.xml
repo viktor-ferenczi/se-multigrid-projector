@@ -2,10 +2,10 @@
 <PluginData xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="GitHubPlugin">
 
     <!-- The ID of your plugin, never change this -->
-    <Id>D27C306C-6879-428B-B26F-E58AB98EAB73</Id>
+    <Id>viktor-ferenczi/se-multigrid-projector</Id>
 
     <!-- GitHub repository ID -->
-    <RepoId>viktor-ferenczi/se-mgp</RepoId>
+    <RepoId>viktor-ferenczi/se-multigrid-projector</RepoId>
 
     <!-- The name of your plugin that will appear in the plugin list -->
     <FriendlyName>Multigrid Projector</FriendlyName>
@@ -14,14 +14,21 @@
     <Author>Viktor</Author>
 
     <!-- Optional tooltip for the plugin in the plugin list -->
-    <Tooltip>Build and repair multigrid projections (PDCs, mechs and more), in survival and creative, single player and multiplayer.</Tooltip>
+    <Tooltip>Allows loading blueprints of multiple sub-grids into projectors and building them.</Tooltip>
 
     <!-- Optional plugin description. If omitted, this will be the same as the Tooltip. 1000 characters max. -->
-    <Description>Multigrid Projector lets you build and repair multigrid blueprints (ships with rotors, hinges and pistons - PDCs, mechs and more) directly from a projector.
+    <Description>This plugin allows to load blueprints of multiple sub-grids into projectors and welding the blocks. Head/base blocks are added automatically as needed to connect subgrids.
 
-        Works in survival and creative, single player and multiplayer. In multiplayer most of the multigrid welding works with just this client plugin; install the server plugin as well (via Magnetar/Quasar) for full functionality.
+For support join the SE Mods Discord:
+https://discord.gg/PYPFPGf3Ca
 
-        For help, troubleshooting and bug reports join the SE Mods Discord: https://discord.gg/PYPFPGf3Ca
+Please consider supporting my work on Patreon:
+https://www.patreon.com/semods
+
+One time support via PayPal:
+https://www.paypal.com/paypalme/vferenczi/
+
+Thank you!
     </Description>
 
     <!-- Only source code in the Directory entries listed in SourceDirectories is compiled. Exclude any test projects or similar. -->
