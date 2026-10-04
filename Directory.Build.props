@@ -97,11 +97,11 @@
     <Magnetar Condition="'$(Magnetar)' == '' and '$(Dedicated64)' != ''">$([System.IO.Path]::GetFullPath('$(Dedicated64)\..\Magnetar'))</Magnetar>
   </PropertyGroup>
 
-  <!-- Magnetar launcher the current build targets. It names both the Libraries
-       subfolder holding PluginSdk.dll and (on Windows) the config folder holding
-       the Local plugins. $(TargetFrameworkIdentifier) is only derived after this
-       file is imported, but the raw $(TargetFramework) is available: in a
-       multi-targeting inner build MSBuild passes it as a global property. -->
+  <!-- Magnetar launcher the current build targets. It names the Libraries
+       subfolder holding PluginSdk.dll. $(TargetFrameworkIdentifier) is only
+       derived after this file is imported, but the raw $(TargetFramework) is
+       available: in a multi-targeting inner build MSBuild passes it as a global
+       property. -->
   <PropertyGroup Condition="'$(TargetFramework)' != ''">
     <MagnetarLauncher Condition="$(TargetFramework.StartsWith('net4'))">MagnetarLegacy</MagnetarLauncher>
     <MagnetarLauncher Condition="'$(MagnetarLauncher)' == ''">MagnetarInterim</MagnetarLauncher>

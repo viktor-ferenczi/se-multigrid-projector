@@ -13,7 +13,7 @@
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
 
-    <!-- Keep original behaviour for post/pre build events -->
+    <!-- Keep original behavior for post/pre build events -->
     <RunPostBuildEvent>Always</RunPostBuildEvent>
     <AssemblyVersion>0.9.5</AssemblyVersion>
     <FileVersion>0.9.5</FileVersion>
