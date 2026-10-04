@@ -22,7 +22,7 @@ See also [Core-Projection-Engine.md](./Core-Projection-Engine.md) for how the pr
 | [`PluginLog.cs`](../../Shared/Utilities/PluginLog.cs) | 56 | Static facade (`Info`/`Debug`/`Warn`/`Error`) that delegates to the registered `IPluginLogger`. |
 | [`RwLockDictionary.cs`](../../Shared/Utilities/RwLockDictionary.cs) | 43 | `Dictionary<TKey,TValue>` subclass that embeds an `RwLock` and exposes `Read()`/`Write()` scopes. |
 | [`Arithmetic.cs`](../../Shared/Utilities/Arithmetic.cs) | 33 | Stand-alone hash-code combiner (same algorithm as `Hashing.CombineHashCodes`; used by `EnsureOriginal`). |
-| [`IgnoresAccessChecksToAttribute.cs`](../../Shared/Utilities/IgnoresAccessChecksToAttribute.cs) | 24 | Declares `System.Runtime.CompilerServices.IgnoresAccessChecksToAttribute` for non-`DEV_BUILD` builds where Krafs.Publicizer is not active. |
+| [`IgnoresAccessChecksToAttribute.cs`](../../Shared/Utilities/IgnoresAccessChecksToAttribute.cs) | 24 | Declares `System.Runtime.CompilerServices.IgnoresAccessChecksToAttribute` for non-`LOCAL_BUILD` builds where Krafs.Publicizer is not active. |
 | [`ExecLocation.cs`](../../Shared/Utilities/ExecLocation.cs) | 22 | Marker attributes (`[Everywhere]`, `[ServerOnly]`, `[ClientOnly]`) for annotating patch methods by execution context. |
 | [`Validation.cs`](../../Shared/Utilities/Validation.cs) | 15 | `EnsureInfo<T>` guard that converts a `null` `AccessTools` result into a descriptive exception. |
 | [`MultigridProjectorConfig.cs`](../../Shared/Utilities/MultigridProjectorConfig.cs) | 11 | Stub configuration class (currently compiled out with `#if UNUSED`). |
@@ -331,7 +331,7 @@ A single guard method that converts a `null` return from `AccessTools` reflectio
 
 _`System.Runtime.CompilerServices.IgnoresAccessChecksToAttribute` — conditional declaration in `IgnoresAccessChecksToAttribute.cs`_
 
-The `Krafs.Publicizer` NuGet package emits `[IgnoresAccessChecksTo]` assembly attributes automatically when building in an IDE (`DEV_BUILD`). When Pulsar/Magnetar builds the plugin without Krafs, the attribute declaration must be present in the plugin assembly itself; `IgnoresAccessChecksToAttribute.cs` provides it under `#if !DEV_BUILD`.
+The `Krafs.Publicizer` NuGet package emits `[IgnoresAccessChecksTo]` assembly attributes automatically when building in an IDE (`LOCAL_BUILD`). When Pulsar/Magnetar builds the plugin without Krafs, the attribute declaration must be present in the plugin assembly itself; `IgnoresAccessChecksToAttribute.cs` provides it under `#if !LOCAL_BUILD`.
 
 `GameAssembliesToPublicize.cs` contains the three concrete `[assembly: IgnoresAccessChecksTo("…")]` usages that tell the runtime to suppress internal/private access checks for the publicized game assemblies. These must be kept in sync with the `<Publicize>` items in `ClientPlugin.csproj` and `ServerPlugin.csproj` — see [Build-And-Project-Layout.md](./Build-And-Project-Layout.md).
 
@@ -369,7 +369,7 @@ A placeholder for future plugin configuration (block-limit and PCU-limit toggles
     {"path": "Shared/Utilities/PluginLog.cs", "summary": "Static logging facade that prepends the plugin name prefix and delegates to the injected IPluginLogger."},
     {"path": "Shared/Utilities/RwLockDictionary.cs", "summary": "Dictionary subclass that embeds an RwLock and exposes Read()/Write() scope methods."},
     {"path": "Shared/Utilities/Arithmetic.cs", "summary": "Stand-alone hash-code combiner used by EnsureOriginal."},
-    {"path": "Shared/Utilities/IgnoresAccessChecksToAttribute.cs", "summary": "Conditional declaration of IgnoresAccessChecksToAttribute for non-DEV_BUILD (Pulsar/Magnetar) builds."},
+    {"path": "Shared/Utilities/IgnoresAccessChecksToAttribute.cs", "summary": "Conditional declaration of IgnoresAccessChecksToAttribute for non-LOCAL_BUILD (Pulsar/Magnetar) builds."},
     {"path": "Shared/Utilities/ExecLocation.cs", "summary": "Marker attributes (Everywhere, ServerOnly, ClientOnly) annotating patch methods by execution context."},
     {"path": "Shared/Utilities/Validation.cs", "summary": "EnsureInfo<T> guard converting null AccessTools results to descriptive exceptions."},
     {"path": "Shared/Utilities/MultigridProjectorConfig.cs", "summary": "Stub configuration class compiled out with #if UNUSED; placeholder for future block/PCU-limit settings."},
@@ -390,7 +390,7 @@ A placeholder for future plugin configuration (block-limit and PCU-limit toggles
     "PluginLog — static logging facade with plugin-name prefix",
     "WineDetector — detects Wine/Proton via P/Invoke and environment variables",
     "OrientationAlgebra — converts (forward, up) direction pair to projection rotation via lookup tables",
-    "IgnoresAccessChecksToAttribute — runtime declaration enabling publicized-assembly access outside DEV_BUILD",
+    "IgnoresAccessChecksToAttribute — runtime declaration enabling publicized-assembly access outside LOCAL_BUILD",
     "ExecLocation (Everywhere/ServerOnly/ClientOnly) — execution-context annotation attributes",
     "Validation.EnsureInfo — null guard for AccessTools reflection results"
   ],

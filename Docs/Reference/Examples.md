@@ -16,8 +16,8 @@ and [../API.md](../API.md) for the user-facing feature summary.
 | [Script.cs](../../IngameApiTest/Script/Script.cs) | 360 | PB script — embeds the agent shim and exercises every API call |
 | [MultigridProjectorModApiTest.cs](../../ModApiTest/Mod/Data/Scripts/MultigridProjector/ModApiTest/MultigridProjectorModApiTest.cs) | 183 | Mod game-logic component — attaches to every projector, logs API output |
 | [ModApiTest/Mod/Data/Scripts/MultigridProjector/Api/README.md](../../ModApiTest/Mod/Data/Scripts/MultigridProjector/Api/README.md) | 9 | Instructions for copying the five API source files into a new mod |
-| [ModApiTest/Deploy.bat](../../ModApiTest/Deploy.bat) | — | Deploys the mod folder and copies API source files from `MultigridProjectorApi/Api/` |
-| [IngameApiTest/Deploy.bat](../../IngameApiTest/Deploy.bat) | — | Deploys the `Script/` folder to the local ingame-scripts directory |
+| [ModApiTest/ModApiTest.csproj](../../ModApiTest/ModApiTest.csproj) | — | Its `DeployMod` target deploys the mod folder and copies API source files from `MultigridProjectorApi/Api/` |
+| [IngameApiTest/IngameApiTest.csproj](../../IngameApiTest/IngameApiTest.csproj) | — | Its `DeployScript` target deploys the `Script/` folder to the local ingame-scripts directory |
 | [ModApiTest/steam_description.txt](../../ModApiTest/steam_description.txt) | — | Steam Workshop description for the mod example |
 | [IngameApiTest/steam_description.txt](../../IngameApiTest/steam_description.txt) | — | Steam Workshop description for the PB script example |
 
@@ -89,8 +89,9 @@ defaults so the mod compiles and runs even without the plugin installed.
 
 ### Packaging and folder layout
 
-The mod folder is `ModApiTest/Mod/` and is deployed to
-`%AppData%\SpaceEngineers\Mods\Multigrid Projector Mod API Test\`.
+The mod folder is `ModApiTest/Mod/`. If the `Mods` property is set (for example to
+`%AppData%\SpaceEngineers\Mods`), building the project deploys it to
+`<Mods>\Multigrid Projector Mod API Test\`.
 
 ```
 Mod/
@@ -104,21 +105,21 @@ Mod/
           MultigridProjectorModApiTest.cs   ← the example class
         Api/
           README.md                         ← copy instructions
-          (BlockLocation.cs etc. are copied by Deploy.bat at deploy time)
+          (BlockLocation.cs etc. are copied in at deploy time)
 ```
 
 The five API source files (`BlockLocation.cs`, `BlockState.cs`, `IMultigridProjectorApi.cs`,
 `MultigridProjectorModAgent.cs`, `MultigridProjectorModShim.cs`) live in
 `MultigridProjectorApi/Api/` at the repo root and are **not checked in** under `ModApiTest/Mod/`.
-`Deploy.bat` copies them into place so the mod folder is complete before use. The `README.md`
+The deployment copies them into place so the mod folder is complete before use. The `README.md`
 inside `Api/` records which files to copy for developers setting up their own mod.
 
 ### How to run
 
 1. Install the [Plugin Loader](https://github.com/sepluginloader/SpaceEngineersLauncher) and
    enable the Multigrid Projector plugin; restart the game.
-2. Build the solution (or run `Deploy.bat` from the post-build step — see
-   [Build-And-Project-Layout.md](./Build-And-Project-Layout.md)).
+2. Build the solution with `Mods` set, see
+   [Build-And-Project-Layout.md](./Build-And-Project-Layout.md).
 3. Add the mod ("Multigrid Projector Mod API Test") to a world and load it.
 4. Place a projector block and load a multi-subgrid blueprint.
 5. Check the SE client log (`SpaceEngineers.log`) for the API dump output.
@@ -229,15 +230,16 @@ Script/
   thumb.png
 ```
 
-`Deploy.bat` copies the entire `Script/` folder to
-`%AppData%\SpaceEngineers\IngameScripts\local\Multigrid Projector Ingame API Test\`.
+If the `IngameScripts` property is set (for example to `%AppData%\SpaceEngineers\IngameScripts\local`),
+building the project copies the entire `Script/` folder to
+`<IngameScripts>\Multigrid Projector Ingame API Test\`.
 After deployment the script appears in the game's local ingame-script browser.
 
 ### How to run
 
 1. Install the Plugin Loader and enable the Multigrid Projector plugin; restart the game.
-2. Run `Deploy.bat` (or build with the post-build step — see
-   [Build-And-Project-Layout.md](./Build-And-Project-Layout.md)).
+2. Build the project with `IngameScripts` set, see
+   [Build-And-Project-Layout.md](./Build-And-Project-Layout.md).
 3. In-game, place a Programmable Block and open it; browse local scripts and load
    "Multigrid Projector Ingame API Test".
 4. Place a projector named `"Projector"` on the same grid and load a multi-subgrid blueprint.
@@ -251,6 +253,6 @@ After deployment the script appears in the game's local ingame-script browser.
   signatures and semantics)
 - [Core-Projection-Engine.md](./Core-Projection-Engine.md) — internals that produce the data
   these examples consume
-- [Build-And-Project-Layout.md](./Build-And-Project-Layout.md) — post-build `Deploy.bat` hooks
-  that automate deployment of both examples
+- [Build-And-Project-Layout.md](./Build-And-Project-Layout.md) — the opt-in deploy targets of
+  both examples
 - [../API.md](../API.md) — user-facing API overview

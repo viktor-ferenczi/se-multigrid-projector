@@ -29,41 +29,46 @@
 
 ## Configure local paths
 
-The build references the game assemblies and the Pulsar/Magnetar installations through paths in
-`Directory.Build.props`. On most setups they are auto-detected (Steam install locations, the default
-Pulsar/Magnetar directories). If auto-detection fails, edit `Directory.Build.props` and fill in the
-paths:
+The build references the game, the Dedicated Server and Magnetar's `PluginSdk.dll` through folders
+declared in `Directory.Build.props`. They are auto-detected from Steam and the default Magnetar
+location. If that fails, override them in `Directory.Build.props.user` next to it (gitignored, so
+each developer keeps their own paths). Run `setup.py` to create that file with the detected game
+and server folders.
 
-- `Bin64` — folder containing `SpaceEngineers.exe` (client `Bin64`)
-- `Dedicated64` — folder containing `SpaceEngineersDedicated.exe` (`DedicatedServer64`)
-- `Pulsar` — the Pulsar installation folder (holds `Libraries/...`)
-- `Magnetar` — the Magnetar installation folder (holds `Bin/PluginSdk.dll`)
-
-You can also run `setup.py` to fill these in interactively.
+- `Bin64`: folder containing `SpaceEngineers.exe`
+- `Dedicated64`: folder containing `SpaceEngineersDedicated.exe` (`DedicatedServer64`)
+- `Magnetar`: the Magnetar installation folder, holding `Libraries/<launcher>/PluginSdk.dll`
 
 ## Build
 
 ```sh
-# Client plugin
-dotnet build ClientPlugin/ClientPlugin.csproj -c Debug
-
-# Server plugin
-dotnet build ServerPlugin/ServerPlugin.csproj -c Debug
+dotnet build MultigridProjector.sln -c Debug
 ```
 
-On a successful build each project's `Deploy` script (`Deploy.bat` on Windows, `Deploy.sh` on Linux,
-run as a post-build step) copies the resulting DLL to the matching local plugin folder:
+A build deploys nothing by default. To test your working copy, load it through a loader
+development folder instead: start Pulsar or Magnetar with `-sources` and add the repository with
+the Sources button. The loader then compiles the plugin from source.
 
-- Client → Pulsar's `Local` plugins folder
-- Server → Magnetar's `Local` plugins folder
+To deploy the build output anyway, set the target folders in `Directory.Build.props.user` or pass
+them on the command line:
+
+```sh
+dotnet build MultigridProjector.sln -p:Pulsar=$HOME/.config/Pulsar -p:MagnetarData=$HOME/.config/Magnetar/Magnetar
+```
+
+- `Pulsar`: the client goes to `<Pulsar>/Legacy/Local/MultigridProjector/` (`net48`) or
+  `<Pulsar>/Interim/Local/MultigridProjector/` (`net10.0`)
+- `MagnetarData`: the server goes to `<MagnetarData>/Local/`
+- `Mods` and `IngameScripts`: the API example mod and script, see
+  [Examples](Reference/Examples.md)
 
 For a release build use `-c Release`. Always test a release build before publishing — Pulsar compiles
-the client plugin from source on the player's machine, so behaviour can differ from a local build.
+the client plugin from source on the player's machine, so behavior can differ from a local build.
 
 ## Notes
 
 - Both targets produce an assembly named `MultigridProjector.dll`.
 - The shared core keeps its own logging (`PluginLog`) and game-code verification (`EnsureOriginal`)
   rather than the template defaults, to stay a faithful port.
-- If a build cannot deploy (it loops or fails to copy the DLL), a game or server process is probably
-  locking the file — close it and rebuild.
+- If a deploying build fails to copy the DLL, a game or server process is probably locking the
+  file. Close it and rebuild.

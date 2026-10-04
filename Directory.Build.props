@@ -1,0 +1,133 @@
+<Project>
+  <!-- Folders overridable by Directory.Build.props.user -->
+  <PropertyGroup>
+    <!-- Folder containing SpaceEngineers.exe (empty = auto-detect from Steam) -->
+    <Bin64></Bin64>
+
+    <!-- Folder containing SpaceEngineersDedicated.exe (empty = auto-detect from Steam) -->
+    <Dedicated64></Dedicated64>
+
+    <!-- Pulsar folder to deploy the client plugin into after each build (empty = no deployment),
+         for example $(APPDATA)\Pulsar on Windows or $(HOME)/.config/Pulsar on Linux -->
+    <Pulsar></Pulsar>
+
+    <!-- Magnetar plugin loader installation folder, the one holding the launcher
+         executables and their Libraries (empty = auto-detect) -->
+    <Magnetar></Magnetar>
+
+    <!-- Magnetar config folder to deploy the server plugin into after each build, the one
+         holding Local, Sources and Profiles, usually the Magnetar subfolder of the folder
+         above (empty = no deployment) -->
+    <MagnetarData></MagnetarData>
+
+    <!-- Local mods folder to deploy the ModApiTest mod into after each build
+         (empty = no deployment), for example $(APPDATA)\SpaceEngineers\Mods -->
+    <Mods></Mods>
+
+    <!-- Local in-game scripts folder to deploy the IngameApiTest script into after each
+         build (empty = no deployment), for example $(APPDATA)\SpaceEngineers\IngameScripts\local -->
+    <IngameScripts></IngameScripts>
+  </PropertyGroup>
+
+  <!-- Plugin version (committed, shared by all contributors) -->
+  <Import Project="$(MSBuildThisFileDirectory)Version.Build.props" />
+
+  <!-- Local developer overrides for the folders above; ignored by Git (*.user).
+       Copy the first PropertyGroup of this file into Directory.Build.props.user,
+       wrapped into a top-level Project element, and fill in your local paths there.
+       Running setup.py writes that file for you. -->
+  <Import Project="$(MSBuildThisFileDirectory)Directory.Build.props.user"
+          Condition="Exists('$(MSBuildThisFileDirectory)Directory.Build.props.user')" />
+
+  <!-- Repository root (this file lives in it). Used instead of $(SolutionDir), so it
+       resolves whether the build is driven from the solution or a single project.
+       $(MSBuildThisFileDirectory) ends with a directory separator. -->
+  <PropertyGroup>
+    <RepoRoot>$(MSBuildThisFileDirectory)</RepoRoot>
+    <PathSeparator Condition="$([MSBuild]::IsOSPlatform('Windows'))">\</PathSeparator>
+    <PathSeparator Condition="!$([MSBuild]::IsOSPlatform('Windows'))">/</PathSeparator>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="$([MSBuild]::IsOSPlatform('Windows'))">
+    <SteamPath Condition="'$(SteamPath)' == ''">$(registry:HKEY_CURRENT_USER\SOFTWARE\Valve\Steam@SteamPath)</SteamPath>
+
+    <!-- Steam fills in InstallLocation for game apps (244850) only, it is left empty
+         for tool apps like the Dedicated Server (298740). -->
+    <SteamGameDir Condition="'$(SteamGameDir)' == ''">$(registry:HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\Steam App 244850@InstallLocation)</SteamGameDir>
+    <SteamServerDir Condition="'$(SteamServerDir)' == ''">$(registry:HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\Steam App 298740@InstallLocation)</SteamServerDir>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="!$([MSBuild]::IsOSPlatform('Windows')) and '$(HOME)' != ''">
+    <SteamPath Condition="'$(SteamPath)' == '' and Exists('$(HOME)/.steam/steam/steamapps')">$(HOME)/.steam/steam</SteamPath>
+    <SteamPath Condition="'$(SteamPath)' == '' and Exists('$(HOME)/.local/share/Steam/steamapps')">$(HOME)/.local/share/Steam</SteamPath>
+    <SteamPath Condition="'$(SteamPath)' == '' and Exists('$(HOME)/.var/app/com.valvesoftware.Steam/.local/share/Steam/steamapps')">$(HOME)/.var/app/com.valvesoftware.Steam/.local/share/Steam</SteamPath>
+
+    <!-- Magnetar is portable and lives in one folder, $XDG_CONFIG_HOME/Magnetar by
+         default; its config folder is the Magnetar subfolder of it, see below. -->
+    <Magnetar Condition="'$(Magnetar)' == '' and '$(XDG_CONFIG_HOME)' != ''">$(XDG_CONFIG_HOME)/Magnetar</Magnetar>
+    <Magnetar Condition="'$(Magnetar)' == ''">$(HOME)/.config/Magnetar</Magnetar>
+  </PropertyGroup>
+
+  <!-- Locate the Steam library folder holding each app, so non-default libraries work too -->
+  <PropertyGroup>
+    <SteamLibVdf Condition="'$(SteamPath)' != ''">$(SteamPath)/steamapps/libraryfolders.vdf</SteamLibVdf>
+    <SteamLibVdfText Condition="'$(SteamLibVdf)' != '' and Exists('$(SteamLibVdf)')">$([System.IO.File]::ReadAllText('$(SteamLibVdf)'))</SteamLibVdfText>
+
+    <!-- Captures the "path" of the library block which lists the given app ID -->
+    <SteamLibRx>(?s)^.*?&quot;path&quot;\s+&quot;([^&quot;]*)&quot;(?:(?!&quot;path&quot;).)*?&quot;</SteamLibRx>
+    <SteamGameLibRx>$(SteamLibRx)244850&quot;.*$</SteamGameLibRx>
+    <SteamServerLibRx>$(SteamLibRx)298740&quot;.*$</SteamServerLibRx>
+
+    <SteamGameDir Condition="'$(SteamGameDir)' == '' and $([System.Text.RegularExpressions.Regex]::IsMatch('$(SteamLibVdfText)', '$(SteamGameLibRx)'))">$([System.Text.RegularExpressions.Regex]::Replace('$(SteamLibVdfText)', '$(SteamGameLibRx)', '$1'))/steamapps/common/SpaceEngineers</SteamGameDir>
+    <SteamServerDir Condition="'$(SteamServerDir)' == '' and $([System.Text.RegularExpressions.Regex]::IsMatch('$(SteamLibVdfText)', '$(SteamServerLibRx)'))">$([System.Text.RegularExpressions.Regex]::Replace('$(SteamLibVdfText)', '$(SteamServerLibRx)', '$1'))/steamapps/common/SpaceEngineersDedicatedServer</SteamServerDir>
+
+    <Bin64 Condition="'$(Bin64)' == '' and '$(SteamGameDir)' != ''">$([System.IO.Path]::GetFullPath('$(SteamGameDir)/Bin64'))</Bin64>
+    <Dedicated64 Condition="'$(Dedicated64)' == '' and '$(SteamServerDir)' != ''">$([System.IO.Path]::GetFullPath('$(SteamServerDir)/DedicatedServer64'))</Dedicated64>
+  </PropertyGroup>
+
+  <!-- Last resort: default Steam library layout (also covers SteamCMD installs) -->
+  <PropertyGroup Condition="!$([MSBuild]::IsOSPlatform('Windows')) and '$(HOME)' != ''">
+    <Bin64 Condition="'$(Bin64)' == ''">$(HOME)/.steam/steam/steamapps/common/SpaceEngineers/Bin64</Bin64>
+    <Dedicated64 Condition="'$(Dedicated64)' == ''">$(HOME)/.steam/steam/steamapps/common/SpaceEngineersDedicatedServer/DedicatedServer64</Dedicated64>
+  </PropertyGroup>
+
+  <!-- On Windows Magnetar is extracted next to the dedicated server installation,
+       so it sits beside the DedicatedServer64 folder the plugin builds against. -->
+  <PropertyGroup Condition="$([MSBuild]::IsOSPlatform('Windows'))">
+    <Magnetar Condition="'$(Magnetar)' == '' and '$(Dedicated64)' != ''">$([System.IO.Path]::GetFullPath('$(Dedicated64)\..\Magnetar'))</Magnetar>
+  </PropertyGroup>
+
+  <!-- Magnetar launcher the current build targets. It names the Libraries
+       subfolder holding PluginSdk.dll. $(TargetFrameworkIdentifier) is only
+       derived after this file is imported, but the raw $(TargetFramework) is
+       available: in a multi-targeting inner build MSBuild passes it as a global
+       property. -->
+  <PropertyGroup Condition="'$(TargetFramework)' != ''">
+    <MagnetarLauncher Condition="$(TargetFramework.StartsWith('net4'))">MagnetarLegacy</MagnetarLauncher>
+    <MagnetarLauncher Condition="'$(MagnetarLauncher)' == ''">MagnetarInterim</MagnetarLauncher>
+  </PropertyGroup>
+
+  <!-- A single-target project sets its TargetFramework only after this file is
+       imported; Linux builds are always single-target and always MagnetarInterim. -->
+  <PropertyGroup Condition="'$(MagnetarLauncher)' == '' and !$([MSBuild]::IsOSPlatform('Windows'))">
+    <MagnetarLauncher>MagnetarInterim</MagnetarLauncher>
+  </PropertyGroup>
+
+  <!-- Folder holding PluginSdk.dll, referenced by the ServerPlugin project: each
+       launcher has its own Libraries subfolder, Linux ships only MagnetarInterim. -->
+  <PropertyGroup Condition="'$(MagnetarBin)' == '' and '$(Magnetar)' != '' and '$(MagnetarLauncher)' != ''">
+    <MagnetarBin>$(Magnetar)$(PathSeparator)Libraries$(PathSeparator)$(MagnetarLauncher)</MagnetarBin>
+  </PropertyGroup>
+
+  <!-- Reference folders with a trailing directory separator, for use in HintPath -->
+  <PropertyGroup>
+    <Bin64Dir>$(Bin64)</Bin64Dir>
+    <Bin64Dir Condition="'$(Bin64Dir)' != '' and !HasTrailingSlash('$(Bin64Dir)')">$(Bin64Dir)$(PathSeparator)</Bin64Dir>
+
+    <Dedicated64Dir>$(Dedicated64)</Dedicated64Dir>
+    <Dedicated64Dir Condition="'$(Dedicated64Dir)' != '' and !HasTrailingSlash('$(Dedicated64Dir)')">$(Dedicated64Dir)$(PathSeparator)</Dedicated64Dir>
+
+    <MagnetarBinDir>$(MagnetarBin)</MagnetarBinDir>
+    <MagnetarBinDir Condition="'$(MagnetarBinDir)' != '' and !HasTrailingSlash('$(MagnetarBinDir)')">$(MagnetarBinDir)$(PathSeparator)</MagnetarBinDir>
+  </PropertyGroup>
+</Project>

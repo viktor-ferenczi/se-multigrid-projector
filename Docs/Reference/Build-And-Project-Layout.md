@@ -26,13 +26,11 @@ source compiles into each target rather than being shared as a binary.
 
 | File | Lines | Purpose |
 | ---- | ----: | ------- |
-| [MultigridProjector.sln](../../MultigridProjector.sln) | 92 | Visual Studio / Rider solution tying the projects together. `Version.Build.props` is included as a solution item. |
-| [Version.Build.props](../../Version.Build.props) | 8 | **Committed.** Single source of the plugin `Version` (`AssemblyVersion`/`FileVersion`); shared by all contributors and imported by `Directory.Build.props`. |
-| [Directory.Build.props.template](../../Directory.Build.props.template) | 104 | **Committed template.** Imports `Version.Build.props`, then declares the (initially empty) local install paths (`Bin64`, `Dedicated64`, `Pulsar`, `Magnetar`) with Windows/Linux auto-detection. `setup.py` copies it to `Directory.Build.props` (which is **gitignored**, since it holds machine-specific paths). |
-| [Directory.Build.targets](../../Directory.Build.targets) | 10 | Resolves `PulsarBin` after target-framework inference (Legacy for `net48`, Interim for `net10.0`). |
-| [setup.py](../../setup.py) | 338 | Interactive helper that generates `Directory.Build.props` from the template and fills in the local install paths. |
-| [verify_props.sh](../../verify_props.sh) / [verify_props.bat](../../verify_props.bat) | 15 / 23 | Pre-build check that the configured game/host paths exist (fails fast with a clear message). |
-| [clean.sh](../../clean.sh) / [Clean.bat](../../Clean.bat) | 8 / 11 | Remove `bin`/`obj` build output. |
+| [MultigridProjector.sln](../../MultigridProjector.sln) | 94 | Visual Studio / Rider solution tying the projects together. `Directory.Build.props` and `Version.Build.props` are included as solution items. |
+| [Version.Build.props](../../Version.Build.props) | 9 | **Committed.** Single source of the plugin `Version` (`AssemblyVersion`/`FileVersion`); shared by all contributors and imported by `Directory.Build.props`. |
+| [Directory.Build.props](../../Directory.Build.props) | 134 | **Committed.** Imports `Version.Build.props` and the optional, gitignored `Directory.Build.props.user`, declares the overridable folders (`Bin64`, `Dedicated64`, `Pulsar`, `Magnetar`, `MagnetarData`, `Mods`, `IngameScripts`) and auto-detects the compile-time ones (`Bin64`, `Dedicated64`, `Magnetar`, hence `MagnetarBin` holding `PluginSdk.dll`). Follows the server plugin template. |
+| [setup.py](../../setup.py) | 386 | Interactive helper that writes the detected `Bin64` and `Dedicated64` into `Directory.Build.props.user`, with the deploy folders left empty. |
+| [clean.sh](../../clean.sh) / [Clean.bat](../../Clean.bat) | 9 / 14 | Remove `bin`/`obj` build output. |
 | [.github/FUNDING.yml](../../.github/FUNDING.yml) | 14 | GitHub sponsor links. |
 
 ## Target frameworks
@@ -49,18 +47,18 @@ Both plugin projects declare:
 - On **Linux** only `net10.0` is built.
 
 `LangVersion` is 14 and `GenerateAssemblyInfo` is on (so the SDK emits assembly attributes — the
-example projects keep a hand-written `AssemblyInfo.cs`, the plugins do not). The version (`0.9.2`)
+example projects keep a hand-written `AssemblyInfo.cs`, the plugins do not). The version
 is defined in one place — [`Version.Build.props`](../../Version.Build.props) — and imported into both
 plugins via `Directory.Build.props`. For Pulsar/Magnetar source-compiled builds (where the props
 import may not apply) the same version is asserted via an `[assembly: AssemblyVersion]` guarded by
-`#if !DEV_BUILD` in [`ClientPlugin/Plugin.cs`](../../ClientPlugin/Plugin.cs) and
+`#if !LOCAL_BUILD` in [`ClientPlugin/Plugin.cs`](../../ClientPlugin/Plugin.cs) and
 [`ServerPlugin/Plugin.cs`](../../ServerPlugin/Plugin.cs).
 
 ### Build constants
 
 | Constant | Where | Meaning |
 | -------- | ----- | ------- |
-| `DEV_BUILD` | both plugins, all configs | A local developer build (as opposed to a Pulsar/Magnetar source-compile). Gates e.g. the [`IgnoresAccessChecksToAttribute`](./Shared-Utilities.md) declaration. |
+| `LOCAL_BUILD` | both plugins, all configs | A local developer build (as opposed to a Pulsar/Magnetar source-compile). Gates e.g. the [`IgnoresAccessChecksToAttribute`](./Shared-Utilities.md) declaration. |
 | `DEDICATED` | server plugin only | Server/dedicated-side code paths. |
 | `DEBUG` / `TRACE` | per configuration | Standard. |
 
@@ -93,7 +91,7 @@ side of this is the [`IgnoresAccessChecksToAttribute`](./Shared-Utilities.md) de
 > (see commit history).
 
 > **Caveat — `protected virtual` game members.** The two publicizers do not agree on every member.
-> Krafs (local `DEV_BUILD`) publicizes everything, so a local build compiles even when a member is
+> Krafs (local `LOCAL_BUILD`) publicizes everything, so a local build compiles even when a member is
 > `protected virtual`. The Pulsar/Magnetar **source-compile** publicizer, however, leaves
 > `protected virtual`/`override`/`abstract` members `protected` — widening a virtual member's
 > accessibility would break override chains, since a C# `override` cannot change accessibility.
@@ -108,26 +106,26 @@ Other key package references: **Lib.Harmony 2.4.2** (patching) and **Mono.Cecil 
 inspection for the [`EnsureOriginal`](./Shared-Utilities.md) / [transpiler](./Shared-Utilities.md)
 machinery).
 
-## Pre/post-build pipeline
+## Validation and deployment
 
-Each plugin runs, via OS-conditioned MSBuild events:
+The plugin projects have two MSBuild targets, taken from the server plugin template, and the
+API example projects follow the same pattern:
 
-1. **Pre-build:** `verify_props.{sh,bat}` checks the configured game (and, for the server, Magnetar)
-   paths exist.
-2. **Post-build (`OnBuildSuccess`):** `Deploy.{sh,bat}` copies the freshly built
-   `MultigridProjector.dll` into the host's **`Local`** plugin folder:
-   - Client → Pulsar `Local` (`~/.config/Pulsar/Local` on Linux).
-   - Server → Magnetar `Local`.
+1. **`ValidateProps`** (before the build) fails with a clear message if `Bin64` (client),
+   `Dedicated64` or Magnetar's `PluginSdk.dll` (server) cannot be found. In every project it also
+   reports when the deploy folder is not set or does not exist.
+2. **`DeployPlugin`** (after a successful build) copies the plugin into the loader's `Local`
+   folder, but only if the loader folder is set explicitly. A plain build deploys nothing.
 
-   The deploy script retries the copy up to ten times (one-second waits) because a running game or
-   server can momentarily lock the DLL — see [../Building.md](../Building.md) and
-   [../Troubleshooting.md](../Troubleshooting.md) if a build loops here.
+| Project | Property | Deployed to |
+| ------- | -------- | ----------- |
+| `ClientPlugin` | `Pulsar` | `<Pulsar>/Legacy/Local/MultigridProjector/` (`net48`) or `<Pulsar>/Interim/Local/MultigridProjector/` (`net10.0`, falls back to `Legacy`), as `plugin.dll`, `plugin.pdb` and `plugin.xml` |
+| `ServerPlugin` | `MagnetarData` | `<MagnetarData>/Local/` as `MultigridProjector.dll`, `.pdb` and `.dll.xml` (`net10.0` build only) |
+| `ModApiTest` | `Mods` | `<Mods>/Multigrid Projector Mod API Test/`, completed with the API sources, see [Examples.md](./Examples.md) |
+| `IngameApiTest` | `IngameScripts` | `<IngameScripts>/Multigrid Projector Ingame API Test/`, see [Examples.md](./Examples.md) |
 
-| File | Purpose |
-| ---- | ------- |
-| [ClientPlugin/Deploy.sh](../../ClientPlugin/Deploy.sh) / [.bat](../../ClientPlugin/Deploy.bat) | Copy the client DLL into Pulsar's `Local` folder. |
-| [ServerPlugin/Deploy.sh](../../ServerPlugin/Deploy.sh) / [.bat](../../ServerPlugin/Deploy.bat) | Copy the server DLL into Magnetar's `Local` folder. |
-| [ModApiTest/Deploy.bat](../../ModApiTest/Deploy.bat) / [IngameApiTest/Deploy.bat](../../IngameApiTest/Deploy.bat) | Deploy the example mod/script and copy the API sources — see [Examples.md](./Examples.md). |
+Set these in `Directory.Build.props.user` or pass them to a single build with `-p:`. To test a
+working copy, prefer a loader development folder over deployment, see [../Building.md](../Building.md).
 
 ## See also
 
