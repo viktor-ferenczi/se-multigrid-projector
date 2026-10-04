@@ -17,7 +17,7 @@ if sys.platform == "win32":
 
 DRY_RUN = False
 
-TEMPLATE_NAME = 'PluginTemplate'
+TEMPLATE_NAME = "PluginTemplate"
 
 PT_PROJECT_NAME = r"^([A-Z][a-z_0-9]+)+$"
 RX_PROJECT_NAME = re.compile(PT_PROJECT_NAME)
@@ -125,9 +125,9 @@ def _rename_project(name: str) -> None:
     def iter_paths() -> Iterator[Tuple[str, str]]:
         print("Solution:")
         for filename in (
-            f'{TEMPLATE_NAME}.sln',
-            f'{TEMPLATE_NAME}Client.xml',
-            f'{TEMPLATE_NAME}Server.xml',
+            f"{TEMPLATE_NAME}.sln",
+            f"{TEMPLATE_NAME}Client.xml",
+            f"{TEMPLATE_NAME}Server.xml",
         ):
             if os.path.exists(filename):
                 yield filename, filename
@@ -165,7 +165,7 @@ def _rename_project(name: str) -> None:
 def _get_windows_steam_path() -> str | None:
     reg = winreg.ConnectRegistry(None, winreg.HKEY_LOCAL_MACHINE)
     key = winreg.OpenKey(reg, r"SOFTWARE\WOW6432Node\Valve\Steam")
-    (path, _) = winreg.QueryValueEx(key, "InstallPath")
+    path, _ = winreg.QueryValueEx(key, "InstallPath")
     return path
 
 
@@ -306,16 +306,12 @@ def _update_props(
         return
 
     bin64_dir = str(Path(game_dir) / "Bin64") if game_dir else ""
-    dedicated64_dir = (
-        str(Path(server_dir) / "DedicatedServer64") if server_dir else ""
-    )
+    dedicated64_dir = str(Path(server_dir) / "DedicatedServer64") if server_dir else ""
 
     if not os.path.isfile(USER_PROPS):
         with open(USER_PROPS, "w", encoding="UTF-8", newline="\n") as file:
             file.write(
-                USER_PROPS_TEMPLATE.format(
-                    bin64=bin64_dir, dedicated64=dedicated64_dir
-                )
+                USER_PROPS_TEMPLATE.format(bin64=bin64_dir, dedicated64=dedicated64_dir)
             )
         print(f"Created {USER_PROPS}")
         return
