@@ -93,6 +93,13 @@ Full documentation lives in the [Docs](Docs) folder. Start at the
 
 Torch and the legacy Dedicated Server plugin loader are no longer supported.
 
+## Building
+
+See [Building from source](Docs/Building.md). To test a working copy, load it through a loader
+development folder: start Pulsar or Magnetar with `-sources` and add the repository with the
+Sources button. Builds deploy only if `Pulsar` or `MagnetarData` is set in
+`Directory.Build.props.user`, or passed as `-p:Pulsar=...` or `-p:MagnetarData=...`.
+
 ## Want to know more?
 
 - [SE Mods Discord](https://discord.gg/PYPFPGf3Ca) — FAQ, troubleshooting, support, bug reports, discussion

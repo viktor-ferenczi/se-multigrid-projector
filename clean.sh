@@ -3,5 +3,6 @@ set -eu
 
 SCRIPT_DIR=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
 
-rm -rf "$SCRIPT_DIR/ClientPlugin/bin" "$SCRIPT_DIR/ClientPlugin/obj"
-rm -rf "$SCRIPT_DIR/ServerPlugin/bin" "$SCRIPT_DIR/ServerPlugin/obj"
+for project in ClientPlugin ServerPlugin IngameApiTest ModApiTest; do
+    rm -rf "$SCRIPT_DIR/$project/bin" "$SCRIPT_DIR/$project/obj"
+done

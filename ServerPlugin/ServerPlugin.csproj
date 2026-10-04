@@ -4,29 +4,40 @@
     <OutputType>Library</OutputType>
     <AssemblyName>MultigridProjector</AssemblyName>
     <LangVersion>14</LangVersion>
-    <GenerateAssemblyInfo>true</GenerateAssemblyInfo>
-    <!-- Version comes from Version.Build.props (imported via Directory.Build.props) -->
 
+    <!-- Target platforms on Windows and Linux -->
     <TargetFrameworks Condition="$([MSBuild]::IsOSPlatform('Windows'))">net48;net10.0</TargetFrameworks>
     <TargetFramework Condition="!$([MSBuild]::IsOSPlatform('Windows'))">net10.0</TargetFramework>
+
+    <!-- Ensure SDK generates assembly attributes (no need for AssemblyInfo) -->
+    <GenerateAssemblyInfo>true</GenerateAssemblyInfo>
+
+    <!-- Default configuration if none supplied -->
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+
+    <!-- Keep original behaviour for post/pre build events -->
+    <RunPostBuildEvent>OnBuildSuccess</RunPostBuildEvent>
   </PropertyGroup>
-    
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <PlatformTarget>x64</PlatformTarget>
     <DebugSymbols>true</DebugSymbols>
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
-    <OutputPath>bin\Debug\</OutputPath>
-    <DefineConstants>DEBUG;TRACE;DEV_BUILD</DefineConstants>
+    <OutputPath>bin/Debug/</OutputPath>
+    <DefineConstants>DEBUG;TRACE;MAGNETAR;DEV_BUILD</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
 
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <PlatformTarget>x64</PlatformTarget>
     <DebugType>pdbonly</DebugType>
     <Optimize>true</Optimize>
-    <OutputPath>bin\Release\</OutputPath>
-    <DefineConstants>TRACE;DEV_BUILD</DefineConstants>
+    <OutputPath>bin/Release/</OutputPath>
+    <DefineConstants>TRACE;MAGNETAR;DEV_BUILD</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
 
@@ -35,7 +46,7 @@
          Provided by the Magnetar host at runtime, so it is not copied (Private=False).
          The path is resolved from $(MagnetarBin) in Directory.Build.props. -->
     <Reference Include="PluginSdk">
-      <HintPath>$(MagnetarBin)\PluginSdk.dll</HintPath>
+      <HintPath>$(MagnetarBinDir)PluginSdk.dll</HintPath>
       <Private>False</Private>
     </Reference>
   </ItemGroup>
@@ -47,250 +58,249 @@
        build floods with MSB3243/MSB3245/MSB3277 assembly-conflict warnings. -->
   <ItemGroup>
     <Reference Include="DirectShowLib, Version=2.1.0.1599, Culture=neutral, PublicKeyToken=null">
-      <HintPath>$(Dedicated64)\DirectShowLib.dll</HintPath>
+      <HintPath>$(Dedicated64Dir)DirectShowLib.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="EmptyKeys.UserInterface, Version=3.2.0.0, Culture=neutral, PublicKeyToken=null">
-      <HintPath>$(Dedicated64)\EmptyKeys.UserInterface.dll</HintPath>
+      <HintPath>$(Dedicated64Dir)EmptyKeys.UserInterface.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="EmptyKeys.UserInterface.Core, Version=3.2.0.0, Culture=neutral, PublicKeyToken=null">
-      <HintPath>$(Dedicated64)\EmptyKeys.UserInterface.Core.dll</HintPath>
+      <HintPath>$(Dedicated64Dir)EmptyKeys.UserInterface.Core.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="HavokWrapper, Version=0.1.1.0, Culture=neutral, PublicKeyToken=null">
-      <HintPath>$(Dedicated64)\HavokWrapper.dll</HintPath>
+      <HintPath>$(Dedicated64Dir)HavokWrapper.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="Microsoft.CodeAnalysis, Version=2.9.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35">
-      <HintPath>$(Dedicated64)\Microsoft.CodeAnalysis.dll</HintPath>
+      <HintPath>$(Dedicated64Dir)Microsoft.CodeAnalysis.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="Microsoft.CodeAnalysis.CSharp, Version=2.9.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35">
-      <HintPath>$(Dedicated64)\Microsoft.CodeAnalysis.CSharp.dll</HintPath>
+      <HintPath>$(Dedicated64Dir)Microsoft.CodeAnalysis.CSharp.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="netstandard, Version=2.0.0.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51">
-      <HintPath>$(Dedicated64)\netstandard.dll</HintPath>
+      <HintPath>$(Dedicated64Dir)netstandard.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="ProtoBuf.Net, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null">
-      <HintPath>$(Dedicated64)\ProtoBuf.Net.dll</HintPath>
+      <HintPath>$(Dedicated64Dir)ProtoBuf.Net.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="ProtoBuf.Net.Core, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null">
-      <HintPath>$(Dedicated64)\ProtoBuf.Net.Core.dll</HintPath>
+      <HintPath>$(Dedicated64Dir)ProtoBuf.Net.Core.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="RecastDetourWrapper, Version=0.1.1.0, Culture=neutral, PublicKeyToken=null">
-      <HintPath>$(Dedicated64)\RecastDetourWrapper.dll</HintPath>
+      <HintPath>$(Dedicated64Dir)RecastDetourWrapper.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="RestSharp, Version=112.1.0.0, Culture=neutral, PublicKeyToken=598062e77f915f75">
-      <HintPath>$(Dedicated64)\RestSharp.dll</HintPath>
+      <HintPath>$(Dedicated64Dir)RestSharp.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="Sandbox.Common, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null">
-      <HintPath>$(Dedicated64)\Sandbox.Common.dll</HintPath>
+      <HintPath>$(Dedicated64Dir)Sandbox.Common.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="Sandbox.Game, Version=0.1.1.0, Culture=neutral, PublicKeyToken=null">
-      <HintPath>$(Dedicated64)\Sandbox.Game.dll</HintPath>
+      <HintPath>$(Dedicated64Dir)Sandbox.Game.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="Sandbox.Game.XmlSerializers, Version=0.1.1.0, Culture=neutral, PublicKeyToken=null">
-      <HintPath>$(Dedicated64)\Sandbox.Game.XmlSerializers.dll</HintPath>
+      <HintPath>$(Dedicated64Dir)Sandbox.Game.XmlSerializers.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="Sandbox.Graphics, Version=0.1.1.0, Culture=neutral, PublicKeyToken=null">
-      <HintPath>$(Dedicated64)\Sandbox.Graphics.dll</HintPath>
+      <HintPath>$(Dedicated64Dir)Sandbox.Graphics.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="Sandbox.RenderDirect, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null">
-      <HintPath>$(Dedicated64)\Sandbox.RenderDirect.dll</HintPath>
+      <HintPath>$(Dedicated64Dir)Sandbox.RenderDirect.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="SixLabors.Core, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null">
-      <HintPath>$(Dedicated64)\SixLabors.Core.dll</HintPath>
+      <HintPath>$(Dedicated64Dir)SixLabors.Core.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="SixLabors.ImageSharp, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null">
-      <HintPath>$(Dedicated64)\SixLabors.ImageSharp.dll</HintPath>
+      <HintPath>$(Dedicated64Dir)SixLabors.ImageSharp.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="SpaceEngineers.Game, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null">
-      <HintPath>$(Dedicated64)\SpaceEngineers.Game.dll</HintPath>
+      <HintPath>$(Dedicated64Dir)SpaceEngineers.Game.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="SpaceEngineers.ObjectBuilders, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null">
-      <HintPath>$(Dedicated64)\SpaceEngineers.ObjectBuilders.dll</HintPath>
+      <HintPath>$(Dedicated64Dir)SpaceEngineers.ObjectBuilders.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="SpaceEngineers.ObjectBuilders.XmlSerializers, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null">
-      <HintPath>$(Dedicated64)\SpaceEngineers.ObjectBuilders.XmlSerializers.dll</HintPath>
+      <HintPath>$(Dedicated64Dir)SpaceEngineers.ObjectBuilders.XmlSerializers.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="Steamworks.NET, Culture=neutral, PublicKeyToken=null">
-      <HintPath>$(Dedicated64)\Steamworks.NET.dll</HintPath>
+      <HintPath>$(Dedicated64Dir)Steamworks.NET.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="System.Buffers, Version=4.0.2.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51">
-      <HintPath>$(Dedicated64)\System.Buffers.dll</HintPath>
+      <HintPath>$(Dedicated64Dir)System.Buffers.dll</HintPath>
       <Private>False</Private>
       <SpecificVersion>False</SpecificVersion>
     </Reference>
     <Reference Include="System.Collections.Immutable, Version=1.2.3.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
-      <HintPath>$(Dedicated64)\System.Collections.Immutable.dll</HintPath>
+      <HintPath>$(Dedicated64Dir)System.Collections.Immutable.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="System.ComponentModel.Annotations, Version=4.2.1.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
-      <HintPath>$(Dedicated64)\System.ComponentModel.Annotations.dll</HintPath>
+      <HintPath>$(Dedicated64Dir)System.ComponentModel.Annotations.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="System.Memory, Version=4.0.1.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51">
-      <HintPath>$(Dedicated64)\System.Memory.dll</HintPath>
+      <HintPath>$(Dedicated64Dir)System.Memory.dll</HintPath>
       <Private>False</Private>
       <SpecificVersion>False</SpecificVersion>
     </Reference>
     <Reference Include="System.Numerics.Vectors, Version=4.1.3.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
-      <HintPath>$(Dedicated64)\System.Numerics.Vectors.dll</HintPath>
+      <HintPath>$(Dedicated64Dir)System.Numerics.Vectors.dll</HintPath>
       <Private>False</Private>
       <SpecificVersion>False</SpecificVersion>
     </Reference>
     <Reference Include="System.Reflection.Metadata, Version=1.4.3.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
-      <HintPath>$(Dedicated64)\System.Reflection.Metadata.dll</HintPath>
+      <HintPath>$(Dedicated64Dir)System.Reflection.Metadata.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="System.Runtime.CompilerServices.Unsafe, Version=4.0.4.1, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
-      <HintPath>$(Dedicated64)\System.Runtime.CompilerServices.Unsafe.dll</HintPath>
+      <HintPath>$(Dedicated64Dir)System.Runtime.CompilerServices.Unsafe.dll</HintPath>
       <Private>False</Private>
       <SpecificVersion>False</SpecificVersion>
     </Reference>
     <Reference Include="System.Text.Encoding.CodePages, Version=4.0.2.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
-      <HintPath>$(Dedicated64)\System.Text.Encoding.CodePages.dll</HintPath>
+      <HintPath>$(Dedicated64Dir)System.Text.Encoding.CodePages.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="System.Threading.Tasks.Extensions, Version=4.1.0.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51">
-      <HintPath>$(Dedicated64)\System.Threading.Tasks.Extensions.dll</HintPath>
+      <HintPath>$(Dedicated64Dir)System.Threading.Tasks.Extensions.dll</HintPath>
       <Private>False</Private>
       <SpecificVersion>False</SpecificVersion>
     </Reference>
     <Reference Include="Telerik.WinControls, Version=2020.2.616.40, Culture=neutral, PublicKeyToken=5bb2a467cbec794e">
-      <HintPath>$(Dedicated64)\Telerik.WinControls.dll</HintPath>
+      <HintPath>$(Dedicated64Dir)Telerik.WinControls.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="Telerik.WinControls.Themes.VisualStudio2012Dark, Version=2020.2.616.40, Culture=neutral, PublicKeyToken=5bb2a467cbec794e">
-      <HintPath>$(Dedicated64)\Telerik.WinControls.Themes.VisualStudio2012Dark.dll</HintPath>
+      <HintPath>$(Dedicated64Dir)Telerik.WinControls.Themes.VisualStudio2012Dark.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="Telerik.WinControls.Themes.VisualStudio2012Light, Version=2020.2.616.40, Culture=neutral, PublicKeyToken=5bb2a467cbec794e">
-      <HintPath>$(Dedicated64)\Telerik.WinControls.Themes.VisualStudio2012Light.dll</HintPath>
+      <HintPath>$(Dedicated64Dir)Telerik.WinControls.Themes.VisualStudio2012Light.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="Telerik.WinControls.UI, Version=2020.2.616.40, Culture=neutral, PublicKeyToken=5bb2a467cbec794e">
-      <HintPath>$(Dedicated64)\Telerik.WinControls.UI.dll</HintPath>
+      <HintPath>$(Dedicated64Dir)Telerik.WinControls.UI.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="TelerikCommon, Version=2020.2.616.40, Culture=neutral, PublicKeyToken=5bb2a467cbec794e">
-      <HintPath>$(Dedicated64)\TelerikCommon.dll</HintPath>
+      <HintPath>$(Dedicated64Dir)TelerikCommon.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="VRage, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null">
-      <HintPath>$(Dedicated64)\VRage.dll</HintPath>
+      <HintPath>$(Dedicated64Dir)VRage.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="VRage.Ansel, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null">
-      <HintPath>$(Dedicated64)\VRage.Ansel.dll</HintPath>
+      <HintPath>$(Dedicated64Dir)VRage.Ansel.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="VRage.Audio, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null">
-      <HintPath>$(Dedicated64)\VRage.Audio.dll</HintPath>
+      <HintPath>$(Dedicated64Dir)VRage.Audio.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="VRage.Dedicated, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null">
-      <HintPath>$(Dedicated64)\VRage.Dedicated.dll</HintPath>
+      <HintPath>$(Dedicated64Dir)VRage.Dedicated.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="VRage.EOS, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null">
-      <HintPath>$(Dedicated64)\VRage.EOS.dll</HintPath>
+      <HintPath>$(Dedicated64Dir)VRage.EOS.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="VRage.EOS.XmlSerializers, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null">
-      <HintPath>$(Dedicated64)\VRage.EOS.XmlSerializers.dll</HintPath>
+      <HintPath>$(Dedicated64Dir)VRage.EOS.XmlSerializers.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="VRage.Game, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null">
-      <HintPath>$(Dedicated64)\VRage.Game.dll</HintPath>
+      <HintPath>$(Dedicated64Dir)VRage.Game.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="VRage.Game.XmlSerializers, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null">
-      <HintPath>$(Dedicated64)\VRage.Game.XmlSerializers.dll</HintPath>
+      <HintPath>$(Dedicated64Dir)VRage.Game.XmlSerializers.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="VRage.Input, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null">
-      <HintPath>$(Dedicated64)\VRage.Input.dll</HintPath>
+      <HintPath>$(Dedicated64Dir)VRage.Input.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="VRage.Library, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null">
-      <HintPath>$(Dedicated64)\VRage.Library.dll</HintPath>
+      <HintPath>$(Dedicated64Dir)VRage.Library.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="VRage.Math, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null">
-      <HintPath>$(Dedicated64)\VRage.Math.dll</HintPath>
+      <HintPath>$(Dedicated64Dir)VRage.Math.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="VRage.Math.XmlSerializers, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null">
-      <HintPath>$(Dedicated64)\VRage.Math.XmlSerializers.dll</HintPath>
+      <HintPath>$(Dedicated64Dir)VRage.Math.XmlSerializers.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="VRage.Mod.Io, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null">
-      <HintPath>$(Dedicated64)\VRage.Mod.Io.dll</HintPath>
+      <HintPath>$(Dedicated64Dir)VRage.Mod.Io.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="VRage.NativeWrapper, Version=0.1.1.0, Culture=neutral, PublicKeyToken=null">
-      <HintPath>$(Dedicated64)\VRage.NativeWrapper.dll</HintPath>
+      <HintPath>$(Dedicated64Dir)VRage.NativeWrapper.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="VRage.Network, Version=1.0.53.0, Culture=neutral, PublicKeyToken=null">
-      <HintPath>$(Dedicated64)\VRage.Network.dll</HintPath>
+      <HintPath>$(Dedicated64Dir)VRage.Network.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="VRage.Platform.Windows, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null">
-      <HintPath>$(Dedicated64)\VRage.Platform.Windows.dll</HintPath>
+      <HintPath>$(Dedicated64Dir)VRage.Platform.Windows.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="VRage.RemoteClient.Core, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null">
-      <HintPath>$(Dedicated64)\VRage.RemoteClient.Core.dll</HintPath>
+      <HintPath>$(Dedicated64Dir)VRage.RemoteClient.Core.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="VRage.Render, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null">
-      <HintPath>$(Dedicated64)\VRage.Render.dll</HintPath>
+      <HintPath>$(Dedicated64Dir)VRage.Render.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="VRage.Render11, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null">
-      <HintPath>$(Dedicated64)\VRage.Render11.dll</HintPath>
+      <HintPath>$(Dedicated64Dir)VRage.Render11.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="VRage.Scripting, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null">
-      <HintPath>$(Dedicated64)\VRage.Scripting.dll</HintPath>
+      <HintPath>$(Dedicated64Dir)VRage.Scripting.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="VRage.Steam, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null">
-      <HintPath>$(Dedicated64)\VRage.Steam.dll</HintPath>
+      <HintPath>$(Dedicated64Dir)VRage.Steam.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="VRage.UserInterface, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null">
-      <HintPath>$(Dedicated64)\VRage.UserInterface.dll</HintPath>
+      <HintPath>$(Dedicated64Dir)VRage.UserInterface.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="VRage.XmlSerializers, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null">
-      <HintPath>$(Dedicated64)\VRage.XmlSerializers.dll</HintPath>
+      <HintPath>$(Dedicated64Dir)VRage.XmlSerializers.dll</HintPath>
       <Private>False</Private>
     </Reference>
   </ItemGroup>
 
   <ItemGroup>
-    <Content Include="Deploy.bat" />
     <None Include="app.config" />
   </ItemGroup>
 
@@ -329,15 +339,44 @@
     <DoNotPublicize Include="Sandbox.Game:Sandbox.Game.Entities.Cube.MyTerminalBlock.PropertiesChanged"/>
   </ItemGroup>
 
-  <PropertyGroup Condition=" $([MSBuild]::IsOSPlatform('Windows')) ">
-    <PreBuildEvent>call "$(RepoRoot)verify_props.bat" "$(Dedicated64)" "$(MagnetarBin)"</PreBuildEvent>
-    <PostBuildEvent>call "$(MSBuildProjectDirectory)\Deploy.bat" "$(AssemblyName).dll" "$(MSBuildProjectDirectory)\$(OutputPath)$(TargetFramework)" "$(TargetFramework)"</PostBuildEvent>
-  </PropertyGroup>
+  <Target Name="ValidateProps" BeforeTargets="PrepareForBuild">
+    <Error Condition="'$(Dedicated64)' == ''"
+           Text="Could not locate the Dedicated Server DedicatedServer64 folder. Set &lt;Dedicated64&gt; in &quot;$(RepoRoot)Directory.Build.props.user&quot;." />
+    <Error Condition="!Exists('$(Dedicated64)')"
+           Text="Invalid Dedicated64 path &quot;$(Dedicated64)&quot; in &quot;$(RepoRoot)Directory.Build.props[.user]&quot;." />
+    <Error Condition="'$(MagnetarBinDir)' == '' Or !Exists('$(MagnetarBinDir)PluginSdk.dll')"
+           Text="Could not locate PluginSdk.dll under &quot;$(MagnetarBinDir)&quot;. Set &lt;Magnetar&gt; to your Magnetar installation folder in &quot;$(RepoRoot)Directory.Build.props.user&quot;." />
+  </Target>
 
-  <PropertyGroup Condition=" !$([MSBuild]::IsOSPlatform('Windows')) ">
-    <PreBuildEvent>sh "$(RepoRoot)verify_props.sh" "$(Dedicated64)" "$(MagnetarBin)"</PreBuildEvent>
-    <PostBuildEvent>sh "$(MSBuildProjectDirectory)/Deploy.sh" "$(AssemblyName).dll" "$(MSBuildProjectDirectory)/$(OutputPath.Replace('\','/'))$(TargetFramework)" "$(TargetFramework)"</PostBuildEvent>
-  </PropertyGroup>
+  <!-- Copies the build output into Magnetar's Local plugin folder, which lives in
+       Magnetar's config folder, but only if MagnetarData is set (see Directory.Build.props).
+       Both launchers share that folder, so the net4x and the net5+ builds of this
+       plugin would overwrite each other there; on Windows the net5+ build wins.
+       Magnetar scans Local recursively for assemblies and identifies each plugin by
+       its DLL file name, so the plugin is deployed flat, with the MagnetarHub
+       registration XML next to it as <AssemblyName>.dll.xml. -->
+  <Target Name="DeployPlugin" AfterTargets="Build"
+          Condition="'$(RunPostBuildEvent)' != 'Never' And '$(TargetFramework)' != '' And ('$(TargetFrameworks)' == '' Or !$(TargetFramework.StartsWith('net4')))">
+    <PropertyGroup>
+      <PluginDirectory Condition="'$(MagnetarData)' != '' And Exists('$(MagnetarData)')">$(MagnetarData)$(PathSeparator)Local</PluginDirectory>
+      <PluginDataFile>$(RepoRoot)$(AssemblyName)Server.xml</PluginDataFile>
+    </PropertyGroup>
+
+    <Message Condition="'$(MagnetarData)' == ''"
+             Text="MagnetarData is not set, the $(TargetFramework) server build will not be deployed." />
+    <Warning Condition="'$(MagnetarData)' != '' And '$(PluginDirectory)' == ''"
+             Text="Magnetar config folder &quot;$(MagnetarData)&quot; does not exist, skipping the deployment of the $(TargetFramework) server build." />
+
+    <MakeDir Condition="'$(PluginDirectory)' != ''" Directories="$(PluginDirectory)" />
+    <Copy Condition="'$(PluginDirectory)' != ''"
+          SourceFiles="$(TargetPath)" DestinationFolder="$(PluginDirectory)" />
+    <Copy Condition="'$(PluginDirectory)' != '' And Exists('$(TargetDir)$(TargetName).pdb')"
+          SourceFiles="$(TargetDir)$(TargetName).pdb" DestinationFolder="$(PluginDirectory)" />
+    <Copy Condition="'$(PluginDirectory)' != '' And Exists('$(PluginDataFile)')"
+          SourceFiles="$(PluginDataFile)" DestinationFiles="$(PluginDirectory)$(PathSeparator)$(TargetFileName).xml" />
+    <Message Condition="'$(PluginDirectory)' != ''" Importance="high"
+             Text="Deployed the $(TargetFramework) server build to &quot;$(PluginDirectory)&quot;" />
+  </Target>
 
   <Import Project="..\Shared\Shared.projitems" Label="Shared" />
   <Import Project="..\MultigridProjectorApi\MultigridProjectorApi.projitems" Label="Shared" />

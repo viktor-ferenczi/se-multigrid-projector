@@ -6,7 +6,6 @@ Requires Python 3.12 or newer.
 
 import os
 import re
-import shutil
 import uuid
 import xml.etree.ElementTree as ET
 from pathlib import Path
@@ -32,6 +31,32 @@ PROJECT_NAMES = (
 # Steam app ids of the games providing the build references
 GAME_APP_ID = "244850"  # Space Engineers (Bin64)
 DEDICATED_APP_ID = "298740"  # Space Engineers Dedicated Server (DedicatedServer64)
+
+# Local folder path overrides imported by Directory.Build.props, not committed
+USER_PROPS = "Directory.Build.props.user"
+
+USER_PROPS_TEMPLATE = """\
+<Project>
+  <PropertyGroup>
+    <!-- Folder containing SpaceEngineers.exe (empty = auto-detect from Steam) -->
+    <Bin64>{bin64}</Bin64>
+
+    <!-- Folder containing SpaceEngineersDedicated.exe (empty = auto-detect from Steam) -->
+    <Dedicated64>{dedicated64}</Dedicated64>
+
+    <!-- Pulsar folder to deploy the client plugin into after each build (empty = no deployment),
+         for example $(APPDATA)\\Pulsar on Windows or $(HOME)/.config/Pulsar on Linux -->
+    <Pulsar></Pulsar>
+
+    <!-- Magnetar installation folder, holds the launchers (empty = auto-detect) -->
+    <Magnetar></Magnetar>
+
+    <!-- Magnetar config folder to deploy the server plugin into after each build,
+         usually the Magnetar subfolder of the folder above (empty = no deployment) -->
+    <MagnetarData></MagnetarData>
+  </PropertyGroup>
+</Project>
+"""
 
 
 def _generate_guid() -> str:
@@ -261,43 +286,61 @@ def _get_install_locations(vdf_path: str, ids: list[str]) -> dict[str, str | Non
     return game_install
 
 
+def _set_prop(group: ET.Element, name: str, value: str) -> None:
+    """Set an MSBuild property in the group, adding the element if missing."""
+    element = group.find(name)
+
+    if element is None:
+        element = ET.SubElement(group, name)
+        element.tail = "\n    "
+
+    element.text = value
+
+
 def _update_props(
     game_dir: str | None = None,
     server_dir: str | None = None,
 ) -> None:
+    """Write the detected paths into the git-ignored local overrides file."""
     if not game_dir and not server_dir:
         return
 
+    bin64_dir = str(Path(game_dir) / "Bin64") if game_dir else ""
+    dedicated64_dir = (
+        str(Path(server_dir) / "DedicatedServer64") if server_dir else ""
+    )
+
+    if not os.path.isfile(USER_PROPS):
+        with open(USER_PROPS, "w", encoding="UTF-8", newline="\n") as file:
+            file.write(
+                USER_PROPS_TEMPLATE.format(
+                    bin64=bin64_dir, dedicated64=dedicated64_dir
+                )
+            )
+        print(f"Created {USER_PROPS}")
+        return
+
+    # Keep any other overrides the developer may have added
     parser = ET.XMLParser(target=ET.TreeBuilder(insert_comments=True))
-    tree = ET.parse("Directory.Build.props", parser)
+    tree = ET.parse(USER_PROPS, parser)
     root = tree.getroot()
+
     group = root.find("PropertyGroup")
-    assert group is not None
+    if group is None:
+        group = ET.SubElement(root, "PropertyGroup")
 
-    if game_dir:
-        bin64 = group.find("Bin64")
-        assert bin64 is not None
-        bin64.text = str(Path(game_dir) / "Bin64")
+    if bin64_dir:
+        _set_prop(group, "Bin64", bin64_dir)
 
-    if server_dir:
-        dedicated64 = group.find("Dedicated64")
-        assert dedicated64 is not None
-        dedicated64.text = str(Path(server_dir) / "DedicatedServer64")
+    if dedicated64_dir:
+        _set_prop(group, "Dedicated64", dedicated64_dir)
 
-    tree.write("Directory.Build.props")
-
-
-def _ensure_props() -> None:
-    """Copy the template to the local Directory.Build.props if it is missing."""
-    if not os.path.isfile("Directory.Build.props"):
-        shutil.copyfile("Directory.Build.props.template", "Directory.Build.props")
-        print("Created Directory.Build.props from Directory.Build.props.template")
+    tree.write(USER_PROPS)
+    print(f"Updated {USER_PROPS}")
 
 
 def main() -> None:
     """Run the setup."""
-
-    _ensure_props()
 
     if os.path.isfile(f"{TEMPLATE_NAME}.sln"):
         plugin_name = _input_plugin_name()
@@ -329,7 +372,7 @@ def main() -> None:
 
         _update_props(locations[GAME_APP_ID], locations[DEDICATED_APP_ID])
     else:
-        print("Please add the paths manually to 'Directory.Build.props'")
+        print(f"Please add the paths manually to '{USER_PROPS}'")
 
     input("Done. (Press any key to exit)")
 

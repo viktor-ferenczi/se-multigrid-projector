@@ -108,15 +108,13 @@ _2 files, 38 lines._
 
 ## [Client Plugin Core](Reference/Client-Plugin.md)
 
-_8 files, 946 lines._
+_6 files, 833 lines._
 
 | File | Type | Lines |
 | ---- | ---- | ----: |
 | [ClientPlugin/App.config](../ClientPlugin/App.config) | xml-config | 186 |
-| [ClientPlugin/ClientPlugin.csproj](../ClientPlugin/ClientPlugin.csproj) | msbuild | 311 |
+| [ClientPlugin/ClientPlugin.csproj](../ClientPlugin/ClientPlugin.csproj) | msbuild | 342 |
 | [ClientPlugin/Config.cs](../ClientPlugin/Config.cs) | csharp | 128 |
-| [ClientPlugin/Deploy.bat](../ClientPlugin/Deploy.bat) | batch | 71 |
-| [ClientPlugin/Deploy.sh](../ClientPlugin/Deploy.sh) | shell | 73 |
 | [ClientPlugin/Plugin.cs](../ClientPlugin/Plugin.cs) | csharp | 79 |
 | [ClientPlugin/PluginLogger.cs](../ClientPlugin/PluginLogger.cs) | csharp | 46 |
 | [ClientPlugin/PluginSession.cs](../ClientPlugin/PluginSession.cs) | csharp | 52 |
@@ -215,18 +213,16 @@ _6 files, 895 lines._
 
 ## [Server Plugin Core](Reference/Server-Plugin.md)
 
-_9 files, 1038 lines._
+_7 files, 933 lines._
 
 | File | Type | Lines |
 | ---- | ---- | ----: |
-| [ServerPlugin/Deploy.bat](../ServerPlugin/Deploy.bat) | batch | 71 |
-| [ServerPlugin/Deploy.sh](../ServerPlugin/Deploy.sh) | shell | 73 |
 | [ServerPlugin/Plugin.cs](../ServerPlugin/Plugin.cs) | csharp | 253 |
 | [ServerPlugin/PluginConfig.cs](../ServerPlugin/PluginConfig.cs) | csharp | 20 |
 | [ServerPlugin/PluginLogger.cs](../ServerPlugin/PluginLogger.cs) | csharp | 33 |
 | [ServerPlugin/PluginSession.cs](../ServerPlugin/PluginSession.cs) | csharp | 32 |
 | [ServerPlugin/Preloader.cs](../ServerPlugin/Preloader.cs) | csharp | 25 |
-| [ServerPlugin/ServerPlugin.csproj](../ServerPlugin/ServerPlugin.csproj) | msbuild | 344 |
+| [ServerPlugin/ServerPlugin.csproj](../ServerPlugin/ServerPlugin.csproj) | msbuild | 383 |
 | [ServerPlugin/app.config](../ServerPlugin/app.config) | xml-config | 187 |
 
 ## [Server Harmony Patches](Reference/Server-Patches.md)
@@ -254,37 +250,32 @@ _16 files, 698 lines._
 
 ## [API Examples (Mod & PB)](Reference/Examples.md)
 
-_12 files, 838 lines._
+_10 files, 810 lines._
 
 | File | Type | Lines |
 | ---- | ---- | ----: |
-| [IngameApiTest/Deploy.bat](../IngameApiTest/Deploy.bat) | batch | 26 |
-| [IngameApiTest/IngameApiTest.csproj](../IngameApiTest/IngameApiTest.csproj) | msbuild | 67 |
+| [IngameApiTest/IngameApiTest.csproj](../IngameApiTest/IngameApiTest.csproj) | msbuild | 83 |
 | [IngameApiTest/Properties/AssemblyInfo.cs](../IngameApiTest/Properties/AssemblyInfo.cs) | csharp | 35 |
 | [IngameApiTest/Script/Script.cs](../IngameApiTest/Script/Script.cs) | csharp | 360 |
 | [IngameApiTest/Script/metadata.mod](../IngameApiTest/Script/metadata.mod) | text | 4 |
 | [IngameApiTest/Script/modinfo.sbmi](../IngameApiTest/Script/modinfo.sbmi) | xml | 11 |
-| [ModApiTest/Deploy.bat](../ModApiTest/Deploy.bat) | batch | 37 |
 | [ModApiTest/Mod/Data/Scripts/MultigridProjector/ModApiTest/MultigridProjectorModApiTest.cs](../ModApiTest/Mod/Data/Scripts/MultigridProjector/ModApiTest/MultigridProjectorModApiTest.cs) | csharp | 183 |
 | [ModApiTest/Mod/metadata.mod](../ModApiTest/Mod/metadata.mod) | text | 4 |
 | [ModApiTest/Mod/modinfo.sbmi](../ModApiTest/Mod/modinfo.sbmi) | xml | 11 |
-| [ModApiTest/ModApiTest.csproj](../ModApiTest/ModApiTest.csproj) | msbuild | 65 |
+| [ModApiTest/ModApiTest.csproj](../ModApiTest/ModApiTest.csproj) | msbuild | 84 |
 | [ModApiTest/Properties/AssemblyInfo.cs](../ModApiTest/Properties/AssemblyInfo.cs) | csharp | 35 |
 
 ## [Build & Project Layout](Reference/Build-And-Project-Layout.md)
 
-_10 files, 624 lines._
+_7 files, 649 lines._
 
 | File | Type | Lines |
 | ---- | ---- | ----: |
 | [.github/FUNDING.yml](../.github/FUNDING.yml) | yaml | 14 |
-| [Clean.bat](../Clean.bat) | batch | 11 |
-| [Directory.Build.props.template](../Directory.Build.props.template) | msbuild | 104 |
-| [Directory.Build.targets](../Directory.Build.targets) | msbuild | 11 |
+| [Clean.bat](../Clean.bat) | batch | 13 |
+| [Directory.Build.props](../Directory.Build.props) | msbuild | 133 |
 | [MultigridProjector.sln](../MultigridProjector.sln) | solution | 92 |
 | [Version.Build.props](../Version.Build.props) | msbuild | 8 |
 | [clean.sh](../clean.sh) | shell | 8 |
-| [setup.py](../setup.py) | python | 338 |
-| [verify_props.bat](../verify_props.bat) | batch | 23 |
-| [verify_props.sh](../verify_props.sh) | shell | 15 |
+| [setup.py](../setup.py) | python | 381 |
 
