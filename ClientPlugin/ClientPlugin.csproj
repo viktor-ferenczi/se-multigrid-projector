@@ -26,7 +26,7 @@
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
     <OutputPath>bin/Debug/</OutputPath>
-    <DefineConstants>DEBUG;TRACE;PULSAR;DEV_BUILD</DefineConstants>
+    <DefineConstants>DEBUG;TRACE;PULSAR;LOCAL_BUILD</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
@@ -36,7 +36,7 @@
     <DebugType>pdbonly</DebugType>
     <Optimize>true</Optimize>
     <OutputPath>bin/Release/</OutputPath>
-    <DefineConstants>TRACE;PULSAR;DEV_BUILD</DefineConstants>
+    <DefineConstants>TRACE;PULSAR;LOCAL_BUILD</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>

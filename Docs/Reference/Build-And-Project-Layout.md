@@ -51,14 +51,14 @@ example projects keep a hand-written `AssemblyInfo.cs`, the plugins do not). The
 is defined in one place — [`Version.Build.props`](../../Version.Build.props) — and imported into both
 plugins via `Directory.Build.props`. For Pulsar/Magnetar source-compiled builds (where the props
 import may not apply) the same version is asserted via an `[assembly: AssemblyVersion]` guarded by
-`#if !DEV_BUILD` in [`ClientPlugin/Plugin.cs`](../../ClientPlugin/Plugin.cs) and
+`#if !LOCAL_BUILD` in [`ClientPlugin/Plugin.cs`](../../ClientPlugin/Plugin.cs) and
 [`ServerPlugin/Plugin.cs`](../../ServerPlugin/Plugin.cs).
 
 ### Build constants
 
 | Constant | Where | Meaning |
 | -------- | ----- | ------- |
-| `DEV_BUILD` | both plugins, all configs | A local developer build (as opposed to a Pulsar/Magnetar source-compile). Gates e.g. the [`IgnoresAccessChecksToAttribute`](./Shared-Utilities.md) declaration. |
+| `LOCAL_BUILD` | both plugins, all configs | A local developer build (as opposed to a Pulsar/Magnetar source-compile). Gates e.g. the [`IgnoresAccessChecksToAttribute`](./Shared-Utilities.md) declaration. |
 | `DEDICATED` | server plugin only | Server/dedicated-side code paths. |
 | `DEBUG` / `TRACE` | per configuration | Standard. |
 
@@ -91,7 +91,7 @@ side of this is the [`IgnoresAccessChecksToAttribute`](./Shared-Utilities.md) de
 > (see commit history).
 
 > **Caveat — `protected virtual` game members.** The two publicizers do not agree on every member.
-> Krafs (local `DEV_BUILD`) publicizes everything, so a local build compiles even when a member is
+> Krafs (local `LOCAL_BUILD`) publicizes everything, so a local build compiles even when a member is
 > `protected virtual`. The Pulsar/Magnetar **source-compile** publicizer, however, leaves
 > `protected virtual`/`override`/`abstract` members `protected` — widening a virtual member's
 > accessibility would break override chains, since a C# `override` cannot change accessibility.

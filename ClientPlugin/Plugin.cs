@@ -9,7 +9,7 @@ using Sandbox.Graphics.GUI;
 using VRage.Plugins;
 
 // Define assembly version when compiled by Pulsar
-#if !DEV_BUILD
+#if !LOCAL_BUILD
 using System.Reflection;
 
 [assembly: AssemblyVersion("0.9.5")]
