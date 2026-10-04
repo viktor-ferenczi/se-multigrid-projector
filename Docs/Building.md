@@ -63,7 +63,7 @@ dotnet build MultigridProjector.sln -p:Pulsar=$HOME/.config/Pulsar -p:MagnetarDa
   [Examples](Reference/Examples.md)
 
 For a release build use `-c Release`. Always test a release build before publishing — Pulsar compiles
-the client plugin from source on the player's machine, so behaviour can differ from a local build.
+the client plugin from source on the player's machine, so behavior can differ from a local build.
 
 ## Notes
 

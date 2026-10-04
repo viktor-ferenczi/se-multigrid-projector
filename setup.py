@@ -54,6 +54,14 @@ USER_PROPS_TEMPLATE = """\
     <!-- Magnetar config folder to deploy the server plugin into after each build,
          usually the Magnetar subfolder of the folder above (empty = no deployment) -->
     <MagnetarData></MagnetarData>
+
+    <!-- Local mods folder to deploy the ModApiTest mod into after each build
+         (empty = no deployment), for example $(APPDATA)\\SpaceEngineers\\Mods -->
+    <Mods></Mods>
+
+    <!-- Local in-game scripts folder to deploy the IngameApiTest script into after each
+         build (empty = no deployment), for example $(APPDATA)\\SpaceEngineers\\IngameScripts\\local -->
+    <IngameScripts></IngameScripts>
   </PropertyGroup>
 </Project>
 """

@@ -99,6 +99,7 @@ See [Building from source](Docs/Building.md). To test a working copy, load it th
 development folder: start Pulsar or Magnetar with `-sources` and add the repository with the
 Sources button. Builds deploy only if `Pulsar` or `MagnetarData` is set in
 `Directory.Build.props.user`, or passed as `-p:Pulsar=...` or `-p:MagnetarData=...`.
+The API example projects deploy the same way with `Mods` and `IngameScripts`.
 
 ## Want to know more?
 

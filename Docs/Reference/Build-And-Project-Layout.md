@@ -26,11 +26,11 @@ source compiles into each target rather than being shared as a binary.
 
 | File | Lines | Purpose |
 | ---- | ----: | ------- |
-| [MultigridProjector.sln](../../MultigridProjector.sln) | 92 | Visual Studio / Rider solution tying the projects together. `Version.Build.props` is included as a solution item. |
-| [Version.Build.props](../../Version.Build.props) | 8 | **Committed.** Single source of the plugin `Version` (`AssemblyVersion`/`FileVersion`); shared by all contributors and imported by `Directory.Build.props`. |
-| [Directory.Build.props](../../Directory.Build.props) | 133 | **Committed.** Imports `Version.Build.props` and the optional, gitignored `Directory.Build.props.user`, declares the overridable folders (`Bin64`, `Dedicated64`, `Pulsar`, `Magnetar`, `MagnetarData`, `Mods`, `IngameScripts`) and auto-detects the compile-time ones (`Bin64`, `Dedicated64`, `Magnetar`, hence `MagnetarBin` holding `PluginSdk.dll`). Follows the server plugin template. |
-| [setup.py](../../setup.py) | 381 | Interactive helper that writes the detected `Bin64` and `Dedicated64` into `Directory.Build.props.user`. |
-| [clean.sh](../../clean.sh) / [Clean.bat](../../Clean.bat) | 8 / 13 | Remove `bin`/`obj` build output. |
+| [MultigridProjector.sln](../../MultigridProjector.sln) | 94 | Visual Studio / Rider solution tying the projects together. `Directory.Build.props` and `Version.Build.props` are included as solution items. |
+| [Version.Build.props](../../Version.Build.props) | 9 | **Committed.** Single source of the plugin `Version` (`AssemblyVersion`/`FileVersion`); shared by all contributors and imported by `Directory.Build.props`. |
+| [Directory.Build.props](../../Directory.Build.props) | 134 | **Committed.** Imports `Version.Build.props` and the optional, gitignored `Directory.Build.props.user`, declares the overridable folders (`Bin64`, `Dedicated64`, `Pulsar`, `Magnetar`, `MagnetarData`, `Mods`, `IngameScripts`) and auto-detects the compile-time ones (`Bin64`, `Dedicated64`, `Magnetar`, hence `MagnetarBin` holding `PluginSdk.dll`). Follows the server plugin template. |
+| [setup.py](../../setup.py) | 386 | Interactive helper that writes the detected `Bin64` and `Dedicated64` into `Directory.Build.props.user`, with the deploy folders left empty. |
+| [clean.sh](../../clean.sh) / [Clean.bat](../../Clean.bat) | 9 / 14 | Remove `bin`/`obj` build output. |
 | [.github/FUNDING.yml](../../.github/FUNDING.yml) | 14 | GitHub sponsor links. |
 
 ## Target frameworks
@@ -47,7 +47,7 @@ Both plugin projects declare:
 - On **Linux** only `net10.0` is built.
 
 `LangVersion` is 14 and `GenerateAssemblyInfo` is on (so the SDK emits assembly attributes — the
-example projects keep a hand-written `AssemblyInfo.cs`, the plugins do not). The version (`0.9.2`)
+example projects keep a hand-written `AssemblyInfo.cs`, the plugins do not). The version
 is defined in one place — [`Version.Build.props`](../../Version.Build.props) — and imported into both
 plugins via `Directory.Build.props`. For Pulsar/Magnetar source-compiled builds (where the props
 import may not apply) the same version is asserted via an `[assembly: AssemblyVersion]` guarded by
@@ -111,8 +111,9 @@ machinery).
 The plugin projects have two MSBuild targets, taken from the server plugin template, and the
 API example projects follow the same pattern:
 
-1. **`ValidateProps`** (before the build) fails with a clear message if `Bin64`, `Dedicated64` or
-   Magnetar's `PluginSdk.dll` cannot be found.
+1. **`ValidateProps`** (before the build) fails with a clear message if `Bin64` (client),
+   `Dedicated64` or Magnetar's `PluginSdk.dll` (server) cannot be found. In every project it also
+   reports when the deploy folder is not set or does not exist.
 2. **`DeployPlugin`** (after a successful build) copies the plugin into the loader's `Local`
    folder, but only if the loader folder is set explicitly. A plain build deploys nothing.
 
