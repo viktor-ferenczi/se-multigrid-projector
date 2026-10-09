@@ -34,8 +34,10 @@ definitions, DLC blocks left out (the clients run without Steam):
 
 Known MGP defects are strict xfails, so the run stays green and a fix shows up
 as an unexpected pass:
-- SE1-0111: on a server's client, a remote control's camera and an event
-  controller's selection on a subgrid stay stale.
+- SE1-0111: on a server's client, some references to blocks on subgrids stay
+  stale: remote control cameras, event controller selections, a turret
+  controller's tools, a cockpit slot. The server has them right. One of them
+  comes and goes between runs and is a non-strict xfail.
 - SE1-0113: flight movement toolbars aren't restored, and a group toolbar item
   welded before its group is lost.
 

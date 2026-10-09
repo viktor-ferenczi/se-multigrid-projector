@@ -9,6 +9,9 @@ client sees them, and again after a block it points at is welded anew."""
 
 from __future__ import annotations
 
+import time
+from collections import Counter
+
 import pytest
 
 import blueprint
@@ -30,7 +33,19 @@ GROUPS = {
 # the client keeps the projection's id for the target on the subgrid: the
 # remote control's bound camera and the event controller's selected blocks
 # (SE1-0111).
-CLIENT_GAPS = {("refs", "Station Remote"), ("refs", "Station Events")}
+CLIENT_GAPS = {
+    ("refs", "Station Remote"),
+    ("refs", "Station Events"),
+    # The camera on the remote control's own subgrid; the tool list keeps the
+    # projection's ids next to the welded guns
+    ("group", "Remote Control SG"),
+    ("group", "Custom Turret Controller LG Solar 1"),
+    # Of its two slots for the small grid's remote control, one stays stale
+    ("group", "Cockpit LG"),
+}
+# Client gaps that come and go between runs: the event controller on the small
+# grid loses its selection of the station's cockpit in some runs only
+FLAKY_CLIENT_GAPS = {("group", "Event Controller SG")}
 
 # Not restored anywhere (SE1-0113): MGP reads no toolbar from a flight movement
 # block's object builder, and a group item whose group isn't welded yet when
@@ -39,19 +54,23 @@ GAPS = {("group", "Group Flight"), ("group", "Button Panel SG")}
 
 
 def mark_gaps(request, game, bench: str, block: str) -> None:
-    if (bench, block) in GAPS:
-        reason = "MGP does not restore this reference (SE1-0113)"
-    elif (bench, block) in CLIENT_GAPS and game.api.get_state().get(
-        "multiplayer"
-    ) != "offline":
-        reason = "MGP does not restore this reference on clients of a server (SE1-0111)"
+    key = (bench, block)
+    on_server = game.api.get_state().get("multiplayer") != "offline"
+    if key in GAPS:
+        reason, strict = "MGP does not restore this reference (SE1-0113)", True
+    elif on_server and key in CLIENT_GAPS:
+        reason, strict = "not restored on clients of a server (SE1-0111)", True
+    elif on_server and key in FLAKY_CLIENT_GAPS:
+        reason, strict = (
+            "restored on clients of a server only sometimes (SE1-0111)",
+            False,
+        )
     else:
         return
-    request.applymarker(pytest.mark.xfail(strict=True, reason=reason))
+    request.applymarker(pytest.mark.xfail(strict=strict, reason=reason))
 
 
 REFERENCE_TAGS = ("BindedCamera", "CameraId")
-NOT_REFERENCES = {"Toolbar", "SlotsGamepad"}
 
 
 def links(builder, names: dict[int, str]) -> dict:
@@ -106,13 +125,36 @@ def projector(bench: str) -> int:
     return bench_ids(bench_index(bench))["projector"]
 
 
-def compare(game, built: dict, bench: str, block: str) -> None:
+def compare(game, built: dict, bench: str, block: str, wait: float = 20.0) -> None:
+    """On a server's client the restored references arrive by replication, a
+    while after the welding is complete, hence the retries"""
     expected = links(blueprint.builder(bench, block), blueprint.names_by_id(bench))
-    actual = links(
-        game.object_builder(built[bench][block]["entityId"]),
-        {b["entityId"]: n for n, b in built[bench].items()},
-    )
-    assert actual == expected
+    names = {b["entityId"]: n for n, b in built[bench].items()}
+    deadline = time.monotonic() + wait
+    while True:
+        actual = links(game.object_builder(built[bench][block]["entityId"]), names)
+        if actual == expected or time.monotonic() > deadline:
+            break
+        time.sleep(2)
+    assert actual == expected, differences(expected, actual)
+
+
+def differences(expected: dict, actual: dict) -> dict:
+    """What is missing from and extra in each reference, readable where
+    pytest's diff of the long toolbar lists is cut short"""
+    result = {}
+    for key in sorted(set(expected) | set(actual)):
+        want, got = expected.get(key), actual.get(key)
+        if want == got:
+            continue
+        if isinstance(want, list) and isinstance(got, list):
+            result[key] = {
+                "missing": list((Counter(want) - Counter(got)).elements()),
+                "extra": list((Counter(got) - Counter(want)).elements()),
+            }
+        else:
+            result[key] = {"expected": want, "actual": got}
+    return result
 
 
 @pytest.fixture(scope="module")
