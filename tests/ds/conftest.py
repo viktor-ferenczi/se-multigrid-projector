@@ -3,8 +3,8 @@ and client 1 of the slot joining it as an administrator.
 
 The test files here run the single player test files' tests again, imported
 from the parent folder, against the server. A test file sets MGP_SERVER = False
-for a server without the MGP server plugin, and BENCHES and WORLD_SETTINGS as in
-single player.
+for a server without the MGP server plugin, and BENCHES, WORLD_SETTINGS and
+STATION_EXTRAS as in single player.
 
 MGP_ATTACH=1 reuses a running server and client, MGP_KEEP=1 leaves them running.
 """
@@ -44,6 +44,7 @@ def game(request):
                 benches,
                 mgp=getattr(request.module, "MGP_SERVER", True),
                 settings=getattr(request.module, "WORLD_SETTINGS", None),
+                extras=getattr(request.module, "STATION_EXTRAS", None),
             )
             ds_rig.start_server()
             remote = ds_rig.start_client()

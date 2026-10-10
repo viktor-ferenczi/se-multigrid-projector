@@ -74,7 +74,7 @@ def bench_station(bench: Bench, index: int, position, forward, up) -> str:
         "<Enabled>true</Enabled><CurrentStoredPower>3</CurrentStoredPower>"
         "<ProducerEnabled>true</ProducerEnabled>",
     )
-    blocks += "".join(world.armor(p, bench.size) for p in bench.floor)
+    blocks += "".join(world.armor(p, bench.size) for p in bench.floor + bench.armor)
     for n, combo in enumerate(bench.combos):
         blocks += base_xml(combo, combo.min, ids["grid"] + 100 + n)
     return world.grid(

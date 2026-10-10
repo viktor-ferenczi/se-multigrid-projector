@@ -3,7 +3,8 @@
 Each file starts client 0 of the slot, loads a fresh copy of the test world with
 the benches it names in a module level BENCHES list (all of them by default),
 and stops the client at the end. WORLD_SETTINGS changes session settings of the
-world by element name.
+world by element name, and STATION_EXTRAS adds a file's own blocks to the
+benches (stations.sector_objects).
 
 MGP_ATTACH=1 reuses a client of the slot that is already in the test world, and
 MGP_KEEP=1 leaves the client running after the run; both help while iterating
@@ -39,6 +40,7 @@ def game(request):
                 WORLD,
                 getattr(request.module, "BENCHES", list(BENCHES)),
                 settings=getattr(request.module, "WORLD_SETTINGS", None),
+                extras=getattr(request.module, "STATION_EXTRAS", None),
             )
             rig.launch(CLIENT)
         remote = rig.wait_api(CLIENT)

@@ -58,10 +58,10 @@ CLIENT = rig.Client(1)
 CLIENT2 = rig.Client(2)
 
 
-def prepare_server(benches=None, mgp: bool = True, settings=None) -> None:
+def prepare_server(benches=None, mgp: bool = True, settings=None, extras=None) -> None:
     """A fresh copy of the test world and the server's configs. Without mgp the
     server runs DirectTransport only, as a vanilla server would."""
-    stations.prepare(WORLD, benches, settings=settings, online=True)
+    stations.prepare(WORLD, benches, settings=settings, online=True, extras=extras)
 
     if not (SERVER_CONFIG / "Sources").exists():
         SERVER_CONFIG.mkdir(parents=True, exist_ok=True)

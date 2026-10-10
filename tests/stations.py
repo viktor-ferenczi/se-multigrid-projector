@@ -15,7 +15,7 @@ from pathlib import Path
 
 import world
 from benches import BENCHES
-from fixtures import FIXTURES, XSI_TYPE, bench_ids, bench_index, block_min
+from fixtures import FIXTURES, XSI_NS, XSI_TYPE, bench_ids, bench_index, block_min
 
 CONTROL_ID = 777000500000000
 CONTROL_PB_ID = CONTROL_ID + 1
@@ -67,9 +67,10 @@ def is_infrastructure(block, ids) -> bool:
     return kind == "MyObjectBuilder_CubeBlock" and block_min(block)[1] <= 0
 
 
-def bench_station(name: str, projected: bool = True) -> str:
+def bench_station(name: str, projected: bool = True, extra: str = "") -> str:
     """The bench as a sector object, its projector loaded with the bench's
-    blueprint (or empty)"""
+    blueprint (or empty). extra is more blocks for the station, as
+    MyObjectBuilder_CubeBlock elements."""
     ids = bench_ids(bench_index(name))
     grids = blueprint_grids(name)
     station = ET.fromstring(ET.tostring(grids[0]))
@@ -88,14 +89,27 @@ def bench_station(name: str, projected: bool = True) -> str:
             copy = ET.fromstring(ET.tostring(grid))
             copy.tag = "MyObjectBuilder_CubeGrid"
             container.append(copy)
+    if extra:
+        root = ET.fromstring(f'<root xmlns:xsi="{XSI_NS}">{extra}</root>')
+        blocks.extend(root)
     return ET.tostring(station, encoding="unicode")
 
 
-def sector_objects(names=None, projected: bool = True) -> str:
+def sector_objects(names=None, projected: bool = True, extras=None) -> str:
+    """extras gives a test file's own blocks per bench: bench name ->
+    (blocks for the station, more sector objects), see survival.py"""
     names = names or list(BENCHES)
-    return control_station(names) + "".join(bench_station(n, projected) for n in names)
+    extras = extras or {}
+    objects = control_station(names)
+    for name in names:
+        blocks, more = extras.get(name, ("", ""))
+        objects += bench_station(name, projected, blocks) + more
+    return objects
 
 
-def prepare(folder: Path, names=None, mode="Survival", settings=None, online=False):
-    world.prepare_world(folder, sector_objects(names), mode, settings, online)
+def prepare(
+    folder: Path, names=None, mode="Survival", settings=None, online=False, extras=None
+):
+    objects = sector_objects(names, extras=extras)
+    world.prepare_world(folder, objects, mode, settings, online)
     return folder

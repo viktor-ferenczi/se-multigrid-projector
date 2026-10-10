@@ -42,6 +42,8 @@ class Bench:
     # Cells between two bases on the floor
     spacing: int = 5
     columns: int = 8
+    # Armor blocks to weld on the bench's own grid, besides the bases
+    armor: list[tuple[int, int, int]] = field(default_factory=list)
 
     def __post_init__(self):
         for i, combo in enumerate(self.combos):
@@ -258,6 +260,28 @@ REFS = Bench(
 # subgrids, copied from a test world by import_group.py, not generated
 GROUP = Bench("group", "Large", [])
 
+# Welded in survival by ship welders fed from cargo containers, see
+# survival.py. The armor block on the strip is the one a welder on a piston
+# reaches into (GitHub issue #136).
+SURVIVAL = Bench(
+    "survival",
+    "Large",
+    [
+        _rotor("rotor", "MotorStator", "LargeStator", "AddRotorTopPart", "LargeRotor"),
+        _rotor(
+            "piston",
+            "ExtendedPistonBase",
+            "LargePistonBase",
+            "Add Top Part",
+            "LargePistonTop",
+        ),
+    ],
+    spacing=8,
+    columns=2,
+    armor=[(4, 1, 1)],
+)
+
 BENCHES = {
-    b.name: b for b in (LARGE, SMALL, WHEELS_LARGE, WHEELS_SMALL, CHAIN, REFS, GROUP)
+    b.name: b
+    for b in (LARGE, SMALL, WHEELS_LARGE, WHEELS_SMALL, CHAIN, REFS, GROUP, SURVIVAL)
 }
