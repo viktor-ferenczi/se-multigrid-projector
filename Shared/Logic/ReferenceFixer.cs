@@ -8,14 +8,12 @@ using Sandbox.Common.ObjectBuilders;
 using Sandbox.Game.Entities;
 using Sandbox.Game.Entities.Cube;
 using Sandbox.Game.EntityComponents;
-using Sandbox.Game.Multiplayer;
+using Sandbox.Engine.Multiplayer;
 using Sandbox.Game.Screens.Helpers;
-using Sandbox.Graphics.GUI;
 using SpaceEngineers.Game.Entities.Blocks;
 using SpaceEngineers.Game.EntityComponents.Blocks;
 using SpaceEngineers.Game.ModAPI.Ingame;
 using VRage.Game;
-using VRage.ObjectBuilder;
 using IngameIMyFunctionalBlock = Sandbox.ModAPI.Ingame.IMyFunctionalBlock;
 
 namespace MultigridProjector.Logic
@@ -149,10 +147,10 @@ namespace MultigridProjector.Logic
         private IEnumerable<long> IterToolbarReferencedBlockIds(MyObjectBuilder_TerminalBlock terminalBlockBuilder)
         {
             var toolbarBuilder = terminalBlockBuilder.GetToolbar();
-            if (toolbarBuilder?.Slots == null)
+            if (toolbarBuilder == null)
                 yield break;
 
-            foreach (var slot in toolbarBuilder.Slots)
+            foreach (var (slot, _) in IterSlots(toolbarBuilder))
             {
                 switch (slot.Data)
                 {
@@ -169,6 +167,18 @@ namespace MultigridProjector.Logic
                         break;
                 }
             }
+        }
+
+        // Ship controllers keep a separate set of gamepad slots, which can point at blocks too
+        private static IEnumerable<(MyObjectBuilder_Toolbar.Slot, bool)> IterSlots(MyObjectBuilder_Toolbar toolbarBuilder)
+        {
+            if (toolbarBuilder.Slots != null)
+                foreach (var slot in toolbarBuilder.Slots)
+                    yield return (slot, false);
+
+            if (toolbarBuilder.SlotsGamepad != null)
+                foreach (var slot in toolbarBuilder.SlotsGamepad)
+                    yield return (slot, true);
         }
 
         private IEnumerable<long> IterOffensiveCombatReferencedBlockIds(MyObjectBuilder_OffensiveCombatBlock builder)
@@ -323,11 +333,13 @@ namespace MultigridProjector.Logic
                 return false;
 
             var modified = false;
-            foreach (var slot in builder.Slots)
+            foreach (var (slot, gamepad) in IterSlots(builder))
             {
                 var i = slot.Index;
-                if (i < 0 || i >= toolbar.ItemCount)
+                if (i < 0 || !gamepad && i >= toolbar.ItemCount)
                     continue;
+
+                var item = gamepad ? toolbar.GetItemAtLinearIndexGamepad(i) : toolbar.GetItemAtIndex(i);
 
                 // A single-block toolbar item targets one block directly by BlockEntityId.
                 if (slot.Data is MyObjectBuilder_ToolbarItemTerminalBlock terminalBlockItemBuilder)
@@ -336,14 +348,13 @@ namespace MultigridProjector.Logic
                         continue;
 
                     // Optimization: Do not change the toolbar item if it already has the right target ID
-                    if (toolbar.GetItemAtIndex(i) is MyToolbarItem toolbarItem &&
-                        toolbarItem.GetObjectBuilder() is MyObjectBuilder_ToolbarItemTerminalBlock toolbarItemBuilder &&
+                    if (item?.GetObjectBuilder() is MyObjectBuilder_ToolbarItemTerminalBlock toolbarItemBuilder &&
                         toolbarItemBuilder.BlockEntityId == targetBlock.EntityId)
                         continue;
 
                     var itemBuilder = (MyObjectBuilder_ToolbarItemTerminalBlock)terminalBlockItemBuilder.Clone();
                     itemBuilder.BlockEntityId = targetBlock.EntityId;
-                    toolbar.SetItemAtIndex(i, MyToolbarItemFactory.CreateToolbarItem(itemBuilder));
+                    toolbar.SetItemAtIndex(i, MyToolbarItemFactory.CreateToolbarItem(itemBuilder), gamepad);
                     modified = true;
                     continue;
                 }
@@ -360,14 +371,13 @@ namespace MultigridProjector.Logic
                         continue;
 
                     // Optimization: Do not change the toolbar item if it already has the right anchor ID
-                    if (toolbar.GetItemAtIndex(i) is MyToolbarItem toolbarItem &&
-                        toolbarItem.GetObjectBuilder() is MyObjectBuilder_ToolbarItemTerminalGroup toolbarItemBuilder &&
+                    if (item?.GetObjectBuilder() is MyObjectBuilder_ToolbarItemTerminalGroup toolbarItemBuilder &&
                         toolbarItemBuilder.BlockEntityId == targetBlock.EntityId)
                         continue;
 
                     var itemBuilder = (MyObjectBuilder_ToolbarItemTerminalGroup)terminalGroupItemBuilder.Clone();
                     itemBuilder.BlockEntityId = targetBlock.EntityId;
-                    toolbar.SetItemAtIndex(i, MyToolbarItemFactory.CreateToolbarItem(itemBuilder));
+                    toolbar.SetItemAtIndex(i, MyToolbarItemFactory.CreateToolbarItem(itemBuilder), gamepad);
                     modified = true;
 
                     PluginLog.Info($"Restored group action on toolbar slot {i}: '{terminalGroupItemBuilder.GroupName}' (anchor {terminalGroupItemBuilder.BlockEntityId} -> {targetBlock.EntityId})");
@@ -440,7 +450,7 @@ namespace MultigridProjector.Logic
             var builder = (MyObjectBuilder_RemoteControl)projectedBlock.Builder;
             var block = (MyRemoteControl)projectedBlock.SlimBlock.FatBlock;
 
-            if (!TryMapPreviewToBuiltTerminalBlock<MyRemoteControl>(builder.BindedCamera, out var cameraBlock))
+            if (!TryMapPreviewToBuiltTerminalBlock<MyCameraBlock>(builder.BindedCamera, out var cameraBlock))
                 return false;
 
             var boundCameraSync = block.GetBoundCameraSync();
@@ -457,40 +467,34 @@ namespace MultigridProjector.Logic
         {
             var builder = (MyObjectBuilder_EventControllerBlock)projectedBlock.Builder;
             var block = (MyEventControllerBlock)projectedBlock.SlimBlock.FatBlock;
-
-            var ids = builder.SelectedBlocks
-                .Select(id => TryMapPreviewToBuiltTerminalBlock<MyTerminalBlock>(id, out var selectedBlock) ? selectedBlock : null)
-                .Where(tb => tb != null)
-                .Select(tb => tb.EntityId)
-                .ToHashSet();
-
-            ids.ExceptWith(block.GetSelectedBlocks().Keys);
-
-            var selectedBlockIds = block.GetSelectedBlockIds();
-            if (selectedBlockIds != null)
-                ids.ExceptWith(selectedBlockIds);
-
-            if (ids.Count == 0)
+            if (builder.SelectedBlocks == null)
                 return false;
 
-            if (selectedBlockIds == null)
+            // Ids the block was welded with and has not found yet. The projection's ids of blocks
+            // welded under other ids never resolve, they would only linger in the block's saves.
+            var pendingIds = block.GetSelectedBlockIds();
+            var selectedBlocks = block.GetSelectedBlocks();
+
+            var modified = false;
+            var addIds = new List<long>();
+            foreach (var id in builder.SelectedBlocks)
             {
-                selectedBlockIds = new MySerializableList<long>(ids.Count);
-                block.SetSelectedBlockIds(selectedBlockIds);
+                if (!TryMapPreviewToBuiltTerminalBlock<MyTerminalBlock>(id, out var selectedBlock))
+                    continue;
+
+                var builtId = selectedBlock.EntityId;
+                if (builtId != id && pendingIds != null && pendingIds.Remove(id))
+                    modified = true;
+
+                if (!selectedBlocks.ContainsKey(builtId) && pendingIds?.Contains(builtId) != true)
+                    addIds.Add(builtId);
             }
 
-            selectedBlockIds.AddRange(ids);
+            if (addIds.Count == 0)
+                return modified;
 
-            if (!Sync.IsServer)
-            {
-                // Do exactly what the UI does, so the changes are synced to the server
-                // SelectAvailableBlocks and SelectButton expect MyGuiControlListbox.Item
-                var listItems = selectedBlockIds.Select(blockId => new MyGuiControlListbox.Item(userData: blockId)).ToList();
-                block.SetSelectedBlockIds(null);
-                block.SelectAvailableBlocks(listItems);
-                block.SelectButton();
-            }
-
+            // The game's own request, the server applies it and broadcasts it to the clients
+            MyMultiplayer.RaiseEvent(block, x => x.AddBlocks, addIds);
             return true;
         }
 
@@ -543,32 +547,27 @@ namespace MultigridProjector.Logic
                 modified = true;
             }
 
-            var tools = new List<IngameIMyFunctionalBlock>();
-            block.GetTools(tools);
-
-            var removeTools = new HashSet<IngameIMyFunctionalBlock>(tools);
-            var addTools = new HashSet<IngameIMyFunctionalBlock>(builder.ToolIds.Count);
+            // The bound tools keep the ids the block was welded with, even those of no block,
+            // which GetTools leaves out. Remove whatever does not point at a welded tool of the blueprint.
+            var boundToolIds = ((MyTurretControlBlock)block).m_boundTools.Keys;
+            var toolIds = new HashSet<long>();
             foreach (var toolId in builder.ToolIds)
             {
-                if (!TryMapPreviewToBuiltTerminalBlock<MyTerminalBlock>(toolId, out var targetBlock))
-                    continue;
-
-                if (!(targetBlock is IngameIMyFunctionalBlock targetFunctionalBlock))
-                    continue;
-
-                removeTools.Remove(targetFunctionalBlock);
-                addTools.Add(targetFunctionalBlock);
+                if (TryMapPreviewToBuiltTerminalBlock<MyTerminalBlock>(toolId, out var targetBlock) && targetBlock is IngameIMyFunctionalBlock)
+                    toolIds.Add(targetBlock.EntityId);
             }
 
-            if (removeTools.Count != 0)
+            var removeIds = boundToolIds.Where(id => !toolIds.Contains(id)).ToList();
+            if (removeIds.Count != 0)
             {
-                block.RemoveTools(removeTools.ToList());
+                ((MyTurretControlBlock)block).SyncToolUnselection(removeIds);
                 modified = true;
             }
 
-            if (addTools.Count != 0)
+            var addIds = toolIds.Where(id => !boundToolIds.Contains(id)).ToList();
+            if (addIds.Count != 0)
             {
-                block.AddTools(addTools.ToList());
+                ((MyTurretControlBlock)block).SyncToolSelection(addIds);
                 modified = true;
             }
 

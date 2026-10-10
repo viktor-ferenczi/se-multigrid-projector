@@ -29,45 +29,19 @@ GROUPS = {
     "group": [(*import_group.STATION_GROUP, 0), (*import_group.SMALL_GROUP, 1)],
 }
 
-# On a dedicated server the server restores these right (its save says so), but
-# the client keeps the projection's id for the target on the subgrid: the
-# remote control's bound camera and the event controller's selected blocks
-# (SE1-0111).
-CLIENT_GAPS = {
-    ("refs", "Station Remote"),
-    ("refs", "Station Events"),
-    # The camera on the remote control's own subgrid; the tool list keeps the
-    # projection's ids next to the welded guns
-    ("group", "Remote Control SG"),
-    ("group", "Custom Turret Controller LG Solar 1"),
-    # Of its two slots for the small grid's remote control, one stays stale
-    ("group", "Cockpit LG"),
-}
-# Client gaps that come and go between runs: the event controller on the small
-# grid loses its selection of the station's cockpit in some runs only
-FLAKY_CLIENT_GAPS = {("group", "Event Controller SG")}
-
 # Not restored anywhere (SE1-0113): MGP reads no toolbar from a flight movement
 # block's object builder, and a group item whose group isn't welded yet when
 # its block is gets lost.
 GAPS = {("group", "Group Flight"), ("group", "Button Panel SG")}
 
 
-def mark_gaps(request, game, bench: str, block: str) -> None:
-    key = (bench, block)
-    on_server = game.api.get_state().get("multiplayer") != "offline"
-    if key in GAPS:
-        reason, strict = "MGP does not restore this reference (SE1-0113)", True
-    elif on_server and key in CLIENT_GAPS:
-        reason, strict = "not restored on clients of a server (SE1-0111)", True
-    elif on_server and key in FLAKY_CLIENT_GAPS:
-        reason, strict = (
-            "restored on clients of a server only sometimes (SE1-0111)",
-            False,
+def mark_gaps(request, bench: str, block: str) -> None:
+    if (bench, block) in GAPS:
+        request.applymarker(
+            pytest.mark.xfail(
+                strict=True, reason="MGP does not restore this reference (SE1-0113)"
+            )
         )
-    else:
-        return
-    request.applymarker(pytest.mark.xfail(strict=strict, reason=reason))
 
 
 REFERENCE_TAGS = ("BindedCamera", "CameraId")
@@ -177,7 +151,7 @@ def built(game, welded):
 
 @pytest.mark.parametrize("bench, block", LINKED)
 def test_references_point_at_the_welded_blocks(request, game, built, bench, block):
-    mark_gaps(request, game, bench, block)
+    mark_gaps(request, bench, block)
     compare(game, built, bench, block)
 
 
@@ -213,5 +187,5 @@ def rebuilt(game, welded, built):
 
 @pytest.mark.parametrize("bench, block", LINKED)
 def test_references_follow_a_rewelded_block(request, game, rebuilt, bench, block):
-    mark_gaps(request, game, bench, block)
+    mark_gaps(request, bench, block)
     compare(game, rebuilt, bench, block)
