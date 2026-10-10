@@ -19,32 +19,17 @@ import pytest
 import blueprint
 import stations
 from fixtures import bench_ids, bench_index, block_min
+from se_remote import CallOp
 
 MGP_SERVER = False
 BENCHES = ["large", "small", "chain"]
 WORLD_SETTINGS = {"GameMode": "Creative"}
 MECHANICAL = ("Stator", "Rotor", "Piston", "Suspension", "Wheel", "Hinge")
-
-# A large base with a small head ends up without a head: client welding grinds
-# the large head the server gives the new base, and no small head comes
-# (SE1-0116)
-HEADLESS = {
-    ("large", "rotor-small-head"),
-    ("large", "advanced-rotor-small-head"),
-    ("large", "hinge-small-head"),
-}
+# On the floor strip, past the projector and the battery
+STANDING = (3, 1, 1)
 
 COMBOS = [
-    pytest.param(
-        bench,
-        c,
-        id=f"{bench}-{c.name}",
-        marks=(
-            [pytest.mark.xfail(strict=True, reason="small head lost (SE1-0116)")]
-            if (bench, c.name) in HEADLESS
-            else []
-        ),
-    )
+    pytest.param(bench, c, id=f"{bench}-{c.name}")
     for bench in BENCHES
     for c in blueprint.connections(bench)
 ]
@@ -75,11 +60,22 @@ def stats(game):
     return {bench: game.projector_stats(bench) for bench in BENCHES}
 
 
+def stand_on_bench(game, bench: str) -> None:
+    """Puts the character on the bench's floor strip. Client welding asks the
+    server for a small head with a request it takes only from a character
+    within about 15 m of the grid."""
+    grid = bench_ids(bench_index(bench))["grid"]
+    cell = game.api.call([CallOp.grid_to_world(grid, STANDING)]).call(0)
+    game.api.character_teleport(*cell["world"])
+    time.sleep(3)
+
+
 @pytest.fixture(scope="module")
 def welded(game, stats):
     game.require_ops("WeldProjection", "GetObjectBuilder")
     game.api.set_admin_flag("creativeTools", True)
     for bench in BENCHES:
+        stand_on_bench(game, bench)
         weld(game, projector(bench))
     return True
 
