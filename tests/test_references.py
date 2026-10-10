@@ -47,18 +47,11 @@ CLIENT_GAPS = {
 # grid loses its selection of the station's cockpit in some runs only
 FLAKY_CLIENT_GAPS = {("group", "Event Controller SG")}
 
-# Not restored anywhere (SE1-0113): MGP reads no toolbar from a flight movement
-# block's object builder, and a group item whose group isn't welded yet when
-# its block is gets lost.
-GAPS = {("group", "Group Flight"), ("group", "Button Panel SG")}
-
 
 def mark_gaps(request, game, bench: str, block: str) -> None:
     key = (bench, block)
     on_server = game.api.get_state().get("multiplayer") != "offline"
-    if key in GAPS:
-        reason, strict = "MGP does not restore this reference (SE1-0113)", True
-    elif on_server and key in CLIENT_GAPS:
+    if on_server and key in CLIENT_GAPS:
         reason, strict = "not restored on clients of a server (SE1-0111)", True
     elif on_server and key in FLAKY_CLIENT_GAPS:
         reason, strict = (
