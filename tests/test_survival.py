@@ -30,6 +30,10 @@ from se_remote import CallOp, GetOp
 
 BENCH = survival.BENCH
 BENCHES = [BENCH]
+# With progression on, a server refuses to build blocks from a projection for
+# an owner who hasn't researched them (MyCubeGrid.BuildBlockRequestInternal);
+# single player lets its local player through anyway
+WORLD_SETTINGS = {"EnableResearch": "false"}
 STATION_EXTRAS = survival.extras()
 PROJECTOR = survival.PROJECTOR
 STATION = survival.STATION
@@ -38,8 +42,7 @@ PROJECTOR_CELL = (0, 1, 0)
 COMBO_SUBGRIDS = [c.top_grid for c in blueprint.connections(BENCH)]
 
 
-def stock(game, refs) -> Counter:
-    """Components in the inventories of these blocks"""
+def _stock(game, refs) -> Counter:
     batch = game.api.batch(gets=[GetOp.inventory(r["grid"], r["min"]) for r in refs])
     total = Counter()
     for i in range(len(refs)):
@@ -47,6 +50,21 @@ def stock(game, refs) -> Counter:
             if item["typeId"].endswith("Component"):
                 total[item["subtypeId"]] += item["amountRaw"] // 1_000_000
     return total
+
+
+def stock(game, refs, timeout: float = 30.0) -> Counter:
+    """Components in the inventories of these blocks, once two reads agree. A
+    server's client gets each inventory's changes on its own, so a single read
+    can catch an item that has left one inventory and not yet reached the
+    other."""
+    deadline = time.monotonic() + timeout
+    last = _stock(game, refs)
+    while True:
+        time.sleep(3)
+        total = _stock(game, refs)
+        if total == last or time.monotonic() > deadline:
+            return total
+        last = total
 
 
 def installed(game, grid_id: int, cells) -> Counter:
