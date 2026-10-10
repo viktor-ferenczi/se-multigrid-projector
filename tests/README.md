@@ -56,8 +56,6 @@ as an unexpected pass:
   welded before its group is lost.
 - SE1-0115: the PB API's block states and state hashes change before the scan
   number does.
-- SE1-0116: without the server plugin, a large base with a small head ends up
-  headless.
 - SE1-0117: on the test server, ship welders build nothing from a projection,
   with or without the MGP server plugin. The cause isn't known yet.
 
