@@ -54,8 +54,6 @@ as an unexpected pass:
   comes and goes between runs and is a non-strict xfail.
 - SE1-0113: flight movement toolbars aren't restored, and a group toolbar item
   welded before its group is lost.
-- SE1-0115: the PB API's block states and state hashes change before the scan
-  number does.
 - SE1-0116: without the server plugin, a large base with a small head ends up
   headless.
 - SE1-0117: on the test server, ship welders build nothing from a projection,

@@ -17,6 +17,9 @@ namespace MultigridProjector.Logic
 
         // Welding state
         public BlockState State { get; private set; } = BlockState.Unknown;
+
+        // Welding state as of the latest completed scan, see Subgrid.PublishBlockStates
+        public BlockState PublishedState { get; private set; } = BlockState.Unknown;
         public BuildCheckResult BuildCheckResult { get; private set; } = BuildCheckResult.NotFound;
 
         // Built block
@@ -37,6 +40,12 @@ namespace MultigridProjector.Logic
         {
             Preview = preview;
             Builder = builder;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void PublishState()
+        {
+            PublishedState = State;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]

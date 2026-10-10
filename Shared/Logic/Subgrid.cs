@@ -65,6 +65,10 @@ namespace MultigridProjector.Logic
         // Block state hash
         public ulong StateHash { get; private set; }
 
+        // Block state hash and completion as of the latest completed scan, see PublishBlockStates
+        public ulong PublishedStateHash { get; private set; }
+        public bool PublishedBuildCompleted { get; private set; }
+
         // Block state hash of the last visual update
         private ulong latestVisualUpdateStateHash;
 
@@ -214,6 +218,36 @@ namespace MultigridProjector.Logic
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public bool TryGetPublishedBlockState(in Vector3I previewPosition, out BlockState blockState)
+        {
+            if (!TryGetProjectedBlock(previewPosition, out var projectedBlock))
+            {
+                blockState = BlockState.Unknown;
+                return false;
+            }
+
+            blockState = projectedBlock.PublishedState;
+            return true;
+        }
+
+        // The update work changes the block states and the state hash on a background thread, while
+        // the scan number goes up only later on the main thread. The API must not return the states of
+        // a scan before its scan number, so it reads the copies made here along with the scan number.
+        public void PublishBlockStates()
+        {
+            using (BlocksLock.Read())
+            {
+                foreach (var projectedBlock in Blocks.Values)
+                    projectedBlock.PublishState();
+            }
+
+            PublishedStateHash = StateHash;
+
+            using (BuiltGridLock.Read())
+                PublishedBuildCompleted = Stats.IsBuildCompleted;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool HasBuildableBlockAtPosition(in Vector3I position)
         {
             using (BuiltGridLock.Read())
@@ -230,7 +264,7 @@ namespace MultigridProjector.Logic
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public IEnumerable<(Vector3I, BlockState)> IterBlockStates(BoundingBoxI box, int mask)
+        public IEnumerable<(Vector3I, BlockState)> IterPublishedBlockStates(BoundingBoxI box, int mask)
         {
             var fullBox = box.Min == Vector3I.MinValue && box.Max == Vector3I.MaxValue;
 
@@ -238,7 +272,7 @@ namespace MultigridProjector.Logic
             {
                 foreach (var (position, projectedBlock) in Blocks)
                 {
-                    var blockState = projectedBlock.State;
+                    var blockState = projectedBlock.PublishedState;
                     if (((int) blockState & mask) == 0)
                         continue;
 

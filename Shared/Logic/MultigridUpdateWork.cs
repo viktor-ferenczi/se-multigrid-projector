@@ -31,8 +31,12 @@ namespace MultigridProjector.Logic
         // Explicitly set to true only while the worker is running
         private volatile bool isRunning;
 
+        // True from the start of the work until its completion callback has run on the main thread.
+        // A new scan must not start before that, because the callback publishes the scan's results.
+        private volatile bool callbackPending;
+
         // True value indicates that the background worker has finished executing (regardless of success/failure)
-        public bool IsComplete => !isRunning && task.IsComplete;
+        public bool IsComplete => !isRunning && !callbackPending && task.IsComplete;
 
         // Subgrid scan statistics for performance logging only (no functionality affected)
         public int SubgridsScanned;
@@ -63,6 +67,7 @@ namespace MultigridProjector.Logic
 
             stop = false;
             gridScanSucceeded = false;
+            callbackPending = true;
             task = Parallel.Start(this, OnComplete);
         }
 
@@ -120,6 +125,8 @@ namespace MultigridProjector.Logic
 
         private void OnComplete()
         {
+            callbackPending = false;
+
             if (gridScanSucceeded)
                 OnUpdateWorkCompleted?.Invoke();
         }
