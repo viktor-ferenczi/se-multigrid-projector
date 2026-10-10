@@ -101,13 +101,6 @@ def churn(game, seconds: float) -> int:
     return rebuilds
 
 
-# Block states and state hashes change a tick or more before the scan number
-# does, with or without highlighting. The background scan writes them in
-# place and the scan number goes up only when the main thread handles the
-# finished scan. Highlighting keeps the scans going all the time.
-@pytest.mark.xfail(
-    strict=True, reason="states change before the scan number does (SE1-0115)"
-)
 @pytest.mark.parametrize("highlight", [False, True], ids=["plain", "highlighted"])
 def test_api_holds_together_while_the_projection_changes(game, welded, highlight):
     action = "BlockHighlightEnable" if highlight else "BlockHighlightDisable"
