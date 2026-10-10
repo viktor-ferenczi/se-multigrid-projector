@@ -17,10 +17,9 @@ uses the workspace's Linux scripts, so it doesn't run on Windows yet.
 | `test_pb_api.py` | MGP's PB API holding together on every tick while subgrids are taken away and welded again, with and without block highlighting (GitHub issue #114) |
 
 The files in `ds/` run the same tests against a dedicated server with the MGP
-server plugin; `test_rebuild_ds.py` skips the reload test.
-`test_survival_ds.py` only checks that the ship welders start building, see
-SE1-0117 below. `test_pb_api.py` has no server version: highlighting is a
-client feature, and the script runs against the server's projection.
+server plugin; `test_rebuild_ds.py` skips the reload test. `test_pb_api.py`
+has no server version: highlighting is a client feature, and the script runs
+against the server's projection.
 
 `ds/test_client_only_ds.py` joins a server without the MGP server plugin
 (`MGP_SERVER = False`). The client's MGP projects every subgrid and its client
@@ -58,8 +57,6 @@ as an unexpected pass:
   number does.
 - SE1-0116: without the server plugin, a large base with a small head ends up
   headless.
-- SE1-0117: on the test server, ship welders build nothing from a projection,
-  with or without the MGP server plugin. The cause isn't known yet.
 
 Issue #136 doesn't reproduce: a welder reaching 0.3 m or 1.2 m into the cell
 builds nothing and uses up nothing, and once clear of the cell it builds the
@@ -102,7 +99,9 @@ free component the game gives every head it creates at construction stage. They 
 damage sent from a client of a server never lands. A server also takes block
 changes from a client, like turning a welder on, only while the client's
 character is within about 15 m of the grid, so `test_survival.py` puts the
-character on the bench first.
+character on the bench first. Its world has progression off: with
+it on, a server refuses to build a projected block for an owner who hasn't
+researched it, while single player lets its local player through.
 
 ## Remote ops these tests need
 
