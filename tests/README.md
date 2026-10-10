@@ -52,8 +52,6 @@ as an unexpected pass:
   stale: remote control cameras, event controller selections, a turret
   controller's tools, a cockpit slot. The server has them right. One of them
   comes and goes between runs and is a non-strict xfail.
-- SE1-0113: flight movement toolbars aren't restored, and a group toolbar item
-  welded before its group is lost.
 - SE1-0115: the PB API's block states and state hashes change before the scan
   number does.
 - SE1-0116: without the server plugin, a large base with a small head ends up

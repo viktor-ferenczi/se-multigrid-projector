@@ -13,10 +13,13 @@ generated fixtures, and adds what it lacks:
 - the station's projector stands in the identity orientation, so the projection
   lands on the station like on the other benches;
 - a timer, a sensor, a flight movement block and a defensive combat block on
-  the station, their toolbars pointing at blocks on the subgrids;
+  the station, the timer's and the sensor's toolbars pointing at blocks on the
+  subgrids. A flight movement block saves no toolbar, its object builder has
+  no field for one;
 - a toolbar on the small grid's button panel pointing back at the station;
 - a block group on the station and one on the small grid, with group items on
-  the cockpit's and the button panel's toolbars.
+  the cockpit's and the small grid remote control's toolbars. The small button
+  panel has a single button, so its toolbar has no room for one.
 
 Run it again only if the source world changes::
 
@@ -59,7 +62,7 @@ ADDED = {
         "FlightMovementBlock",
         "LargeFlightMovement",
         {},
-        "Rotating Light SG",
+        None,
     ),
     "Group Defensive": (
         (6, 1, 3),
@@ -274,13 +277,14 @@ def extend(grids) -> None:
     panel = blocks_by_type(small, "MyObjectBuilder_ButtonPanel")
     for old in panel.findall("Toolbar"):
         panel.remove(old)
-    toolbar = _element(
-        refs._toolbar("Character", refs._slot(0, ids["Rotating Light LG"]))
+    panel.append(
+        _element(refs._toolbar("Character", refs._slot(0, ids["Rotating Light LG"])))
     )
-    toolbar.find("Slots").append(
-        _group_slot(1, int(panel.findtext("EntityId")), SMALL_GROUP[0])
+
+    remote = blocks["Remote Control SG"][1]
+    remote.find("Toolbar").find("Slots").append(
+        _group_slot(0, ids["Remote Control SG"], SMALL_GROUP[0])
     )
-    panel.append(toolbar)
 
 
 def renumber(grids, station) -> None:
