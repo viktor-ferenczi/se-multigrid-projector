@@ -57,7 +57,7 @@ namespace MultigridProjector.Logic
             if (!MultigridProjection.TryFindSubgrid(projectorId, subgridIndex, out var projection, out var subgrid) || !projection.IsValidForApi)
                 return BlockState.Unknown;
 
-            if (!subgrid.TryGetBlockState(position, out var blockState))
+            if (!subgrid.TryGetPublishedBlockState(position, out var blockState))
                 return BlockState.Unknown;
 
             return blockState;
@@ -68,7 +68,7 @@ namespace MultigridProjector.Logic
             if (!MultigridProjection.TryFindSubgrid(projectorId, subgridIndex, out var projection, out var subgrid) || !projection.IsValidForApi)
                 return false;
 
-            foreach (var (position, blockState) in subgrid.IterBlockStates(box, mask))
+            foreach (var (position, blockState) in subgrid.IterPublishedBlockStates(box, mask))
                 blockStates[position] = blockState;
 
             return true;
@@ -113,7 +113,7 @@ namespace MultigridProjector.Logic
             if (!MultigridProjection.TryFindSubgrid(projectorId, subgridIndex, out var projection, out var subgrid) || !projection.IsValidForApi)
                 return 0;
 
-            return subgrid.StateHash;
+            return subgrid.PublishedStateHash;
         }
 
         public bool IsSubgridComplete(long projectorId, int subgridIndex)
@@ -121,7 +121,7 @@ namespace MultigridProjector.Logic
             if (!MultigridProjection.TryFindSubgrid(projectorId, subgridIndex, out var projection, out var subgrid) || !projection.IsValidForApi)
                 return false;
 
-            return subgrid.Stats.IsBuildCompleted;
+            return subgrid.PublishedBuildCompleted;
         }
 
         #endregion
@@ -157,7 +157,7 @@ namespace MultigridProjector.Logic
             if (!MultigridProjection.TryFindSubgrid(projectorId, subgridIndex, out var projection, out var subgrid) || !projection.IsValidForApi)
                 return false;
 
-            foreach (var (position, blockState) in subgrid.IterBlockStates(box, mask))
+            foreach (var (position, blockState) in subgrid.IterPublishedBlockStates(box, mask))
                 blockStates[position] = (int)blockState;
             
             return true;

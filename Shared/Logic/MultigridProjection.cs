@@ -600,6 +600,9 @@ namespace MultigridProjector.Logic
             if (Projector.Closed || !Initialized)
                 return;
 
+            foreach (var subgrid in SupportedSubgrids)
+                subgrid.PublishBlockStates();
+
             ScanNumber++;
             latestYaml = null;
 
@@ -755,7 +758,7 @@ namespace MultigridProjector.Logic
                     foreach (var (position, block) in subgrid.Blocks)
                     {
                         sb.AppendLine($"    - Block: {block.SlimBlock?.FatBlock?.EntityId ?? 0}");
-                        sb.AppendLine($"      State: {block.State}");
+                        sb.AppendLine($"      State: {block.PublishedState}");
                         sb.AppendLine($"      Position: [{position.FormatYaml()}]");
                         if (subgrid.BaseConnections.TryGetValue(position, out var baseConnection))
                         {
