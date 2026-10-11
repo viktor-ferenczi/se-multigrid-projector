@@ -16,14 +16,14 @@ _15 files, 4748 lines._
 | [Shared/Logic/BlockMinLocation.cs](../Shared/Logic/BlockMinLocation.cs) | csharp | 26 |
 | [Shared/Logic/Connection.cs](../Shared/Logic/Connection.cs) | csharp | 59 |
 | [Shared/Logic/FastBlockLocation.cs](../Shared/Logic/FastBlockLocation.cs) | csharp | 53 |
-| [Shared/Logic/MultigridProjection.cs](../Shared/Logic/MultigridProjection.cs) | csharp | 2365 |
+| [Shared/Logic/MultigridProjection.cs](../Shared/Logic/MultigridProjection.cs) | csharp | 2367 |
 | [Shared/Logic/MultigridProjectorApiProvider.cs](../Shared/Logic/MultigridProjectorApiProvider.cs) | csharp | 228 |
 | [Shared/Logic/MultigridProjectorSession.cs](../Shared/Logic/MultigridProjectorSession.cs) | csharp | 64 |
 | [Shared/Logic/MultigridUpdateWork.cs](../Shared/Logic/MultigridUpdateWork.cs) | csharp | 127 |
 | [Shared/Logic/ProjectedBlock.cs](../Shared/Logic/ProjectedBlock.cs) | csharp | 157 |
 | [Shared/Logic/ProjectionStats.cs](../Shared/Logic/ProjectionStats.cs) | csharp | 87 |
 | [Shared/Logic/ProjectorSubgrid.cs](../Shared/Logic/ProjectorSubgrid.cs) | csharp | 9 |
-| [Shared/Logic/ReferenceFixer.cs](../Shared/Logic/ReferenceFixer.cs) | csharp | 700 |
+| [Shared/Logic/ReferenceFixer.cs](../Shared/Logic/ReferenceFixer.cs) | csharp | 699 |
 | [Shared/Logic/Subgrid.cs](../Shared/Logic/Subgrid.cs) | csharp | 784 |
 | [Shared/Logic/VisualState.cs](../Shared/Logic/VisualState.cs) | csharp | 10 |
 | [Shared/Shared.projitems](../Shared/Shared.projitems) | msbuild | 67 |
@@ -66,7 +66,7 @@ _9 files, 799 lines._
 | [Shared/Extensions/EnumerableExtensions.cs](../Shared/Extensions/EnumerableExtensions.cs) | csharp | 94 |
 | [Shared/Extensions/LinearAlgebraExtensions.cs](../Shared/Extensions/LinearAlgebraExtensions.cs) | csharp | 23 |
 | [Shared/Extensions/MyBlockGroupExtensions.cs](../Shared/Extensions/MyBlockGroupExtensions.cs) | csharp | 24 |
-| [Shared/Extensions/MyCubeBlockExtensions.cs](../Shared/Extensions/MyCubeBlockExtensions.cs) | csharp | 143 |
+| [Shared/Extensions/MyCubeBlockExtensions.cs](../Shared/Extensions/MyCubeBlockExtensions.cs) | csharp | 135 |
 | [Shared/Extensions/MyCubeGridExtensions.cs](../Shared/Extensions/MyCubeGridExtensions.cs) | csharp | 39 |
 | [Shared/Extensions/MyMechanicalConnectionBlockBaseExtensions.cs](../Shared/Extensions/MyMechanicalConnectionBlockBaseExtensions.cs) | csharp | 32 |
 | [Shared/Extensions/MyObjectBuilderExtensions.cs](../Shared/Extensions/MyObjectBuilderExtensions.cs) | csharp | 218 |

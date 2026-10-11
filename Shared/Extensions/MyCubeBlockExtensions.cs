@@ -126,17 +126,9 @@ namespace MultigridProjector.Extensions
             return eventControllerBlock.m_selectedBlockIds;
         }
 
-        public static void SetSelectedBlockIds(this MyEventControllerBlock eventControllerBlock, MySerializableList<long> selectedBlockIds)
-        {
-            eventControllerBlock.m_selectedBlockIds = selectedBlockIds;
-        }
-
         public static Dictionary<long, IMyTerminalBlock> GetSelectedBlocks(this MyEventControllerBlock eventControllerBlock)
         {
             return eventControllerBlock.m_selectedBlocks;
         }
-
-        // SelectAvailableBlocks and SelectButton are now public on MyEventControllerBlock (via the
-        // publicizer), so callers invoke them directly without reflection wrappers.
     }
 }
