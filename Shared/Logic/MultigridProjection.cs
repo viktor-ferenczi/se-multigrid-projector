@@ -1648,14 +1648,6 @@ System.NullReferenceException: Object reference not set to an instance of an obj
                 var slimBlock = cubes[i].CubeBlock;
                 var buildCheckResult = Projector.CanBuild(slimBlock, true);
 
-                // Bugfix for a bug most likely exists in the original projector/welding code:
-                // Sometimes CanBuild fails with IntersectedWithSomethingElse, but there is no real intersection.
-                // My best guess is that this is a floating point boundary / rounding issues somewhere in a collision check.
-                // Here it is safe to let the build get through, it will fail anyway in BuildInternal if the block cannot be built.
-                // It seems the check in BuildInternal is more reliable, at least with the patch this plugin provides.
-                if (buildCheckResult == BuildCheckResult.IntersectedWithSomethingElse)
-                    buildCheckResult = BuildCheckResult.OK;
-
                 if (buildCheckResult != BuildCheckResult.OK) continue;
 
                 // Buildable block
@@ -1852,14 +1844,6 @@ System.NullReferenceException: Object reference not set to an instance of an obj
                     foreach (var previewSlimBlock in weldedBlocks)
                     {
                         var buildCheckResult = projector.CanBuild(previewSlimBlock, true);
-
-                        // Fix for a bug most likely exists in the original projector/welding code:
-                        // Sometimes CanBuild fails with IntersectedWithSomethingElse, but there is no real intersection.
-                        // My best guess is that this is a floating point boundary / rounding issues somewhere in a collision check.
-                        // Here it is safe to let the build get through, it will fail anyway in BuildInternal if the block cannot be built.
-                        // It seems the check in BuildInternal is more reliable, at least with the patch this plugin provides.
-                        if (buildCheckResult == BuildCheckResult.IntersectedWithSomethingElse)
-                            buildCheckResult = BuildCheckResult.OK;
 
                         if (buildCheckResult != BuildCheckResult.OK) continue;
 

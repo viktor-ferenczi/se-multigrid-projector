@@ -16,7 +16,7 @@ _15 files, 4748 lines._
 | [Shared/Logic/BlockMinLocation.cs](../Shared/Logic/BlockMinLocation.cs) | csharp | 26 |
 | [Shared/Logic/Connection.cs](../Shared/Logic/Connection.cs) | csharp | 59 |
 | [Shared/Logic/FastBlockLocation.cs](../Shared/Logic/FastBlockLocation.cs) | csharp | 53 |
-| [Shared/Logic/MultigridProjection.cs](../Shared/Logic/MultigridProjection.cs) | csharp | 2370 |
+| [Shared/Logic/MultigridProjection.cs](../Shared/Logic/MultigridProjection.cs) | csharp | 2354 |
 | [Shared/Logic/MultigridProjectorApiProvider.cs](../Shared/Logic/MultigridProjectorApiProvider.cs) | csharp | 228 |
 | [Shared/Logic/MultigridProjectorSession.cs](../Shared/Logic/MultigridProjectorSession.cs) | csharp | 64 |
 | [Shared/Logic/MultigridUpdateWork.cs](../Shared/Logic/MultigridUpdateWork.cs) | csharp | 134 |

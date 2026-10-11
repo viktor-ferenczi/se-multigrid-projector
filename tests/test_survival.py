@@ -9,9 +9,9 @@ nowhere are the first ones of the heads, which the game gives any head it
 creates at construction stage.
 
 The welder on a piston is GitHub issue #136: a welder whose body reaches into
-the cell of a projected block must not build it, nor use up components on it,
-and once it is clear of the cell it has to build the block for exactly the
-block's components.
+the cell of a projected block must not build it, nor take components from
+the containers for it, and once it is clear of the cell it has to build the
+block for exactly the block's components.
 """
 
 from __future__ import annotations
@@ -213,7 +213,7 @@ OVERLAPS = list(survival.OVERLAPPING_M)
 def obscured(game, welded):
     """The piston's welder turned on for a while with its body in the armor
     block's cell, at each depth: depth -> (stock before, stock after, the
-    cell's cube or None)"""
+    cell's cube or None, cargo stock before, cargo stock after)"""
     results = {}
     for depth in OVERLAPS:
         piston_to(game, survival.OVERLAPPING_M[depth])
@@ -222,23 +222,37 @@ def obscured(game, welded):
         if game.api.get_state().get("multiplayer") == "offline":
             assert obstructed(game), depth
         before = stock(game, PISTON_REFS)
+        cargo_before = stock(game, [survival.PISTON_CARGO_REF])
         set_welders(game, [survival.PISTON_WELDER_REF], True)
         time.sleep(30)
         set_welders(game, [survival.PISTON_WELDER_REF], False)
         after = stock(game, PISTON_REFS)
-        results[depth] = before, after, game.cubes(STATION).get(survival.OBSCURED)
+        cargo_after = stock(game, [survival.PISTON_CARGO_REF])
+        cube = game.cubes(STATION).get(survival.OBSCURED)
+        results[depth] = before, after, cube, cargo_before, cargo_after
     return results
 
 
 @pytest.mark.parametrize("depth", OVERLAPS)
 def test_welder_in_the_block_cell_builds_nothing(obscured, depth):
-    _, _, cube = obscured[depth]
+    _, _, cube, _, _ = obscured[depth]
     assert cube is None
 
 
 @pytest.mark.parametrize("depth", OVERLAPS)
 def test_welder_in_the_block_cell_uses_up_nothing(obscured, depth):
-    before, after, _ = obscured[depth]
+    before, after, _, _, _ = obscured[depth]
+    assert after == before
+
+
+@pytest.mark.parametrize("depth", OVERLAPS)
+def test_welder_in_the_block_cell_pulls_nothing_from_the_cargo(obscured, depth):
+    """The welder takes no component for a block it can't build. With MGP
+    letting the Havok check's IntersectedWithSomethingElse through, it pulled a
+    steel plate on every activation and kept it, which emptied the cargo
+    container into the welder and made the block look free once the cell was
+    clear (GitHub issue #136)."""
+    _, _, _, before, after = obscured[depth]
     assert after == before
 
 

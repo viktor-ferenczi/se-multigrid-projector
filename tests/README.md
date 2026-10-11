@@ -48,12 +48,15 @@ definitions, DLC blocks left out (the clients run without Steam):
 Known MGP defects are marked as strict xfails, so the run stays green and a fix
 shows up as an unexpected pass. No test is marked at the moment.
 
-Issue #136 doesn't reproduce: a welder reaching 0.3 m or 1.2 m into the cell
-builds nothing and uses up nothing, and once clear of the cell it builds the
-block for exactly its 25 steel plates. The game's Havok check finds the cell
-obstructed from a 2.8 m extension on, which the test confirms through
-highlighting before it welds; at 2.6 m the welder's tip doesn't reach into the
-block and building it is right.
+Issue #136: a welder reaching 0.3 m or 1.2 m into the cell must build
+nothing and take nothing from the cargo container, and once clear of the cell
+it builds the block for exactly its 25 steel plates. Before MGP stopped
+treating the Havok check's `IntersectedWithSomethingElse` as buildable, the
+welder pulled a steel plate on every activation and kept it, about 90 in 30
+seconds. The game's Havok check finds the cell obstructed from a 2.8 m
+extension on, which the test confirms through highlighting before it welds;
+at 2.6 m the welder's tip doesn't reach into the block and building it is
+right.
 
 ## How a run works
 
