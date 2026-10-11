@@ -83,6 +83,7 @@ directory.
 | Option | Default | Description |
 | ------ | ------- | ----------- |
 | Preview block visuals | On | See below. |
+| Projection PCU limit percent | 0 (off) | See below. |
 
 #### Preview block visuals
 
@@ -99,6 +100,18 @@ sync with its build state:
 Turn it **off** only if you run mods that set projector or preview-block transparency themselves and
 you want the plugin to stay out of their way. When off, the plugin does not touch preview block
 visuals at all. This is a server-side compatibility switch; on the client the visuals are always on.
+
+#### Projection PCU limit percent
+
+Limits the PCU of the projections a player may load. A projection loads only if the PCU of the
+player's blocks, of their other projections and of the new projection stays within this percentage
+of the player's PCU limit. The player is the one who built the projector. A projection counts until
+its projector stops projecting it, and a refused one is removed and its player gets a notification.
+`200` lets a ship that uses all of the player's PCU load its own repair projection. Admins with the
+*Ignore PCU limits* admin setting are not limited.
+
+`0`, the default, turns the limit off: projections are neither checked nor counted. Turning the
+limit on also removes saved projections over it at the next server start.
 
 ## Linux (Proton) note
 
