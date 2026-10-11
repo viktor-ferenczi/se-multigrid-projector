@@ -26,7 +26,7 @@ The files under `ClientPlugin/Extra/` implement the user-facing quality-of-life 
 **Player perspective.** When the `Connect Subgrids` feature is enabled (`Config.Current.ConnectSubgrids`) and a player welds a mechanical base block (rotor, hinge, piston), the plugin automatically reconciles the head/top part so that the welded connection matches what the blueprint specifies. This covers four scenarios encoded in `ConnectionType`:
 
 - `Default` — the head is already correct; only paint/skin is copied.
-- `SmallDefault` — the auto-spawned large head is ground and a small head is re-created via `RecreateTop()`.
+- `SmallDefault` — the auto-spawned large head is ground and a small head is re-created via `RecreateTop(topSize: MyTopBlockSize.Small)`. The server takes that request only from a player within about 15 m of the grid.
 - `Special` — the existing head is ground; the correct head type is spawned nearby via `Construction.SpawnBlockOnGrid`, then attached with `CallAttach()`.
 - `Legacy` — the connection cannot be recreated in survival; a warning message is shown.
 - `None` — no top part exists; nothing to do.
