@@ -108,7 +108,8 @@ Each frame, the projector's patched `UpdateAfterSimulation` drives the engine:
 1. A cooldown / force-flag decides whether to start a **background scan**
    (`MultigridUpdateWork`, built on `ParallelTasks`). The worker computes per-subgrid block states,
    stats, and a state hash **off the main thread**, writing only into dedicated per-subgrid fields.
-2. On completion, work resumes on the **game thread**: bump the scan number, promote/attach
+2. On completion, work resumes on the **game thread**: publish the scan's block states and state
+   hashes for the API, bump the scan number, promote/attach
    mechanical connections (on the server, build any missing heads/bases), flood-fill which subgrids
    are connected to the projector, aggregate `ProjectionStats`, refresh preview visuals, and queue
    `ReferenceFixer` work.

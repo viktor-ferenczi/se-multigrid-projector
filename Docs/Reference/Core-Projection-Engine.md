@@ -15,19 +15,19 @@ parent [../Architecture.md](../Architecture.md) and [../API.md](../API.md).
 
 | File | Lines | Purpose |
 |------|------:|---------|
-| [MultigridProjection.cs](../../Shared/Logic/MultigridProjection.cs) | 2367 | Central per-projector class: lifecycle, subgrid/connection bookkeeping, build & placement checks, the update loop, and all Harmony entry points. |
-| [Subgrid.cs](../../Shared/Logic/Subgrid.cs) | 784 | One blueprint subgrid: preview grid, optional built grid, block models, connections, grid-event handling, and background block-state scanning. |
+| [MultigridProjection.cs](../../Shared/Logic/MultigridProjection.cs) | 2370 | Central per-projector class: lifecycle, subgrid/connection bookkeeping, build & placement checks, the update loop, and all Harmony entry points. |
+| [Subgrid.cs](../../Shared/Logic/Subgrid.cs) | 818 | One blueprint subgrid: preview grid, optional built grid, block models, connections, grid-event handling, and background block-state scanning. |
 | [ReferenceFixer.cs](../../Shared/Logic/ReferenceFixer.cs) | 699 | Restores inter-block references (toolbars, toolbar group items, controllers, weapon/tool selections, AI waypoints) on freshly built blocks by mapping blueprint IDs to built EntityIds. |
 | [MultigridProjectorApiProvider.cs](../../Shared/Logic/MultigridProjectorApiProvider.cs) | 228 | Implements `IMultigridProjectorApi` and publishes the Mod API (mod message) and Programmable Block API (terminal property). |
-| [ProjectedBlock.cs](../../Shared/Logic/ProjectedBlock.cs) | 157 | Pairs a preview block with its blueprint builder; detects build/grind state and drives preview transparency visuals. |
-| [MultigridUpdateWork.cs](../../Shared/Logic/MultigridUpdateWork.cs) | 127 | `IWork` background task that scans all supported subgrids off the main thread and raises a completion event. |
+| [ProjectedBlock.cs](../../Shared/Logic/ProjectedBlock.cs) | 166 | Pairs a preview block with its blueprint builder; detects build/grind state and drives preview transparency visuals. |
+| [MultigridUpdateWork.cs](../../Shared/Logic/MultigridUpdateWork.cs) | 134 | `IWork` background task that scans all supported subgrids off the main thread and raises a completion event. |
 | [ProjectionStats.cs](../../Shared/Logic/ProjectionStats.cs) | 87 | Aggregable block counts (total, remaining, buildable, per-type) used for projector stats and completion. |
 | [MultigridProjectorSession.cs](../../Shared/Logic/MultigridProjectorSession.cs) | 64 | Session object wiring up Mod API request handling and lazy PB API registration. |
 | [Connection.cs](../../Shared/Logic/Connection.cs) | 59 | `Connection<T>` base plus `BaseConnection`/`TopConnection`: one side of a mechanical link. |
 | [FastBlockLocation.cs](../../Shared/Logic/FastBlockLocation.cs) | 53 | `(gridIndex, position)` value struct with hand-written equality/hash to avoid boxing. |
 | [BlockMinLocation.cs](../../Shared/Logic/BlockMinLocation.cs) | 26 | `(gridIndex, minPosition)` key struct used to map blueprint and preview mechanical blocks. |
 | [VisualState.cs](../../Shared/Logic/VisualState.cs) | 10 | Enum of preview visual states (None/Hidden/Hologram/Transparent). |
-| [ProjectorSubgrid.cs](../../Shared/Logic/ProjectorSubgrid.cs) | 9 | `Subgrid` subclass marking index 0, the grid carrying the projector. |
+| [ProjectorSubgrid.cs](../../Shared/Logic/ProjectorSubgrid.cs) | 818 | `Subgrid` subclass marking index 0, the grid carrying the projector. |
 
 ## Architecture
 
@@ -83,7 +83,8 @@ projector's should/force-update flags) and calls `StartUpdateWork`, which kicks 
 `StateHash`) and `FindBuiltBase/TopConnectionsBackgroundWork` (record newly appeared connection
 blocks into `Found`). The worker writes **only** into dedicated per-subgrid fields to stay thread-safe;
 the heavier `Stats`/`Blocks` are guarded by `RwLock`s. On completion `OnUpdateWorkCompleted` runs back
-on the game thread: it bumps `ScanNumber` (which gates `IsValidForApi` and invalidates the cached YAML),
+on the game thread: it publishes the scan's block states, state hashes and subgrid completion for the
+API (`PublishBlockStates`), bumps `ScanNumber` (which gates `IsValidForApi` and invalidates the cached YAML),
 runs `UpdateMechanicalConnections` (promoting `Found` blocks into live connections, on the server
 building missing heads/bases with `BuildMissingHead`/`BuildMissingBase` and attaching them, registering
 newly built subgrids, and flood-filling `IsConnectedToProjector` to drop split-off subgrids), aggregates
@@ -147,7 +148,7 @@ projector's `EntityId`; lookups are the primary way patches reach the engine.
 | `MapBlueprintBlocks` / `MapPreviewBlocks` | method (private) | Build the blueprint and preview connection maps. |
 | `CreateSubgrids` / `MarkSupportedSubgrids` | method (private) | Create subgrids; flood-fill supported flags over connections. |
 | `OnPropertiesChanged` | method (private) | Detects KeepProjection / ShowOnlyBuildable / offset-rotation changes and reacts. |
-| `OnUpdateWorkCompleted(WithErrorHandler)` | method | Game-thread callback after a scan: bumps `ScanNumber`, updates connections, stats, visuals, restore queue. |
+| `OnUpdateWorkCompleted(WithErrorHandler)` | method | Game-thread callback after a scan: publishes the scan's states for the API, bumps `ScanNumber`, updates connections, stats, visuals, restore queue. |
 | `UpdateMechanicalConnections` | method (private) | Promotes found connection blocks, builds/attaches missing parts, updates connectedness, drops disconnected subgrids. |
 | `UpdateBaseConnection` / `UpdateTopConnection` | method (private) | Per-connection update: find newly built/added parts, build missing counterpart, register subgrid. |
 | `BuildMissingHead` / `BuildMissingBase` | method (private, server) | Create and attach the missing top/base grid+block for a half-built mechanical connection. |
@@ -202,16 +203,19 @@ into dedicated fields here; all shared collections are protected by `RwLock`s. S
 | `Supported` | field | This subgrid is weldable from the projection. |
 | `Blocks` / `BlocksLock` | field | Projected block models by preview position, and their lock. |
 | `Positioned` | field | The preview grid has been aligned this frame. |
-| `StateHash` | property | Hash of all block states; drives change detection for visuals/API. |
+| `StateHash` | property | Hash of all block states, written by the worker; drives change detection for visuals. |
+| `PublishedStateHash` / `PublishedBuildCompleted` | property | State hash and completion as of the latest completed scan; what the API returns. |
 | `OnTerminalBlockAdded` | event | Fired when a functional block is welded (drives reference restoration). |
 | `Subgrid(projection, index)` | ctor | Builds block models, collects initial stats, finds mechanical connections. |
 | `CreateBlockModels` | method (private) | Pair preview blocks with blueprint builders into `ProjectedBlock`s. |
 | `FindMechanicalConnections` / `PrepareBase` / `PrepareTop` | method (private) | Populate `BaseConnections`/`TopConnections` from blueprint+preview maps. |
 | `Dispose` | method | Unregister built grid and clear connections/blocks. |
 | `TryGetProjectedBlock` / `TryGetBlockBuilder` / `TryGetBlockState` | method | Locked lookups by preview position. |
+| `TryGetPublishedBlockState` | method | A block's state as of the latest completed scan (backs the API). |
+| `PublishBlockStates` | method | Copy the worker's block states, state hash and completion for the API; called on the game thread with the scan number bump. |
 | `HasBuildableBlockAtPosition` | method | True if a built grid exists and the block there is `Buildable`. |
 | `RequestUpdate` | method | Mark this subgrid for rescan (only if supported). |
-| `IterBlockStates` | method | Enumerate `(position, state)` filtered by a bounding box and state mask (backs the API). |
+| `IterPublishedBlockStates` | method | Enumerate `(position, state)` of the latest completed scan, filtered by a bounding box and state mask (backs the API). |
 | `GetBlockOrientationQuaternion` | method | Orientation of a preview block relative to the built grid. |
 | `PreviewToBuiltBlockPosition` / `BuiltToPreviewBlockPosition` | method | Translate positions between preview and built coordinate systems. |
 | `ConfigureBuiltGrid` | method | Copy the preview display name onto a newly built subgrid. |
@@ -250,6 +254,7 @@ once a built grid exists, since the preview→built transform is a world-space r
 | `Builder` | field | Original blueprint builder (clone before mutating). |
 | `Preview` | field | Preview `MySlimBlock` on the projected grid. |
 | `State` | property | Current `BlockState` (Unknown/NotBuildable/Buildable/Mismatch/BeingBuilt/FullyBuilt). |
+| `PublishedState` / `PublishState` | property / method | `State` as of the latest completed scan, which the API reads, and the copy that sets it. |
 | `BuildCheckResult` | property | Latest `BuildCheckResult` from the build check. |
 | `SlimBlock` | property | The matching built block, if present. |
 | `BuiltPosition` / `HasBuiltGrid` | property (private) | Cached position on the built grid and whether it is set. |
@@ -294,7 +299,7 @@ projection is torn down or the projector closes.
 | Member | Kind | Description |
 |--------|------|-------------|
 | `OnUpdateWorkCompleted` | event | Raised on completion of a successful scan (game thread). |
-| `IsComplete` | property | True when no scan is running. |
+| `IsComplete` | property | True when no scan is running and the last scan's completion callback has run, so a new scan can't overwrite results that are not published yet. |
 | `ShouldStop` | property (private) | Worker should abort (stop requested, not initialized, or projector closed). |
 | `SubgridsScanned` / `BlocksScanned` | field | Per-scan counters for performance logging. |
 | `Options` | property | `WorkOptions` with profiler debug info. |
