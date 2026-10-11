@@ -17,5 +17,9 @@ namespace MultigridProjector.Config
         // game / other mods set (used for mod compatibility on the server).
         // Always true on the client; server-configurable via PluginSdk.
         bool PreviewBlockVisuals { get; }
+
+        // Limit on the PCU of the projections each player may load, in percent of the player's PCU
+        // limit. 0 turns it off. Server-side only (ProjectionLimits), always 0 on the client.
+        int ProjectionPcuLimitPercent { get; }
     }
 }

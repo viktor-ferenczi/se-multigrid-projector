@@ -27,7 +27,7 @@ PB_OWNER = 144115188075855883
 PB_SCRIPT = (Path(__file__).parent / "MgpReport.cs").read_text(encoding="utf-8")
 
 
-def control_station(names) -> str:
+def control_station(names, report=()) -> str:
     position, forward, up = world.frame(0)
     floor = [(x, 0, z) for x in range(3) for z in range(3)]
     blocks = "".join(world.armor(p) for p in floor)
@@ -40,14 +40,16 @@ def control_station(names) -> str:
         CONTROL_PB_ID,
         "<CustomName>MGP Report</CustomName><Enabled>true</Enabled>"
         f"<Owner>{PB_OWNER}</Owner><BuiltBy>{PB_OWNER}</BuiltBy><ShareMode>All</ShareMode>"
-        f"<Program>{escape(report_script(names))}</Program>",
+        f"<Program>{escape(report_script(names, report))}</Program>",
         forward="Backward",
     )
     return world.grid("MGP Control", CONTROL_ID, blocks, position, forward, up, True)
 
 
-def report_script(names) -> str:
-    ids = ", ".join(str(bench_ids(bench_index(n))["projector"]) for n in names)
+def report_script(names, report=()) -> str:
+    """report: more projector ids to report on, besides the benches'"""
+    projectors = [bench_ids(bench_index(n))["projector"] for n in names]
+    ids = ", ".join(str(i) for i in projectors + list(report))
     return PB_SCRIPT.replace("/*PROJECTORS*/", ids)
 
 
@@ -95,12 +97,12 @@ def bench_station(name: str, projected: bool = True, extra: str = "") -> str:
     return ET.tostring(station, encoding="unicode")
 
 
-def sector_objects(names=None, projected: bool = True, extras=None) -> str:
+def sector_objects(names=None, projected: bool = True, extras=None, report=()) -> str:
     """extras gives a test file's own blocks per bench: bench name ->
     (blocks for the station, more sector objects), see survival.py"""
     names = names or list(BENCHES)
     extras = extras or {}
-    objects = control_station(names)
+    objects = control_station(names, report)
     for name in names:
         blocks, more = extras.get(name, ("", ""))
         objects += bench_station(name, projected, blocks) + more
@@ -108,8 +110,14 @@ def sector_objects(names=None, projected: bool = True, extras=None) -> str:
 
 
 def prepare(
-    folder: Path, names=None, mode="Survival", settings=None, online=False, extras=None
+    folder: Path,
+    names=None,
+    mode="Survival",
+    settings=None,
+    online=False,
+    extras=None,
+    report=(),
 ):
-    objects = sector_objects(names, extras=extras)
+    objects = sector_objects(names, extras=extras, report=report)
     world.prepare_world(folder, objects, mode, settings, online)
     return folder

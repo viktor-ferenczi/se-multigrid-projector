@@ -17,15 +17,22 @@ namespace MultigridProjector.Logic
             comms = new Comms();
 
             MyEntities.OnEntityCreate += OnEntityCreate;
-            MyAPIGateway.Utilities.RegisterMessageHandler(MultigridProjectorApiProvider.ModApiRequestId, HandleModApiRequest);
+            MyAPIGateway.Utilities.RegisterMessageHandler(
+                MultigridProjectorApiProvider.ModApiRequestId,
+                HandleModApiRequest
+            );
         }
 
         public void Dispose()
         {
-            MyAPIGateway.Utilities.UnregisterMessageHandler(MultigridProjectorApiProvider.ModApiRequestId, HandleModApiRequest);
+            MyAPIGateway.Utilities.UnregisterMessageHandler(
+                MultigridProjectorApiProvider.ModApiRequestId,
+                HandleModApiRequest
+            );
             MyEntities.OnEntityCreate -= OnEntityCreate;
 
             comms.Dispose();
+            ProjectionLimits.Clear();
         }
 
         private void OnEntityCreate(MyEntity myEntity)
@@ -53,7 +60,10 @@ namespace MultigridProjector.Logic
         {
             try
             {
-                MyAPIGateway.Utilities.SendModMessage(MultigridProjectorApiProvider.ModApiResponseId, MultigridProjectorApiProvider.ModApi);
+                MyAPIGateway.Utilities.SendModMessage(
+                    MultigridProjectorApiProvider.ModApiResponseId,
+                    MultigridProjectorApiProvider.ModApi
+                );
             }
             catch (Exception e)
             {

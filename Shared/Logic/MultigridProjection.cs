@@ -1870,18 +1870,16 @@ System.NullReferenceException: Object reference not set to an instance of an obj
         }
 
         [Everywhere]
-        // Based on the original code, but without taking up PCU for the projection
+        // Based on the original code. MGP does not count the projection to the player's PCU, the
+        // server's projection limit counts it instead (ProjectionLimits).
         public void InitializeClipboard()
         {
             clipboard.ResetGridOrientation();
             if (clipboard.IsActive || Projector.IsActivating)
                 return;
 
-#if INCOMPLETE_UNTESTED
-            var gridBuilders = clipboard.CopiedGrids;
-            if (!EnsureBuildableUnderLimits(gridBuilders))
+            if (!ProjectionLimits.TryReserve(Projector))
                 return;
-#endif
 
             Projector.SetIsActivating(true);
             clipboard.Activate(() =>
@@ -1899,57 +1897,6 @@ System.NullReferenceException: Object reference not set to an instance of an obj
                 Projector.SetIsActivating(false);
             });
         }
-
-#if INCOMPLETE_UNTESTED
-        private bool EnsureBuildableUnderLimits(List<MyObjectBuilder_CubeGrid> gridBuilders)
-        {
-            var identity = MySession.Static.Players.TryGetIdentity(Projector.BuiltBy);
-            if (identity == null)
-                return true;
-
-            if (MultigridProjectorConfig.BlockLimit)
-            {
-                var blueprintBlockCount = gridBuilders.GetBlockCount();
-                if (blueprintBlockCount > int.MaxValue)
-                {
-                    NotifyPlayer(MySession.LimitResult.MaxBlocksPerPlayer);
-                    return false;
-                }
-
-                // Allow for building a repair projector for a ship consuming all the player's block limit
-                // Please note that the limit is zero if disabled
-                var maxBlocks = identity.BlockLimits.MaxBlocks;
-                if (maxBlocks > 0 && blueprintBlockCount > 2 * maxBlocks)
-                {
-                    // Notify the player that the blueprint cannot be built because of exceeding block count limit
-                    NotifyPlayer(MySession.LimitResult.MaxBlocksPerPlayer);
-                    return false;
-                }
-            }
-
-            if (MultigridProjectorConfig.PcuLimit)
-            {
-                // Allow for building a repair projector for a ship consuming all the player's PCU limit
-                // Please note that the limit is zero if disabled
-                gridBuilders.TryCalculatePcu(out var blueprintPcu, out _);
-                var maxPcu = MyBlockLimits.GetMaxPCU(identity);
-                if (maxPcu > 0 && blueprintPcu > 2 * maxPcu)
-                {
-                    // Notify the player that the blueprint cannot be built because of exceeding PCU limit
-                    NotifyPlayer(MySession.LimitResult.PCU);
-                    return false;
-                }
-            }
-
-            return true;
-        }
-
-        private static void NotifyPlayer(MySession.LimitResult limitResult)
-        {
-            MyGuiAudio.PlaySound(MyGuiSounds.HudUnable);
-            MyHud.Notifications.Add(MySession.GetNotificationForLimitResult(limitResult));
-        }
-#endif
 
         private void UpdateSubgridConnectedness()
         {

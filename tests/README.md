@@ -21,6 +21,13 @@ server plugin; `test_rebuild_ds.py` skips the reload test. `test_pb_api.py`
 has no server version: highlighting is a client feature, and the script runs
 against the server's projection.
 
+`ds/test_projection_limits_ds.py` and `ds/test_projection_limits_off_ds.py`
+cover the server's projection limit (GitHub issue #86), see `limits.py`: with
+the limit on, a projection over the player's limit is refused and taken off
+the client, and a removed projection no longer counts; without the setting
+both projections load. They have no single player version, the limit is a
+server setting.
+
 `ds/test_client_only_ds.py` joins a server without the MGP server plugin
 (`MGP_SERVER = False`). The client's MGP projects every subgrid and its client
 welding places what the vanilla server can't build. There is no PB API on the

@@ -1,8 +1,8 @@
-using ClientPlugin.Settings;
-using ClientPlugin.Settings.Elements;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
+using ClientPlugin.Settings;
+using ClientPlugin.Settings.Elements;
 using MultigridProjector.Config;
 
 namespace ClientPlugin;
@@ -32,8 +32,10 @@ public class Config : INotifyPropertyChanged, IPluginConfig
     public readonly string Title = "Multigrid Projector";
 
     [Separator("Core")]
-
-    [Checkbox(label: "Show Warning Dialogs", description: "Prevent all of Multigrid Projector's warning dialogs from appearing.\nMake sure you've read them before disabling this!")]
+    [Checkbox(
+        label: "Show Warning Dialogs",
+        description: "Prevent all of Multigrid Projector's warning dialogs from appearing.\nMake sure you've read them before disabling this!"
+    )]
     public bool ShowDialogs
     {
         get => showDialogs;
@@ -41,22 +43,30 @@ public class Config : INotifyPropertyChanged, IPluginConfig
     }
 
     [Separator("Compatibility Mode")]
-
-    [Checkbox(label: "Client Welding", description: "Place blocks and copy over their properties if they previously could not be welded without the server plugin.")]
+    [Checkbox(
+        label: "Client Welding",
+        description: "Place blocks and copy over their properties if they previously could not be welded without the server plugin."
+    )]
     public bool ClientWelding
     {
         get => clientWelding;
         set => SetField(ref clientWelding, value);
     }
 
-    [Checkbox(label: "Ship Welding", description: "Extend the features of client welding to the welders on the grids and subgrids of the craft you are currently piloting.")]
+    [Checkbox(
+        label: "Ship Welding",
+        description: "Extend the features of client welding to the welders on the grids and subgrids of the craft you are currently piloting."
+    )]
     public bool ShipWelding
     {
         get => shipWelding;
         set => SetField(ref shipWelding, value);
     }
 
-    [Checkbox(label: "Connect Subgrids", description: "Attempt to connect subgrids by removing incorrect heads and placing new ones.")]
+    [Checkbox(
+        label: "Connect Subgrids",
+        description: "Attempt to connect subgrids by removing incorrect heads and placing new ones."
+    )]
     public bool ConnectSubgrids
     {
         get => connectSubgrids;
@@ -64,29 +74,40 @@ public class Config : INotifyPropertyChanged, IPluginConfig
     }
 
     [Separator("Extra Features")]
-
-    [Checkbox(label: "Repair Projection", description: "Load a copy of a ship into projector so that it can be rebuilt if any accidents happen.")]
+    [Checkbox(
+        label: "Repair Projection",
+        description: "Load a copy of a ship into projector so that it can be rebuilt if any accidents happen."
+    )]
     public bool RepairProjection
     {
         get => repairProjection;
         set => SetField(ref repairProjection, value);
     }
 
-    [Checkbox(label: "Align Projection", description: "Enable intuitive alignment of projections using the same keys you would use when aligning blocks normally.")]
+    [Checkbox(
+        label: "Align Projection",
+        description: "Enable intuitive alignment of projections using the same keys you would use when aligning blocks normally."
+    )]
     public bool ProjectorAligner
     {
         get => projectorAligner;
         set => SetField(ref projectorAligner, value);
     }
 
-    [Checkbox(label: "Highlight Blocks", description: "Highlight projected blocks based on their status and completion.")]
+    [Checkbox(
+        label: "Highlight Blocks",
+        description: "Highlight projected blocks based on their status and completion."
+    )]
     public bool BlockHighlight
     {
         get => blockHighlight;
         set => SetField(ref blockHighlight, value);
     }
 
-    [Checkbox(label: "Assemble Projections", description: "View a projection's component cost and queue it for assembly.")]
+    [Checkbox(
+        label: "Assemble Projections",
+        description: "View a projection's component cost and queue it for assembly."
+    )]
     public bool CraftProjection
     {
         get => craftProjection;
@@ -100,6 +121,10 @@ public class Config : INotifyPropertyChanged, IPluginConfig
     // The client always renders preview block visuals. Only the server can disable this for
     // mod compatibility, hence it is not exposed in the client settings dialog.
     public bool PreviewBlockVisuals => true;
+
+    // The projection limit is the server's decision, a client never checks it. Also off in single
+    // player and in a game the client hosts.
+    public int ProjectionPcuLimitPercent => 0;
 
     #endregion
 
@@ -117,7 +142,8 @@ public class Config : INotifyPropertyChanged, IPluginConfig
 
     private bool SetField<T>(ref T field, T value, [CallerMemberName] string propertyName = null)
     {
-        if (EqualityComparer<T>.Default.Equals(field, value)) return false;
+        if (EqualityComparer<T>.Default.Equals(field, value))
+            return false;
         field = value;
         OnPropertyChanged(propertyName);
         return true;
