@@ -699,8 +699,10 @@ namespace MultigridProjector.Logic
 #else
                     referenceFixer.RestoreSafe(projectedBlock);
 #endif
-                else
+                else if (!Comms.ServerHasPlugin)
                 {
+                    // Without MGP on the server only the client can fix the references. With it, the
+                    // server's fixes reach the clients, and a client's own requests would only race them.
                     const int delayFrames = 60;
                     var capturedProjectedBlock = projectedBlock;
 #if DEBUG

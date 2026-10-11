@@ -10,7 +10,7 @@ This module collects static extension-method classes that enrich game types (`My
 |---|---|---|
 | [MyObjectBuilderExtensions.cs](../../Shared/Extensions/MyObjectBuilderExtensions.cs) | 218 | Blueprint / object-builder preparation, world-position censoring, toolbar retrieval, repair-projector alignment |
 | [MyProjectorBaseExtensions.cs](../../Shared/Extensions/MyProjectorBaseExtensions.cs) | 185 | Typed get/set wrappers for private `MyProjectorBase` fields exposed by the publicizer; clipboard access; entity-ID remapping |
-| [MyCubeBlockExtensions.cs](../../Shared/Extensions/MyCubeBlockExtensions.cs) | 143 | Name helpers, definition matching, grid alignment, toolbar retrieval, event-controller selected-block access |
+| [MyCubeBlockExtensions.cs](../../Shared/Extensions/MyCubeBlockExtensions.cs) | 135 | Name helpers, definition matching, grid alignment, toolbar retrieval, event-controller selected-block access |
 | [EnumerableExtensions.cs](../../Shared/Extensions/EnumerableExtensions.cs) | 94 | Blueprint collection helpers: clone, index enumeration, position normalization, PCU calculation, projection preparation |
 | [MyCubeGridExtensions.cs](../../Shared/Extensions/MyCubeGridExtensions.cs) | 39 | Safe name helpers, block-group list access, overlapping-block lookup |
 | [MyBlockGroupExtensions.cs](../../Shared/Extensions/MyBlockGroupExtensions.cs) | 24 | Terminal-block set access on a block group; factory method for new groups |
@@ -106,7 +106,6 @@ This module collects static extension-method classes that enrich game types (`My
 | `GetWaypointActionsToolbar(this MyOffensiveCombatBlock offensiveCombatBlock)` | `MyOffensiveCombatBlock` | Returns `m_waypointActionsToolbar` (publicizer field). |
 | `GetBoundCameraSync(this MyRemoteControl remoteControlBlock)` | `MyRemoteControl` | Returns the `Sync<long, SyncDirection.BothWays>` field `m_bindedCamera` used for bound-camera state. |
 | `GetSelectedBlockIds(this MyEventControllerBlock eventControllerBlock)` | `MyEventControllerBlock` | Reads `m_selectedBlockIds` as `MySerializableList<long>`. |
-| `SetSelectedBlockIds(this MyEventControllerBlock eventControllerBlock, MySerializableList<long> selectedBlockIds)` | `MyEventControllerBlock` | Writes `m_selectedBlockIds`. |
 | `GetSelectedBlocks(this MyEventControllerBlock eventControllerBlock)` | `MyEventControllerBlock` | Reads `m_selectedBlocks` as `Dictionary<long, IMyTerminalBlock>`. |
 
 ---

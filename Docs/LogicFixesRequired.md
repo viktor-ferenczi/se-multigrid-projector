@@ -155,9 +155,9 @@ the game/dedicated server installed:
 
 1. **Build both plugins** (`net48` and `net10.0`):
    - `ClientPlugin` against `$(Bin64)` — confirms all client‑side publicizer conversions resolve.
-   - `ServerPlugin` against `$(Dedicated64)` — confirms the shared code (incl. `ReferenceFixer`'s
-     `SelectAvailableBlocks`/`SelectButton`, which need `SpaceEngineers.Game` publicized and
-     `Sandbox.Graphics` referenced — both present) compiles for the server target.
+   - `ServerPlugin` against `$(Dedicated64)` — confirms the shared code (incl. `ReferenceFixer`'s use
+     of private `MyEventControllerBlock` and `MyTurretControlBlock` members, which needs
+     `SpaceEngineers.Game` publicized) compiles for the server target.
 2. **Client smoke test:** load a multigrid blueprint into a projector, weld subgrids, connect
    subgrids, repair/align/craft/highlight features, and open the settings dialog (verify save on
    close).

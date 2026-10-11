@@ -15,9 +15,9 @@ parent [../Architecture.md](../Architecture.md) and [../API.md](../API.md).
 
 | File | Lines | Purpose |
 |------|------:|---------|
-| [MultigridProjection.cs](../../Shared/Logic/MultigridProjection.cs) | 2365 | Central per-projector class: lifecycle, subgrid/connection bookkeeping, build & placement checks, the update loop, and all Harmony entry points. |
+| [MultigridProjection.cs](../../Shared/Logic/MultigridProjection.cs) | 2367 | Central per-projector class: lifecycle, subgrid/connection bookkeeping, build & placement checks, the update loop, and all Harmony entry points. |
 | [Subgrid.cs](../../Shared/Logic/Subgrid.cs) | 784 | One blueprint subgrid: preview grid, optional built grid, block models, connections, grid-event handling, and background block-state scanning. |
-| [ReferenceFixer.cs](../../Shared/Logic/ReferenceFixer.cs) | 700 | Restores inter-block references (toolbars, toolbar group items, controllers, weapon/tool selections, AI waypoints) on freshly built blocks by mapping blueprint IDs to built EntityIds. |
+| [ReferenceFixer.cs](../../Shared/Logic/ReferenceFixer.cs) | 699 | Restores inter-block references (toolbars, toolbar group items, controllers, weapon/tool selections, AI waypoints) on freshly built blocks by mapping blueprint IDs to built EntityIds. |
 | [MultigridProjectorApiProvider.cs](../../Shared/Logic/MultigridProjectorApiProvider.cs) | 228 | Implements `IMultigridProjectorApi` and publishes the Mod API (mod message) and Programmable Block API (terminal property). |
 | [ProjectedBlock.cs](../../Shared/Logic/ProjectedBlock.cs) | 157 | Pairs a preview block with its blueprint builder; detects build/grind state and drives preview transparency visuals. |
 | [MultigridUpdateWork.cs](../../Shared/Logic/MultigridUpdateWork.cs) | 127 | `IWork` background task that scans all supported subgrids off the main thread and raises a completion event. |
@@ -97,8 +97,9 @@ timer, button panel, etc.) is welded, its toolbar slots and block references sti
 EntityIds. `ReferenceFixer` precomputes, from the blueprint, which blocks reference which, and once both
 referrer and referee are built it rewrites the live block's toolbar items, bound cameras, selected
 blocks, weapons/tools, waypoints and button names via `TryMapPreviewToBuiltTerminalBlock`. Restoration
-is queued during the update loop and applied on the game thread (immediately on the server, after a
-short frame delay on clients).
+is queued during the update loop and applied on the game thread: immediately on the server, and on a
+client only when the server has no MGP, after a short frame delay. With MGP on the server its fixes
+reach the clients through the game's own sync, and a client's own requests would only race them.
 
 **API exposure.** `MultigridProjectorApiProvider` implements `IMultigridProjectorApi` by looking up the
 projection/subgrid for a projector id and reading state through the same locked accessors. It publishes
@@ -173,7 +174,7 @@ projector's `EntityId`; lookups are the primary way patches reach the engine.
 | `AggregateStatistics` / `UpdateProjectorStats` | method | Sum subgrid stats and push totals to the projector. |
 | `UpdatePreviewBlockVisuals` / `HidePreviewGrids` | method (private) | Refresh or hide preview block visuals. |
 | `GetYaml` | method | Human-readable dump of subgrids, blocks, states and connections (cached per scan). |
-| `ScheduleTerminalBlocksForRestore` / `RestoreTerminalBlocks` | method (private) | Queue built terminal blocks and apply `ReferenceFixer` restoration (server immediate, client delayed). |
+| `ScheduleTerminalBlocksForRestore` / `RestoreTerminalBlocks` | method (private) | Queue built terminal blocks and apply `ReferenceFixer` restoration (server immediate; client delayed, only when the server has no MGP). |
 | `FixBlockRelations` | method | Restore all block references (`ReferenceFixer.RestoreAll`). |
 | `TryMapPreviewToBuiltTerminalBlockId` / `MapPreviewToBuiltTerminalBlockIds` | method | Map blueprint terminal block ids to built EntityIds. |
 | `RaiseAttachedEntityChanged` / `ShouldAllowBuildingDefaultTopBlock` | method | Force a rescan on attach change; veto the stock auto-built head for projected bases. |
@@ -347,8 +348,22 @@ Toolbar restoration handles both kinds of toolbar item:
   anchor block in `referenceMap`, so a group-only toolbar is re-restored once the anchor is welded
   (without it, such a toolbar would register no dependencies and never retry).
 
-Two block types needed multiplayer-specific handling, because on the server the freshly welded block
-is "clean" — it carries none of the blueprint's component object-builder state:
+Ship controllers also keep gamepad slots (`SlotsGamepad`); they are restored the same way.
+
+Several block types need multiplayer-specific handling. Welded blocks often get new EntityIds on the
+server (the projection's ids are taken), so the restored references have to reach the clients through
+the game's own sync:
+
+- **Remote control** — the bound camera is set through its synced property.
+- **Event controller** — the selected blocks are added with the game's `AddBlocks` request, which the
+  server applies and broadcasts. Projection ids still waiting in the block's pending list that will
+  never resolve are dropped.
+- **Turret controller** — the bound tools keep the welded-with ids even when no block has them, and
+  `GetTools` leaves those out, so the tools are compared against `m_boundTools` and changed with the
+  game's tool (un)selection requests.
+
+On the server the freshly welded block is also "clean": it carries none of the blueprint's component
+object-builder state:
 
 - **Offensive combat** — the selected weapons are stored per *attack strategy* sub-component
   (circle-orbit, hit-and-run, stay-at-range), each force-created and registered under its own concrete
