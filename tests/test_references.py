@@ -29,21 +29,6 @@ GROUPS = {
     "group": [(*import_group.STATION_GROUP, 0), (*import_group.SMALL_GROUP, 1)],
 }
 
-# Not restored anywhere (SE1-0113): MGP reads no toolbar from a flight movement
-# block's object builder, and a group item whose group isn't welded yet when
-# its block is gets lost.
-GAPS = {("group", "Group Flight"), ("group", "Button Panel SG")}
-
-
-def mark_gaps(request, bench: str, block: str) -> None:
-    if (bench, block) in GAPS:
-        request.applymarker(
-            pytest.mark.xfail(
-                strict=True, reason="MGP does not restore this reference (SE1-0113)"
-            )
-        )
-
-
 REFERENCE_TAGS = ("BindedCamera", "CameraId")
 
 
@@ -150,8 +135,7 @@ def built(game, welded):
 
 
 @pytest.mark.parametrize("bench, block", LINKED)
-def test_references_point_at_the_welded_blocks(request, game, built, bench, block):
-    mark_gaps(request, bench, block)
+def test_references_point_at_the_welded_blocks(game, built, bench, block):
     compare(game, built, bench, block)
 
 
@@ -186,6 +170,5 @@ def rebuilt(game, welded, built):
 
 
 @pytest.mark.parametrize("bench, block", LINKED)
-def test_references_follow_a_rewelded_block(request, game, rebuilt, bench, block):
-    mark_gaps(request, bench, block)
+def test_references_follow_a_rewelded_block(game, rebuilt, bench, block):
     compare(game, rebuilt, bench, block)

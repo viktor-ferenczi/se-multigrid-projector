@@ -65,7 +65,6 @@ LINKS = {
     "Station Turret": "<CameraId>{Sub Camera}</CameraId>"
     "<ToolIds><long>{Station Light}</long></ToolIds>",
     "Station Offensive": "{toolbar:Sub Light}",
-    "Station Flight": "{toolbar:Station Light}",
     "Sub Timer": "{toolbar:Station Light}<Delay>3000</Delay>",
 }
 
