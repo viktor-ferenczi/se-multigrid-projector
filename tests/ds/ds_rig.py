@@ -58,10 +58,22 @@ CLIENT = rig.Client(1)
 CLIENT2 = rig.Client(2)
 
 
-def prepare_server(benches=None, mgp: bool = True, settings=None, extras=None) -> None:
+def prepare_server(
+    benches=None,
+    mgp: bool = True,
+    settings=None,
+    extras=None,
+    report=(),
+    plugin_config: dict | None = None,
+) -> None:
     """A fresh copy of the test world and the server's configs. Without mgp the
-    server runs DirectTransport only, as a vanilla server would."""
-    stations.prepare(WORLD, benches, settings=settings, online=True, extras=extras)
+    server runs DirectTransport only, as a vanilla server would. plugin_config
+    sets options of the MGP server plugin by name, the rest keep their
+    defaults."""
+    stations.prepare(
+        WORLD, benches, settings=settings, online=True, extras=extras, report=report
+    )
+    write_plugin_config(plugin_config)
 
     if not (SERVER_CONFIG / "Sources").exists():
         SERVER_CONFIG.mkdir(parents=True, exist_ok=True)
@@ -109,6 +121,21 @@ def prepare_server(benches=None, mgp: bool = True, settings=None, extras=None) -
         assert count == 1, tag
     SERVER_DATA.mkdir(parents=True, exist_ok=True)
     (SERVER_DATA / "SpaceEngineers-Dedicated.cfg").write_text(text, encoding="utf-8")
+
+
+def write_plugin_config(options: dict | None) -> None:
+    """MultigridProjector.cfg in the server's data folder, or none for the
+    defaults"""
+    path = SERVER_DATA / "MultigridProjector.cfg"
+    if not options:
+        path.unlink(missing_ok=True)
+        return
+    SERVER_DATA.mkdir(parents=True, exist_ok=True)
+    elements = "".join(f"<{k}>{v}</{k}>" for k, v in options.items())
+    path.write_text(
+        f'<?xml version="1.0" encoding="utf-8"?><PluginConfig>{elements}</PluginConfig>',
+        encoding="utf-8",
+    )
 
 
 def server_pid() -> int | None:

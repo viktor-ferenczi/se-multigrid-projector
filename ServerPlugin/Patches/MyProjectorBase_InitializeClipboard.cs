@@ -17,15 +17,19 @@ namespace MultigridProjectorClient.Patches
         // ReSharper disable once UnusedMember.Local
         private static bool Prefix(
             // ReSharper disable once InconsistentNaming
-            MyProjectorBase __instance)
+            MyProjectorBase __instance
+        )
         {
             var projector = __instance;
 
             try
             {
-                // Find the multigrid projection, fall back to the default implementation if this projector is not handled by the plugin
-                if (!MultigridProjection.TryFindProjectionByProjector(projector, out var projection))
-                    return true;
+                // A new projection has no multigrid projection yet, the original implementation activates it
+                // if the server's projection limit lets it
+                if (
+                    !MultigridProjection.TryFindProjectionByProjector(projector, out var projection)
+                )
+                    return ProjectionLimits.TryReserve(projector);
 
                 projection.InitializeClipboard();
             }

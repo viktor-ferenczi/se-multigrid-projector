@@ -16,11 +16,12 @@ _15 files, 4748 lines._
 | [Shared/Logic/BlockMinLocation.cs](../Shared/Logic/BlockMinLocation.cs) | csharp | 26 |
 | [Shared/Logic/Connection.cs](../Shared/Logic/Connection.cs) | csharp | 59 |
 | [Shared/Logic/FastBlockLocation.cs](../Shared/Logic/FastBlockLocation.cs) | csharp | 53 |
-| [Shared/Logic/MultigridProjection.cs](../Shared/Logic/MultigridProjection.cs) | csharp | 2354 |
+| [Shared/Logic/MultigridProjection.cs](../Shared/Logic/MultigridProjection.cs) | csharp | 2300 |
 | [Shared/Logic/MultigridProjectorApiProvider.cs](../Shared/Logic/MultigridProjectorApiProvider.cs) | csharp | 228 |
-| [Shared/Logic/MultigridProjectorSession.cs](../Shared/Logic/MultigridProjectorSession.cs) | csharp | 64 |
+| [Shared/Logic/MultigridProjectorSession.cs](../Shared/Logic/MultigridProjectorSession.cs) | csharp | 74 |
 | [Shared/Logic/MultigridUpdateWork.cs](../Shared/Logic/MultigridUpdateWork.cs) | csharp | 134 |
 | [Shared/Logic/ProjectedBlock.cs](../Shared/Logic/ProjectedBlock.cs) | csharp | 166 |
+| [Shared/Logic/ProjectionLimits.cs](../Shared/Logic/ProjectionLimits.cs) | csharp | 143 |
 | [Shared/Logic/ProjectionStats.cs](../Shared/Logic/ProjectionStats.cs) | csharp | 87 |
 | [Shared/Logic/ProjectorSubgrid.cs](../Shared/Logic/ProjectorSubgrid.cs) | csharp | 9 |
 | [Shared/Logic/ReferenceFixer.cs](../Shared/Logic/ReferenceFixer.cs) | csharp | 699 |
@@ -54,6 +55,7 @@ _6 files, 342 lines._
 | [Shared/Patches/MyGridPhysicalHierarchy_BreakLink.cs](../Shared/Patches/MyGridPhysicalHierarchy_BreakLink.cs) | csharp | 54 |
 | [Shared/Patches/MyMechanicalConnectionBlockBase_CreateTopPart.cs](../Shared/Patches/MyMechanicalConnectionBlockBase_CreateTopPart.cs) | csharp | 111 |
 | [Shared/Patches/MyMechanicalConnectionBlockBase_OnBuildSuccess.cs](../Shared/Patches/MyMechanicalConnectionBlockBase_OnBuildSuccess.cs) | csharp | 41 |
+| [Shared/Patches/MyProjectorBase_GameProjectionPcu.cs](../Shared/Patches/MyProjectorBase_GameProjectionPcu.cs) | csharp | 118 |
 | [Shared/Patches/MyShipToolBase_UpdateAfterSimulation10.cs](../Shared/Patches/MyShipToolBase_UpdateAfterSimulation10.cs) | csharp | 23 |
 
 ## [Shared Extension Methods](Reference/Shared-Extensions.md)
@@ -87,7 +89,6 @@ _18 files, 1253 lines._
 | [Shared/Utilities/Hashing.cs](../Shared/Utilities/Hashing.cs) | csharp | 84 |
 | [Shared/Utilities/IPluginLogger.cs](../Shared/Utilities/IPluginLogger.cs) | csharp | 10 |
 | [Shared/Utilities/IgnoresAccessChecksToAttribute.cs](../Shared/Utilities/IgnoresAccessChecksToAttribute.cs) | csharp | 24 |
-| [Shared/Utilities/MultigridProjectorConfig.cs](../Shared/Utilities/MultigridProjectorConfig.cs) | csharp | 11 |
 | [Shared/Utilities/OrientationAlgebra.cs](../Shared/Utilities/OrientationAlgebra.cs) | csharp | 60 |
 | [Shared/Utilities/PatchHelpers.cs](../Shared/Utilities/PatchHelpers.cs) | csharp | 104 |
 | [Shared/Utilities/PluginLog.cs](../Shared/Utilities/PluginLog.cs) | csharp | 56 |
@@ -103,7 +104,7 @@ _2 files, 38 lines._
 
 | File | Type | Lines |
 | ---- | ---- | ----: |
-| [Shared/Config/IPluginConfig.cs](../Shared/Config/IPluginConfig.cs) | csharp | 22 |
+| [Shared/Config/IPluginConfig.cs](../Shared/Config/IPluginConfig.cs) | csharp | 25 |
 | [Shared/Config/PluginConfig.cs](../Shared/Config/PluginConfig.cs) | csharp | 16 |
 
 ## [Client Plugin Core](Reference/Client-Plugin.md)
@@ -114,7 +115,7 @@ _6 files, 835 lines._
 | ---- | ---- | ----: |
 | [ClientPlugin/App.config](../ClientPlugin/App.config) | xml-config | 186 |
 | [ClientPlugin/ClientPlugin.csproj](../ClientPlugin/ClientPlugin.csproj) | msbuild | 343 |
-| [ClientPlugin/Config.cs](../ClientPlugin/Config.cs) | csharp | 128 |
+| [ClientPlugin/Config.cs](../ClientPlugin/Config.cs) | csharp | 153 |
 | [ClientPlugin/Plugin.cs](../ClientPlugin/Plugin.cs) | csharp | 80 |
 | [ClientPlugin/PluginLogger.cs](../ClientPlugin/PluginLogger.cs) | csharp | 46 |
 | [ClientPlugin/PluginSession.cs](../ClientPlugin/PluginSession.cs) | csharp | 52 |
@@ -134,7 +135,7 @@ _22 files, 1073 lines._
 | [ClientPlugin/Patches/MyProjectorBase_GetObjectBuilderCubeBlock.cs](../ClientPlugin/Patches/MyProjectorBase_GetObjectBuilderCubeBlock.cs) | csharp | 40 |
 | [ClientPlugin/Patches/MyProjectorBase_Init.cs](../ClientPlugin/Patches/MyProjectorBase_Init.cs) | csharp | 40 |
 | [ClientPlugin/Patches/MyProjectorBase_InitFromObjectBuilder.cs](../ClientPlugin/Patches/MyProjectorBase_InitFromObjectBuilder.cs) | csharp | 63 |
-| [ClientPlugin/Patches/MyProjectorBase_InitializeClipboard.cs](../ClientPlugin/Patches/MyProjectorBase_InitializeClipboard.cs) | csharp | 44 |
+| [ClientPlugin/Patches/MyProjectorBase_InitializeClipboard.cs](../ClientPlugin/Patches/MyProjectorBase_InitializeClipboard.cs) | csharp | 46 |
 | [ClientPlugin/Patches/MyProjectorBase_OnBlockAdded.cs](../ClientPlugin/Patches/MyProjectorBase_OnBlockAdded.cs) | csharp | 32 |
 | [ClientPlugin/Patches/MyProjectorBase_OnBlockRemoved.cs](../ClientPlugin/Patches/MyProjectorBase_OnBlockRemoved.cs) | csharp | 32 |
 | [ClientPlugin/Patches/MyProjectorBase_RemoveProjection.cs](../ClientPlugin/Patches/MyProjectorBase_RemoveProjection.cs) | csharp | 43 |
@@ -218,7 +219,7 @@ _7 files, 936 lines._
 | File | Type | Lines |
 | ---- | ---- | ----: |
 | [ServerPlugin/Plugin.cs](../ServerPlugin/Plugin.cs) | csharp | 254 |
-| [ServerPlugin/PluginConfig.cs](../ServerPlugin/PluginConfig.cs) | csharp | 20 |
+| [ServerPlugin/PluginConfig.cs](../ServerPlugin/PluginConfig.cs) | csharp | 39 |
 | [ServerPlugin/PluginLogger.cs](../ServerPlugin/PluginLogger.cs) | csharp | 33 |
 | [ServerPlugin/PluginSession.cs](../ServerPlugin/PluginSession.cs) | csharp | 32 |
 | [ServerPlugin/Preloader.cs](../ServerPlugin/Preloader.cs) | csharp | 26 |
@@ -238,7 +239,7 @@ _16 files, 698 lines._
 | [ServerPlugin/Patches/MyProjectorBase_CanBuild.cs](../ServerPlugin/Patches/MyProjectorBase_CanBuild.cs) | csharp | 48 |
 | [ServerPlugin/Patches/MyProjectorBase_GetObjectBuilderCubeBlock.cs](../ServerPlugin/Patches/MyProjectorBase_GetObjectBuilderCubeBlock.cs) | csharp | 36 |
 | [ServerPlugin/Patches/MyProjectorBase_Init.cs](../ServerPlugin/Patches/MyProjectorBase_Init.cs) | csharp | 38 |
-| [ServerPlugin/Patches/MyProjectorBase_InitializeClipboard.cs](../ServerPlugin/Patches/MyProjectorBase_InitializeClipboard.cs) | csharp | 40 |
+| [ServerPlugin/Patches/MyProjectorBase_InitializeClipboard.cs](../ServerPlugin/Patches/MyProjectorBase_InitializeClipboard.cs) | csharp | 44 |
 | [ServerPlugin/Patches/MyProjectorBase_OnBlockAdded.cs](../ServerPlugin/Patches/MyProjectorBase_OnBlockAdded.cs) | csharp | 39 |
 | [ServerPlugin/Patches/MyProjectorBase_OnBlockRemoved.cs](../ServerPlugin/Patches/MyProjectorBase_OnBlockRemoved.cs) | csharp | 39 |
 | [ServerPlugin/Patches/MyProjectorBase_Remap.cs](../ServerPlugin/Patches/MyProjectorBase_Remap.cs) | csharp | 54 |

@@ -11,5 +11,6 @@ namespace MultigridProjector.Config
     internal sealed class DefaultPluginConfig : IPluginConfig
     {
         public bool PreviewBlockVisuals => true;
+        public int ProjectionPcuLimitPercent => 0;
     }
 }

@@ -1,6 +1,6 @@
 # Shared Utilities & Infrastructure
 
-The `Shared/Utilities` folder is the cross-cutting infrastructure layer compiled into **both** the client plugin and the dedicated-server plugin. It is organised into seven concerns: (1) **logging abstraction** (`IPluginLogger`, `PluginLog`) that hides the concrete logger supplied by Pulsar/Magnetar; (2) **patch application, IL verification and Harmony transpiler helpers** (`PatchHelpers`, `EnsureOriginal`, `TranspilerHelpers`, `Hashing`, `Arithmetic`) that apply the plugin's Harmony patches (logging exactly which game methods were patched), hash game-method bodies at startup, and throw a descriptive error if the game has been updated in an incompatible way; (3) **concurrency** (`RwLock`, `RwLockDictionary`) providing a lightweight spin-based reader/writer lock used wherever projection state is read from the game thread while background threads may write; (4) **multiplayer comms** (`Comms`, `ExecLocation`) for detecting the runtime role (single-player / server / client) and routing plugin-to-plugin handshake packets; (5) **game-thread event helpers** (`Events`) for scheduling deferred work and subscribing to one-shot game events safely; (6) **environment detection** (`WineDetector`) to identify Wine/Proton hosts; and (7) **small math and build-time helpers** (`OrientationAlgebra`, `Validation`, `IgnoresAccessChecksToAttribute`, `GameAssembliesToPublicize`, `MultigridProjectorConfig`).
+The `Shared/Utilities` folder is the cross-cutting infrastructure layer compiled into **both** the client plugin and the dedicated-server plugin. It is organised into seven concerns: (1) **logging abstraction** (`IPluginLogger`, `PluginLog`) that hides the concrete logger supplied by Pulsar/Magnetar; (2) **patch application, IL verification and Harmony transpiler helpers** (`PatchHelpers`, `EnsureOriginal`, `TranspilerHelpers`, `Hashing`, `Arithmetic`) that apply the plugin's Harmony patches (logging exactly which game methods were patched), hash game-method bodies at startup, and throw a descriptive error if the game has been updated in an incompatible way; (3) **concurrency** (`RwLock`, `RwLockDictionary`) providing a lightweight spin-based reader/writer lock used wherever projection state is read from the game thread while background threads may write; (4) **multiplayer comms** (`Comms`, `ExecLocation`) for detecting the runtime role (single-player / server / client) and routing plugin-to-plugin handshake packets; (5) **game-thread event helpers** (`Events`) for scheduling deferred work and subscribing to one-shot game events safely; (6) **environment detection** (`WineDetector`) to identify Wine/Proton hosts; and (7) **small math and build-time helpers** (`OrientationAlgebra`, `Validation`, `IgnoresAccessChecksToAttribute`, `GameAssembliesToPublicize`).
 
 See also [Core-Projection-Engine.md](./Core-Projection-Engine.md) for how the projection engine consumes these helpers, [Shared-Patches.md](./Shared-Patches.md) for how Harmony patches use `EnsureOriginal` and `TranspilerHelpers`, [Build-And-Project-Layout.md](./Build-And-Project-Layout.md) for the publicizer/access-checks build pipeline, and [../Troubleshooting.md](../Troubleshooting.md) for diagnosing `EnsureOriginal` failures and Wine/Proton environment issues.
 
@@ -25,7 +25,6 @@ See also [Core-Projection-Engine.md](./Core-Projection-Engine.md) for how the pr
 | [`IgnoresAccessChecksToAttribute.cs`](../../Shared/Utilities/IgnoresAccessChecksToAttribute.cs) | 24 | Declares `System.Runtime.CompilerServices.IgnoresAccessChecksToAttribute` for non-`LOCAL_BUILD` builds where Krafs.Publicizer is not active. |
 | [`ExecLocation.cs`](../../Shared/Utilities/ExecLocation.cs) | 22 | Marker attributes (`[Everywhere]`, `[ServerOnly]`, `[ClientOnly]`) for annotating patch methods by execution context. |
 | [`Validation.cs`](../../Shared/Utilities/Validation.cs) | 15 | `EnsureInfo<T>` guard that converts a `null` `AccessTools` result into a descriptive exception. |
-| [`MultigridProjectorConfig.cs`](../../Shared/Utilities/MultigridProjectorConfig.cs) | 11 | Stub configuration class (currently compiled out with `#if UNUSED`). |
 | [`IPluginLogger.cs`](../../Shared/Utilities/IPluginLogger.cs) | 10 | Logger interface implemented by the host (Pulsar/Magnetar). |
 | [`GameAssembliesToPublicize.cs`](../../Shared/Utilities/GameAssembliesToPublicize.cs) | 9 | Assembly-level `[IgnoresAccessChecksTo]` declarations for `Sandbox.Game`, `SpaceEngineers.Game`, and `Sandbox.Graphics`. |
 
@@ -343,14 +342,6 @@ The `Krafs.Publicizer` NuGet package emits `[IgnoresAccessChecksTo]` assembly at
 
 ---
 
-## MultigridProjectorConfig (stub)
-
-_`public static class MultigridProjectorConfig` — namespace `MultigridProjector.Utilities`_ _(currently compiled out with `#if UNUSED`)_
-
-A placeholder for future plugin configuration (block-limit and PCU-limit toggles). The class body is guarded by `#if UNUSED` and contributes nothing to the current build.
-
----
-
 ```json
 {
   "module": "shared-utilities",
@@ -372,7 +363,6 @@ A placeholder for future plugin configuration (block-limit and PCU-limit toggles
     {"path": "Shared/Utilities/IgnoresAccessChecksToAttribute.cs", "summary": "Conditional declaration of IgnoresAccessChecksToAttribute for non-LOCAL_BUILD (Pulsar/Magnetar) builds."},
     {"path": "Shared/Utilities/ExecLocation.cs", "summary": "Marker attributes (Everywhere, ServerOnly, ClientOnly) annotating patch methods by execution context."},
     {"path": "Shared/Utilities/Validation.cs", "summary": "EnsureInfo<T> guard converting null AccessTools results to descriptive exceptions."},
-    {"path": "Shared/Utilities/MultigridProjectorConfig.cs", "summary": "Stub configuration class compiled out with #if UNUSED; placeholder for future block/PCU-limit settings."},
     {"path": "Shared/Utilities/IPluginLogger.cs", "summary": "Logger interface implemented by the host (Pulsar/Magnetar) and injected into PluginLog.Logger."},
     {"path": "Shared/Utilities/GameAssembliesToPublicize.cs", "summary": "Assembly-level IgnoresAccessChecksTo declarations for Sandbox.Game, SpaceEngineers.Game, and Sandbox.Graphics."}
   ],

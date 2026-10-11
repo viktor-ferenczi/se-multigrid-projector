@@ -101,6 +101,10 @@ public class Config : INotifyPropertyChanged, IPluginConfig
     // mod compatibility, hence it is not exposed in the client settings dialog.
     public bool PreviewBlockVisuals => true;
 
+    // The projection limit is the server's decision, a client never checks it. Also off in single
+    // player and in a game the client hosts.
+    public int ProjectionPcuLimitPercent => 0;
+
     #endregion
 
     #region Property change notification boilerplate

@@ -37,13 +37,14 @@ Everything else (the client feature toggles) is client-only and never reaches sh
 | Member | Kind | Description |
 | ------ | ---- | ----------- |
 | `PreviewBlockVisuals` | bool (get) | Whether the plugin manages the appearance of not-yet-built (preview) blocks: buildable blocks as semi-transparent ghosts, unbuildable as holograms (or hidden under *Show only buildable*), built blocks hidden, and the projector's sound/emissive state driven to match. When `false` the plugin leaves preview visuals untouched (mod compatibility). Always `true` on the client; server-configurable. |
+| `ProjectionPcuLimitPercent` | int (get) | The server's projection limit in percent of each player's PCU limit, read by `ProjectionLimits`; `0` turns it off. Always `0` on the client. |
 
 *`static class PluginConfig`* holds the active implementation:
 
 | Member | Kind | Description |
 | ------ | ---- | ----------- |
 | `PluginConfig.Current` | static `IPluginConfig` | The active config. Assigned by each plugin's `Init`. Defaults to `DefaultPluginConfig` (all-defaults) until then, so shared code is always safe to read. |
-| `DefaultPluginConfig` | internal class | Fallback returning `PreviewBlockVisuals => true`. |
+| `DefaultPluginConfig` | internal class | Fallback returning `PreviewBlockVisuals => true` and `ProjectionPcuLimitPercent => 0`. |
 
 ## Client configuration
 
@@ -88,6 +89,7 @@ remotely from those attributes** — the plugin contains no server-side UI code.
 | Option | Type | Default | Description |
 | ------ | ---- | ------- | ----------- |
 | `PreviewBlockVisuals` | bool | `true` | Implements the shared-interface member above. Turn **off** only for compatibility with mods that drive projector / preview-block transparency themselves. |
+| `ProjectionPcuLimitPercent` | int | `0` | Limit on the PCU of the projections a player may load, in percent of the player's PCU limit (GitHub issue #86). A projection loads only while the PCU of the player's blocks, of their other projections and of the new one stays within it; the player is whoever built the projector. A projection counts until the projector stops projecting it. The count is the plugin's own, it doesn't use up the player's PCU, so a repair projection doesn't block welding the blocks it is for. `200` lets a ship that uses all of the player's PCU load its own repair projection. `0` turns it off: projections are neither checked nor counted, and neither is the game's own one PCU per block for the projectors the plugin handles. A refused projection is removed from the projector, also one saved in the world when the server starts. |
 
 If the config file is missing or corrupt the server recreates it with defaults (the corrupt file is
 moved aside) — see [../Troubleshooting.md](../Troubleshooting.md).

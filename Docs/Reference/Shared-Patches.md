@@ -15,6 +15,7 @@ Patch applicability is controlled by placement attributes (`[Everywhere]`, `[Ser
 | [`MyGridPhysicalHierarchy_BreakLink.cs`](../../Shared/Patches/MyGridPhysicalHierarchy_BreakLink.cs) | 54 | Server-only Prefix crash-guard that skips `BreakLink` when either grid node is `null` |
 | [`MyMechanicalConnectionBlockBase_CreateTopPart.cs`](../../Shared/Patches/MyMechanicalConnectionBlockBase_CreateTopPart.cs) | 111 | Server-only Transpiler that extends the `topSize` enum logic so MGP can force same-size or opposite-size top parts |
 | [`MyMechanicalConnectionBlockBase_OnBuildSuccess.cs`](../../Shared/Patches/MyMechanicalConnectionBlockBase_OnBuildSuccess.cs) | 41 | Server-only Transpiler that skips automatic top-part creation when the base block is being built from a projection |
+| [`MyProjectorBase_GameProjectionPcu.cs`](../../Shared/Patches/MyProjectorBase_GameProjectionPcu.cs) | 118 | Transpilers that skip the game's own projection PCU count (`InitializeClipboard`, `RemoveProjection`, `UpdateAfterSimulation`) for the projectors MGP handles, and a `RemoveProjection` postfix that releases the projection's count in `ProjectionLimits` |
 | [`MyShipToolBase_UpdateAfterSimulation10.cs`](../../Shared/Patches/MyShipToolBase_UpdateAfterSimulation10.cs) | 23 | Server-only Prefix that prevents projected welders and grinders from functioning |
 
 ---
@@ -107,6 +108,14 @@ When a mechanical base block (rotor, hinge, piston) is successfully built, `OnBu
 | Member | Kind | Description |
 |--------|------|-------------|
 | `Transpiler` | Transpiler | Inserts a call to `MultigridProjection.ShouldAllowBuildingDefaultTopBlock` after the first `Brfalse_S`; skips vanilla top-part spawn when the projection defines its own top subgrid |
+
+---
+
+## MyProjectorBase_GameProjectionPcu
+
+*`MyProjectorBase_InitializeClipboard_GamePcu`, `MyProjectorBase_RemoveProjection_GamePcu`, `MyProjectorBase_UpdateAfterSimulation_GamePcu` — Transpilers on `MyProjectorBase` with the same `EnsureOriginal` digests as the prefixes on these methods*
+
+The game counts one PCU per block of a projection to the player who built the projector: `InitializeClipboard` checks the player's limits and adds it, `RemoveProjection` takes it off, and `UpdateAfterSimulation` moves it when the projector changes grids. All three start with `MySession.Static.Players.TryGetIdentity(BuiltBy)`. The transpilers replace that call with `ProjectionLimits.IdentityForGameCheck`, which returns `null` for the projectors MGP handles (welding, no scaling), so the game skips its count there. MGP's `RemoveProjection` never took the count off again, so before this it grew with every projection removed and loaded again. The server's projection limit (`ProjectionPcuLimitPercent`, see [Configuration.md](./Configuration.md)) counts these projections instead, in `ProjectionLimits`; the `RemoveProjection` postfix releases a projection's count once the projector stops projecting.
 
 ---
 

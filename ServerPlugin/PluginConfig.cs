@@ -16,4 +16,12 @@ public class PluginConfig : PluginSdk.Config.PluginConfig, IPluginConfig
         "Enabled by default. Turn it OFF only for compatibility with mods that set projector / preview-block " +
         "transparency themselves: when off, the plugin leaves all preview block visuals untouched.")]
     public bool PreviewBlockVisuals { get; set => SetField(ref field, value); } = true;
+
+    [IntOption(0, 100000,
+        "Limit on the PCU of the projections a player may load, in percent of the player's PCU limit. " +
+        "A projection loads only if the PCU of the player's blocks, of their other projections and of the new " +
+        "projection stays within this percentage; it counts until the projector stops projecting it. The player " +
+        "is the one who built the projector. 200 lets a ship that uses all of the player's PCU load its own repair " +
+        "projection. 0 (the default) turns the limit off: projections are neither checked nor counted.")]
+    public int ProjectionPcuLimitPercent { get; set => SetField(ref field, value); }
 }
