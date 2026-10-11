@@ -48,8 +48,6 @@ definitions, DLC blocks left out (the clients run without Steam):
 
 Known MGP defects are strict xfails, so the run stays green and a fix shows up
 as an unexpected pass:
-- SE1-0115: the PB API's block states and state hashes change before the scan
-  number does.
 - SE1-0116: without the server plugin, a large base with a small head ends up
   headless.
 - SE1-0117: on the test server, ship welders build nothing from a projection,
