@@ -15,7 +15,7 @@ parent [../Architecture.md](../Architecture.md) and [../API.md](../API.md).
 
 | File | Lines | Purpose |
 |------|------:|---------|
-| [MultigridProjection.cs](../../Shared/Logic/MultigridProjection.cs) | 2370 | Central per-projector class: lifecycle, subgrid/connection bookkeeping, build & placement checks, the update loop, and all Harmony entry points. |
+| [MultigridProjection.cs](../../Shared/Logic/MultigridProjection.cs) | 2354 | Central per-projector class: lifecycle, subgrid/connection bookkeeping, build & placement checks, the update loop, and all Harmony entry points. |
 | [Subgrid.cs](../../Shared/Logic/Subgrid.cs) | 818 | One blueprint subgrid: preview grid, optional built grid, block models, connections, grid-event handling, and background block-state scanning. |
 | [ReferenceFixer.cs](../../Shared/Logic/ReferenceFixer.cs) | 699 | Restores inter-block references (toolbars, toolbar group items, controllers, weapon/tool selections, AI waypoints) on freshly built blocks by mapping blueprint IDs to built EntityIds. |
 | [MultigridProjectorApiProvider.cs](../../Shared/Logic/MultigridProjectorApiProvider.cs) | 228 | Implements `IMultigridProjectorApi` and publishes the Mod API (mod message) and Programmable Block API (terminal property). |
