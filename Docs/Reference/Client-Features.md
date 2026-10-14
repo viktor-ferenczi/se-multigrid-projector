@@ -9,7 +9,7 @@ The files under `ClientPlugin/Extra/` implement the user-facing quality-of-life 
 | File | Lines | Feature | Purpose |
 |------|-------|---------|---------|
 | [ConnectSubgrids.cs](../../ClientPlugin/Extra/ConnectSubgrids.cs) | 404 | Connect Subgrids | Automatically reconcile mechanical head/top parts when welding subgrid connections |
-| [CraftProjection.cs](../../ClientPlugin/Extra/CraftProjection.cs) | 315 | Assemble Projection | Compute and display a Bill-of-Materials for the active projection; queue components in an assembler |
+| [CraftProjection.cs](../../ClientPlugin/Extra/CraftProjection.cs) | 316 | Assemble Projection | Compute and display a Bill-of-Materials for the active projection; queue components in an assembler |
 | [BillOfMaterials.cs](../../ClientPlugin/Extra/BillOfMaterials.cs) | 102 | Assemble Projection | Format the Bill of Materials for Isy's Inventory Manager or GOAT Sorter |
 | [ProjectorAligner.cs](../../ClientPlugin/Extra/ProjectorAligner.cs) | 300 | Projector Aligner | Interactively move and rotate a projection using block-placement keys |
 | [BlockHighlight.cs](../../ClientPlugin/Extra/BlockHighlight.cs) | 243 | Block Highlight | Draw color-coded wireframe overlays on projected blocks to show their build/weld status |
@@ -66,7 +66,7 @@ The files under `ClientPlugin/Extra/` implement the user-facing quality-of-life 
 
 Formats the Blueprint column of the craft dialog as text for the Copy BoM button, in the format `Config.Current.BomFormat` picks. Items with a zero amount are left out. It uses no game types, so `tests/unit` tests it without the game.
 
-- `Isy`: `Component/SteelPlate=100` lines for the custom data of an Isy's Inventory Manager `[Special]` container.
+- `Isy`: `Component/SteelPlate=100` lines for the custom data of an Isy's Inventory Manager Special container (`Special` in its name).
 - `GOAT`: `SteelPlate=100` lines between `@GOAT-Stock Definitions START` and `@GOAT-Stock Definitions END`, for the custom data of a GOAT Sorter `[Stock]` container. GOAT reads nothing outside these markers, then rewrites the custom data with every item it knows, at zero if not listed. The names are GOAT's defaults: the subtype id, with `Ore`, `Ingot` or `Seed` added for those types and its own names for seven vanilla components (`ConstructionComp`, `ThrustComponent`, ...). Items renamed in the custom data of GOAT's programmable block are not followed; GOAT lists those under Currently Unknown Items.
 
 | Member | Kind | Description |

@@ -32,7 +32,7 @@ Paired feature: `CraftProjection` (see [Client-Features.md](./Client-Features.md
 |--------|--------|
 | **Assemble Missing** (Yes) | Queues all rows whose Missing column > 0 to the selected assembler |
 | **Assemble Selected** (No) | Queues the highlighted row (enabled only when a row with Missing > 0 is selected) |
-| **Copy BoM** (Cancel) | Copies the Bill of Materials to the clipboard in the format picked by the `BomFormat` setting, for Isy's Inventory Manager or GOAT Sorter (see [BillOfMaterials](./Client-Features.md#billofmaterials)); does **not** close the dialog |
+| **Copy BoM** (Cancel) | Copies the Bill of Materials to the clipboard in the format picked by the `BomFormat` setting, for Isy's Inventory Manager or GOAT Sorter (see [BillOfMaterials](./Client-Features.md#billofmaterials)). It is the message box's Cancel button, so it also closes the dialog |
 | **Assemble All** (extra) | Queues all Blueprint-column quantities to the assembler regardless of inventory |
 
 Column header clicks sort the table: numeric columns sort descending by default, the Component (name) column sorts ascending. Clicking the same column again reverses the order.

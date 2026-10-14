@@ -42,7 +42,7 @@ namespace MultigridProjectorClient.Extra
         }
 
         // Isy's Inventory Manager: one Type/Subtype=amount line per item, pasted into the
-        // custom data of a container tagged [Special]
+        // custom data of a container with Special in its name
         private static string FormatIsy(IEnumerable<KeyValuePair<string, int>> items)
         {
             var lines = items

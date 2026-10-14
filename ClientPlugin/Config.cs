@@ -95,7 +95,7 @@ public class Config : INotifyPropertyChanged, IPluginConfig
         set => SetField(ref craftProjection, value);
     }
 
-    [Dropdown(label: "BoM Format", description: "Inventory manager script to format the bill of materials for, copied by the Copy BoM button of Assemble Projection.\nIsy: Isy's Inventory Manager, paste it into the custom data of a [Special] container.\nGOAT: GOAT Sorter, paste it into the custom data of a [Stock] container.")]
+    [Dropdown(label: "BoM Format", description: "Inventory manager script to format the bill of materials for, copied by the Copy BoM button of Assemble Projection.\nIsy: Isy's Inventory Manager, paste it into the custom data of a Special container.\nGOAT: GOAT Sorter, paste it into the custom data of a [Stock] container.")]
     public BomFormat BomFormat
     {
         get => bomFormat;

@@ -159,7 +159,7 @@ _8 files, 1589 lines._
 | [ClientPlugin/Extra/BillOfMaterials.cs](../ClientPlugin/Extra/BillOfMaterials.cs) | csharp | 102 |
 | [ClientPlugin/Extra/BlockHighlight.cs](../ClientPlugin/Extra/BlockHighlight.cs) | csharp | 243 |
 | [ClientPlugin/Extra/ConnectSubgrids.cs](../ClientPlugin/Extra/ConnectSubgrids.cs) | csharp | 404 |
-| [ClientPlugin/Extra/CraftProjection.cs](../ClientPlugin/Extra/CraftProjection.cs) | csharp | 315 |
+| [ClientPlugin/Extra/CraftProjection.cs](../ClientPlugin/Extra/CraftProjection.cs) | csharp | 316 |
 | [ClientPlugin/Extra/ProjectorAligner.cs](../ClientPlugin/Extra/ProjectorAligner.cs) | csharp | 300 |
 | [ClientPlugin/Extra/RepairProjection.cs](../ClientPlugin/Extra/RepairProjection.cs) | csharp | 57 |
 | [ClientPlugin/Extra/ShipWelding.cs](../ClientPlugin/Extra/ShipWelding.cs) | csharp | 150 |
