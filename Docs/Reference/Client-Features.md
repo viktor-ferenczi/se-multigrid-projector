@@ -9,7 +9,8 @@ The files under `ClientPlugin/Extra/` implement the user-facing quality-of-life 
 | File | Lines | Feature | Purpose |
 |------|-------|---------|---------|
 | [ConnectSubgrids.cs](../../ClientPlugin/Extra/ConnectSubgrids.cs) | 404 | Connect Subgrids | Automatically reconcile mechanical head/top parts when welding subgrid connections |
-| [CraftProjection.cs](../../ClientPlugin/Extra/CraftProjection.cs) | 321 | Assemble Projection | Compute and display a Bill-of-Materials for the active projection; queue components in an assembler |
+| [CraftProjection.cs](../../ClientPlugin/Extra/CraftProjection.cs) | 315 | Assemble Projection | Compute and display a Bill-of-Materials for the active projection; queue components in an assembler |
+| [BillOfMaterials.cs](../../ClientPlugin/Extra/BillOfMaterials.cs) | 102 | Assemble Projection | Format the Bill of Materials for Isy's Inventory Manager or GOAT Sorter |
 | [ProjectorAligner.cs](../../ClientPlugin/Extra/ProjectorAligner.cs) | 300 | Projector Aligner | Interactively move and rotate a projection using block-placement keys |
 | [BlockHighlight.cs](../../ClientPlugin/Extra/BlockHighlight.cs) | 243 | Block Highlight | Draw color-coded wireframe overlays on projected blocks to show their build/weld status |
 | [ShipWelding.cs](../../ClientPlugin/Extra/ShipWelding.cs) | 150 | Ship Welding | Drive ship-mounted welders to place projected blocks while the player pilots the craft |
@@ -53,11 +54,20 @@ The files under `ClientPlugin/Extra/` implement the user-facing quality-of-life 
 
 *`static class CraftProjection` — `MultigridProjectorClient.Extra`*
 
-**Player perspective.** When enabled (`Config.Current.CraftProjection`, label "Assemble Projections"), an **"Assemble Projection"** button appears in the projector terminal after the "Blueprint" control. Clicking it opens the [CraftDialog](./Client-Menus.md) showing a three-column table: components needed to manufacture (required), already available in the grid's inventories and player's suit, and the full blueprint total. From the dialog the player can queue individual rows into the currently selected assembler, copy the full Bill-of-Materials to clipboard, or switch to the Production terminal tab.
+**Player perspective.** When enabled (`Config.Current.CraftProjection`, label "Assemble Projections"), an **"Assemble Projection"** button appears in the projector terminal after the "Blueprint" control. Clicking it opens the [CraftDialog](./Client-Menus.md) showing a three-column table: components needed to manufacture (required), already available in the grid's inventories and player's suit, and what the blocks not yet built (or not finished) still need. From the dialog the player can queue individual rows into the currently selected assembler, copy that Bill-of-Materials to the clipboard, or switch to the Production terminal tab.
 
-**Technical.** `CraftProjection` contributes one `MyTerminalControlButton<MySpaceProjector>` via `IterControls()`. `GetBlueprintComponents` walks the `MultigridProjection` subgrid array (or, for Console Blocks, the logically-connected grid set) and sums component counts from `MyComponentStack.GetGroupInfo`, subtracting partial progress of already-built counterparts found via `Construction.GetBuiltBlock`. `GetInventoryComponents` scans all mechanically-linked grids plus the local character's inventory. The dialog callback calls `assembler.AddQueueItemRequest` for each missing item. The assembler reference is retrieved from the already-open production tab via `MyGuiScreenTerminal.m_instance.m_controllerProduction.m_selectedAssembler`.
+**Technical.** `CraftProjection` contributes one `MyTerminalControlButton<MySpaceProjector>` via `IterControls()`. `GetBlueprintComponents` walks the `MultigridProjection` subgrid array (or, for Console Blocks, the logically-connected grid set) and sums component counts from `MyComponentStack.GetGroupInfo`, subtracting the components already mounted on built counterparts found via `Construction.GetBuiltBlock`, so a finished block counts nothing. `GetInventoryComponents` scans all mechanically-linked grids plus the local character's inventory. The dialog callback calls `assembler.AddQueueItemRequest` for each missing item. The assembler reference is retrieved from the already-open production tab via `MyGuiScreenTerminal.m_instance.m_controllerProduction.m_selectedAssembler`.
 
 **Config toggle.** `Config.Current.CraftProjection`. **Dialog.** [CraftDialog](./Client-Menus.md).
+
+## BillOfMaterials
+
+*`static class BillOfMaterials` — `MultigridProjectorClient.Extra`*
+
+Formats the Blueprint column of the craft dialog as text for the Copy BoM button, in the format `Config.Current.BomFormat` picks. Items with a zero amount are left out. It uses no game types, so `tests/unit` tests it without the game.
+
+- `Isy`: `Component/SteelPlate=100` lines for the custom data of an Isy's Inventory Manager `[Special]` container.
+- `GOAT`: `SteelPlate=100` lines between `@GOAT-Stock Definitions START` and `@GOAT-Stock Definitions END`, for the custom data of a GOAT Sorter `[Stock]` container. GOAT reads nothing outside these markers, then rewrites the custom data with every item it knows, at zero if not listed. The names are GOAT's defaults: the subtype id, with `Ore`, `Ingot` or `Seed` added for those types and its own names for seven vanilla components (`ConstructionComp`, `ThrustComponent`, ...). Items renamed in the custom data of GOAT's programmable block are not followed; GOAT lists those under Currently Unknown Items.
 
 | Member | Kind | Description |
 |--------|------|-------------|

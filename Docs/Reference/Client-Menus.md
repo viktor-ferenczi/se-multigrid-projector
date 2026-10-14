@@ -32,7 +32,7 @@ Paired feature: `CraftProjection` (see [Client-Features.md](./Client-Features.md
 |--------|--------|
 | **Assemble Missing** (Yes) | Queues all rows whose Missing column > 0 to the selected assembler |
 | **Assemble Selected** (No) | Queues the highlighted row (enabled only when a row with Missing > 0 is selected) |
-| **Copy BoM** (Cancel) | Copies an Isy-compatible Bill of Materials text to the clipboard; does **not** close the dialog |
+| **Copy BoM** (Cancel) | Copies the Bill of Materials to the clipboard in the format picked by the `BomFormat` setting, for Isy's Inventory Manager or GOAT Sorter (see [BillOfMaterials](./Client-Features.md#billofmaterials)); does **not** close the dialog |
 | **Assemble All** (extra) | Queues all Blueprint-column quantities to the assembler regardless of inventory |
 
 Column header clicks sort the table: numeric columns sort descending by default, the Component (name) column sorts ascending. Clicking the same column again reverses the order.
@@ -41,10 +41,10 @@ Column header clicks sort the table: numeric columns sort descending by default,
 
 | Member | Kind | Description |
 |--------|------|-------------|
-| `CreateDialog(assemblerName, rows, bomLines, assembleFunc, onClosing)` | `public static MyGuiScreenMessageBox` | Factory method; builds and returns the fully configured dialog. `assembleFunc` is `null` when no assembler is selected (assemble buttons are then disabled). `onClosing` is forwarded to `MyGuiSandbox.CreateMessageBox`. |
+| `CreateDialog(assemblerName, rows, bom, assembleFunc, onClosing)` | `public static MyGuiScreenMessageBox` | Factory method; builds and returns the fully configured dialog. `assembleFunc` is `null` when no assembler is selected (assemble buttons are then disabled). `onClosing` is forwarded to `MyGuiSandbox.CreateMessageBox`. |
 | `Assemble(assembleFunc, table, column)` | `private static void` | Iterates every row in `table` and dispatches `assembleFunc` with the `MyDefinitionId` and the integer value from `column`. |
 | `Assemble(assembleFunc, row, column)` | `private static void` | Single-row overload used by the "Assemble Selected" handler. |
-| `CopyBom(bomLines)` | `private static void` | Joins `bomLines` with newlines, writes to the system clipboard via `MyClipboardHelper`, and shows a 6-second HUD notification. |
+| `CopyBom(bom)` | `private static void` | Writes the formatted `bom` text to the system clipboard via `MyClipboardHelper`, and shows a 6-second HUD notification. |
 | `GetCellText(row, column)` | `private static string` | Reads the display text from a table cell. |
 | `GetCellData<T>(row, column)` | `private static T` | Reads the typed `UserData` payload from a table cell (used to extract `MyDefinitionId` and `int` quantities). |
 | `SortRows(ref rows, column, inverse)` | `private static void` | Sorts a `List<Row>` in place; numeric cells sort by value (ties break by name), string cells sort alphabetically; optionally reversed. |

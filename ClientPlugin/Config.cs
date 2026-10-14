@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using MultigridProjector.Config;
+using MultigridProjectorClient.Extra;
 
 namespace ClientPlugin;
 
@@ -24,6 +25,7 @@ public class Config : INotifyPropertyChanged, IPluginConfig
     private bool projectorAligner = true;
     private bool blockHighlight = true;
     private bool craftProjection = true;
+    private BomFormat bomFormat = BomFormat.Isy;
 
     #endregion
 
@@ -91,6 +93,13 @@ public class Config : INotifyPropertyChanged, IPluginConfig
     {
         get => craftProjection;
         set => SetField(ref craftProjection, value);
+    }
+
+    [Dropdown(label: "BoM Format", description: "Inventory manager script to format the bill of materials for, copied by the Copy BoM button of Assemble Projection.\nIsy: Isy's Inventory Manager, paste it into the custom data of a [Special] container.\nGOAT: GOAT Sorter, paste it into the custom data of a [Stock] container.")]
+    public BomFormat BomFormat
+    {
+        get => bomFormat;
+        set => SetField(ref bomFormat, value);
     }
 
     #endregion

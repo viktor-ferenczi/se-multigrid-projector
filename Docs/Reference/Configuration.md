@@ -57,7 +57,7 @@ dialog, and `ConfigStorage` serialises it to
 client wires `Config.Current` into `PluginConfig.Current` in
 [`Plugin.Init`](./Client-Plugin.md).
 
-All toggles default to **on**. They are grouped under three separators in the dialog:
+All toggles default to **on**; `BomFormat` is a dropdown. They are grouped under three separators in the dialog:
 
 | Group | Property | Dialog label | Effect |
 | ----- | -------- | ------------ | ------ |
@@ -69,6 +69,7 @@ All toggles default to **on**. They are grouped under three separators in the di
 | Extra Features | `ProjectorAligner` | Align Projection | Align projections with the normal block-placement keys ([ProjectorAligner](./Client-Features.md)). |
 | Extra Features | `BlockHighlight` | Highlight Blocks | Highlight projected blocks by status/completion ([BlockHighlight](./Client-Features.md)). |
 | Extra Features | `CraftProjection` | Assemble Projections | View a projection's component cost and queue it for assembly ([CraftProjection](./Client-Features.md)). |
+| Extra Features | `BomFormat` | BoM Format | Dropdown, not a toggle, default `Isy`: the inventory manager script the Copy BoM button formats for, Isy's Inventory Manager or GOAT Sorter ([BillOfMaterials](./Client-Features.md#billofmaterials)). |
 
 `PreviewBlockVisuals` is hard-coded to `true` on the client and is **not** exposed in the dialog —
 only the server may disable it for mod compatibility. The class also carries the standard

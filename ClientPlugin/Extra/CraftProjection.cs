@@ -55,7 +55,7 @@ namespace MultigridProjectorClient.Extra
             MyAssembler assembler = GetProductionAssembler();
 
             HashSet<MyGuiControlTable.Row> rows = new HashSet<MyGuiControlTable.Row>();
-            List<string> bomLines = new List<string>();
+            List<KeyValuePair<string, int>> bomItems = new List<KeyValuePair<string, int>>();
 
             Dictionary<MyDefinitionId, int> blueprintComponents = GetBlueprintComponents(projector);
             Dictionary<MyDefinitionId, int> inventoryComponents = GetInventoryComponents(projector.CubeGrid);
@@ -63,8 +63,6 @@ namespace MultigridProjectorClient.Extra
             Dictionary<MyDefinitionId, int> requiredComponents = new Dictionary<MyDefinitionId, int>(blueprintComponents);
             SubtractComponents(ref requiredComponents, inventoryComponents);
             ClampComponents(ref requiredComponents);
-
-            const string idPrefix = "MyObjectBuilder_";
 
             foreach (KeyValuePair<MyDefinitionId, int> component in blueprintComponents)
             {
@@ -90,13 +88,10 @@ namespace MultigridProjectorClient.Extra
 
                 rows.Add(row);
 
-                var idStr = id.ToString();
-                if (idStr.StartsWith(idPrefix))
-                {
-                    idStr = idStr.Substring(idPrefix.Length);
-                }
-                bomLines.Add($"{idStr}={blueprintAmount}");
+                bomItems.Add(new KeyValuePair<string, int>(id.ToString(), blueprintAmount));
             }
+
+            string bom = BillOfMaterials.Format(Config.Current.BomFormat, bomItems);
 
             MyGuiScreenMessageBox dialog;
             if (assembler != null)
@@ -104,13 +99,13 @@ namespace MultigridProjectorClient.Extra
                 dialog = Menus.CraftDialog.CreateDialog(
                     assembler.DisplayNameText,
                     rows,
-                    bomLines,
+                    bom,
                     (comp, amount) => SendToAssembler(assembler, new Dictionary<MyDefinitionId, int>() { { comp, amount } }),
                     SwitchToProductionTab);
             }
             else
             {
-                dialog = Menus.CraftDialog.CreateDialog("[None]", rows, bomLines);
+                dialog = Menus.CraftDialog.CreateDialog("[None]", rows, bom);
             }
 
             MyGuiSandbox.AddScreen(dialog);
@@ -152,9 +147,9 @@ namespace MultigridProjectorClient.Extra
                 {
                     Dictionary<MyDefinitionId, int> previewBlockComponents = GetBlockComponents(previewBlock);
 
-                    // Consider the progress of the built counterpart
+                    // Count only what the built counterpart still lacks, nothing for a finished one
                     MySlimBlock builtBlock = Construction.GetBuiltBlock(previewBlock);
-                    if (builtBlock != null && builtBlock.Integrity < previewBlock.Integrity)
+                    if (builtBlock != null)
                     {
                         Dictionary<MyDefinitionId, int> builtBlockComponents = GetBlockComponents(builtBlock);
                         SubtractComponents(ref previewBlockComponents, builtBlockComponents);
