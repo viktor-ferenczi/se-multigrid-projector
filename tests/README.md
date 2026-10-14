@@ -153,6 +153,13 @@ uv run pytest tests/test_weld.py  # one file
 A single player file takes one to five minutes, a dedicated server file about
 a minute more for the server.
 
+The client code that needs no game, like the Bill of Materials formats, has
+xunit tests in `unit/`. They run in seconds without a game:
+
+```bash
+dotnet test tests/unit
+```
+
 | Variable | Effect |
 |---|---|
 | `MGP_TASK` | the slot's task name |

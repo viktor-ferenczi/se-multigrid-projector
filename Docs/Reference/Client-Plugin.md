@@ -118,6 +118,7 @@ Persistent, user-editable configuration loaded from disk by `ConfigStorage.Load(
 | `ProjectorAligner` | `public bool` | **Extra Features.** Enables intuitive alignment of projections using the standard block-placement alignment keys. Default: `true`. |
 | `BlockHighlight` | `public bool` | **Extra Features.** Highlights projected blocks using colour coding based on their build status and completion. Default: `true`. |
 | `CraftProjection` | `public bool` | **Extra Features.** Shows component cost for a projection and allows queuing it for assembly. Default: `true`. |
+| `BomFormat` | `public BomFormat` | **Extra Features.** Inventory manager script the Copy BoM button formats the Bill of Materials for: `Isy` or `GOAT`. Default: `Isy`. |
 | `PreviewBlockVisuals` | `public bool` (interface) | Implements `IPluginConfig`. Always returns `true` on the client; the server may return `false` for mod compatibility. Not exposed in the settings dialog. |
 | `PropertyChanged` | `event PropertyChangedEventHandler` | Raised by `SetField` whenever a property value changes. Used by the Settings framework for live UI binding. |
 
@@ -127,7 +128,7 @@ Persistent, user-editable configuration loaded from disk by `ConfigStorage.Load(
 |-----------|-----------|
 | Core | `ShowDialogs` |
 | Compatibility Mode | `ClientWelding`, `ShipWelding`, `ConnectSubgrids` |
-| Extra Features | `RepairProjection`, `ProjectorAligner`, `BlockHighlight`, `CraftProjection` |
+| Extra Features | `RepairProjection`, `ProjectorAligner`, `BlockHighlight`, `CraftProjection`, `BomFormat` |
 
 ---
 

@@ -5,6 +5,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using Sandbox.ModAPI;
+using ClientPlugin;
+using MultigridProjectorClient.Extra;
 using VRage.Game;
 using VRage.Utils;
 using VRageMath;
@@ -19,7 +21,7 @@ namespace MultigridProjectorClient.Menus
         public static MyGuiScreenMessageBox CreateDialog(
             string assemblerName,
             HashSet<Row> rows,
-            List<string> bomLines,
+            string bom,
             Action<MyDefinitionId, int> assembleFunc = null,
             Action onClosing = null)
         {
@@ -128,8 +130,10 @@ namespace MultigridProjectorClient.Menus
             // FIXME: Prevent button from closing dialog
             MyGuiControlButton cancelButton = messageBox.m_cancelButton;
             cancelButton.Text = "Copy BoM";
-            cancelButton.SetToolTip(new MyToolTips("Copy an Isy-compatible Bill of Materials to clipboard, for use with Special containers."));
-            cancelButton.ButtonClicked += (_) => CopyBom(bomLines);
+            cancelButton.SetToolTip(new MyToolTips(Config.Current.BomFormat == BomFormat.GOAT
+                ? "Copy a GOAT Sorter compatible Bill of Materials to clipboard, for use with [Stock] containers."
+                : "Copy an Isy-compatible Bill of Materials to clipboard, for use with Special containers."));
+            cancelButton.ButtonClicked += (_) => CopyBom(bom);
 
             // Move the default buttons up to follow the table
             yesButton.Position += new Vector2(0f, -0.06f);
@@ -198,9 +202,9 @@ namespace MultigridProjectorClient.Menus
             assembleFunc(id, amount);
         }
         
-        private static void CopyBom(List<string> bomLines)
+        private static void CopyBom(string bom)
         {
-            MyClipboardHelper.SetClipboard(string.Join("\n", bomLines));
+            MyClipboardHelper.SetClipboard(bom);
             MyAPIGateway.Utilities.ShowNotification("Copied BoM to Clipboard", 6000);
         }
 
