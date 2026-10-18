@@ -51,7 +51,7 @@ SERVER_LOG = ROOT / "server.log"
 GAME_LOG_GLOB = "SpaceEngineersDedicated*.log"
 WORLD_NAME = "MgpTestServer"
 WORLD = SERVER_DATA / "Saves" / WORLD_NAME
-# Not measured yet, the figure of notes/parallel-test-work/NOTE.md
+# Not measured yet, the figure of testing/parallel-test-work/README.md
 SERVER_GIB = 4.0
 
 CLIENT = rig.Client(1)
@@ -65,13 +65,20 @@ def prepare_server(
     extras=None,
     report=(),
     plugin_config: dict | None = None,
+    others: str = "",
 ) -> None:
     """A fresh copy of the test world and the server's configs. Without mgp the
     server runs DirectTransport only, as a vanilla server would. plugin_config
     sets options of the MGP server plugin by name, the rest keep their
     defaults."""
     stations.prepare(
-        WORLD, benches, settings=settings, online=True, extras=extras, report=report
+        WORLD,
+        benches,
+        settings=settings,
+        online=True,
+        extras=extras,
+        report=report,
+        others=others,
     )
     write_plugin_config(plugin_config)
 

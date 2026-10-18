@@ -14,6 +14,7 @@ uses the workspace's Linux scripts, so it doesn't run on Windows yet.
 | `test_rebuild.py` | welding again after losing a top subgrid, a base or a block on a subgrid, and after a save and reload halfway |
 | `test_load.py` | a blueprint loaded into a projector during the session, the way the blueprint screen does it |
 | `test_survival.py` | survival welding by ship welders fed from cargo containers: the heads created at construction stage get finished, and every component that leaves the containers ends up in a block. Also the welder on a piston of GitHub issue #136, reaching into a projected block's cell |
+| `test_voxel.py` | projected blocks reaching into the terrain: a large static station welds its column into the ground, a small static station stops at the terrain, as the game's own build check decides by the grid's building settings |
 | `test_pb_api.py` | MGP's PB API holding together on every tick while subgrids are taken away and welded again, with and without block highlighting (GitHub issue #114) |
 
 The files in `ds/` run the same tests against a dedicated server with the MGP
@@ -120,12 +121,12 @@ export MGP_REMOTE_REPO=~/path/to/remote
 ## Isolation
 
 Every port, client id and folder comes from a test slot of the workspace
-(`notes/parallel-test-work/NOTE.md`). `MGP_TASK` names the slot, default
+(`testing/parallel-test-work/README.md`). `MGP_TASK` names the slot, default
 `mgp-tests`. It is claimed on first use and kept until someone releases it:
 
 ```bash
-~/ws/se/notes/parallel-test-work/slot.sh list
-~/ws/se/notes/parallel-test-work/slot.sh release <n>
+~/ws/se/testing/parallel-test-work/slot.sh list
+~/ws/se/testing/parallel-test-work/slot.sh release <n>
 ```
 
 What a slot gives the suite:
