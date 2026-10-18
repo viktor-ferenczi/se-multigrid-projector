@@ -1,15 +1,15 @@
 """Isolated headless game clients and dedicated servers for the MGP tests.
 
 Every port, client id and folder comes from a test slot of the workspace
-(notes/parallel-test-work/NOTE.md), so the suite runs next to other tests
+(testing/parallel-test-work/README.md), so the suite runs next to other tests
 without sharing anything with them. MGP_TASK names the slot; it is claimed on
 first use and the claim is kept until someone releases it::
 
-    notes/parallel-test-work/slot.sh claim mgp-tests     # what the rig does
-    notes/parallel-test-work/slot.sh release <n>         # when you are done
+    testing/parallel-test-work/slot.sh claim mgp-tests     # what the rig does
+    testing/parallel-test-work/slot.sh release <n>         # when you are done
 
 Client i gets its own Pulsar folder ~/.se-test/<task>-c<i>, created on first use
-with notes/pulsar-dev-instances/new-pulsar-instance.sh, its own game user data
+with testing/pulsar-dev-instances/new-pulsar-instance.sh, its own game user data
 folder <task>-c<i>-data and Remote port REMOTE_PORT_BASE + i. Every launch writes
 the client's profile and plugin sources: Remote, DirectTransport and this working
 copy of MGP, compiled as dev folders. Every process starts under run-test.sh, which
@@ -31,7 +31,7 @@ from pathlib import Path
 HOME = Path.home()
 REPO = Path(__file__).resolve().parent.parent
 WORKSPACE = Path(os.environ.get("MGP_WORKSPACE", REPO.parents[2]))
-PARALLEL = WORKSPACE / "notes" / "parallel-test-work"
+PARALLEL = WORKSPACE / "testing" / "parallel-test-work"
 # The Remote plugin, compiled by the clients from this working copy
 REMOTE_REPO = Path(os.environ.get("MGP_REMOTE_REPO", REPO.parent / "remote"))
 DIRECT_TRANSPORT_REPO = Path(
@@ -51,7 +51,7 @@ WINDOWED = os.environ.get("MGP_WINDOWED") == "1"
 MGP_CLIENT_ID = "viktor-ferenczi/se-multigrid-projector"
 MGP_SERVER_ID = "B91FD7B3-E1AC-4B57-8765-C677A7AC1F5F"
 
-# Measured RSS of a settled client (notes/parallel-test-work/NOTE.md)
+# Measured RSS of a settled client (testing/parallel-test-work/README.md)
 CLIENT_GIB = 3.7 if not WINDOWED else 5.5
 
 
@@ -164,7 +164,7 @@ def ensure_pulsar(client: Client) -> None:
         return
     subprocess.run(
         [
-            str(WORKSPACE / "notes/pulsar-dev-instances/new-pulsar-instance.sh"),
+            str(WORKSPACE / "testing/pulsar-dev-instances/new-pulsar-instance.sh"),
             str(client.pulsar),
             str(PULSAR_TEMPLATE),
         ],

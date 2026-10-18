@@ -51,7 +51,7 @@ SERVER_LOG = ROOT / "server.log"
 GAME_LOG_GLOB = "SpaceEngineersDedicated*.log"
 WORLD_NAME = "MgpTestServer"
 WORLD = SERVER_DATA / "Saves" / WORLD_NAME
-# Not measured yet, the figure of notes/parallel-test-work/NOTE.md
+# Not measured yet, the figure of testing/parallel-test-work/README.md
 SERVER_GIB = 4.0
 
 CLIENT = rig.Client(1)

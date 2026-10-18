@@ -120,12 +120,12 @@ export MGP_REMOTE_REPO=~/path/to/remote
 ## Isolation
 
 Every port, client id and folder comes from a test slot of the workspace
-(`notes/parallel-test-work/NOTE.md`). `MGP_TASK` names the slot, default
+(`testing/parallel-test-work/README.md`). `MGP_TASK` names the slot, default
 `mgp-tests`. It is claimed on first use and kept until someone releases it:
 
 ```bash
-~/ws/se/notes/parallel-test-work/slot.sh list
-~/ws/se/notes/parallel-test-work/slot.sh release <n>
+~/ws/se/testing/parallel-test-work/slot.sh list
+~/ws/se/testing/parallel-test-work/slot.sh release <n>
 ```
 
 What a slot gives the suite:
