@@ -3,10 +3,10 @@ and client 1 of the slot joining it as an administrator.
 
 The test files here run the single player test files' tests again, imported
 from the parent folder, against the server. A test file sets MGP_SERVER = False
-for a server without the MGP server plugin, and BENCHES, WORLD_SETTINGS and
-STATION_EXTRAS as in single player. REPORT_PROJECTORS adds projector ids to
-the report script, MGP_SERVER_CONFIG sets server plugin options and EDIT_WORLD
-is called with the world folder before the server starts.
+for a server without the MGP server plugin, and BENCHES, WORLD_SETTINGS,
+STATION_EXTRAS, SECTOR_OBJECTS and REPORT_PROJECTORS as in single player.
+MGP_SERVER_CONFIG sets server plugin options and EDIT_WORLD is called with the
+world folder before the server starts.
 
 MGP_ATTACH=1 reuses a running server and client, MGP_KEEP=1 leaves them running.
 """
@@ -49,6 +49,7 @@ def game(request):
                 extras=getattr(request.module, "STATION_EXTRAS", None),
                 report=getattr(request.module, "REPORT_PROJECTORS", ()),
                 plugin_config=getattr(request.module, "MGP_SERVER_CONFIG", None),
+                others=getattr(request.module, "SECTOR_OBJECTS", ""),
             )
             edit_world = getattr(request.module, "EDIT_WORLD", None)
             if edit_world:

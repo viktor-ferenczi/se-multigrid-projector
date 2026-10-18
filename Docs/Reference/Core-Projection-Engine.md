@@ -71,7 +71,8 @@ built grid it looks up the block at the translated position and resolves a `Bloc
 `Buildable` (via `Projector.CanBuild`), `Mismatch` (wrong definition present), `BeingBuilt` (present but
 under target integrity) or `FullyBuilt`. `MultigridProjection.CanBuild` reimplements the stock build
 check across the preview/built coordinate transform, including connectivity, a cached voxel intersection
-test (`CheckVoxels`/`EnsureVoxelCache`), and optional Havok placement testing. State drives
+test (`CheckVoxels`/`EnsureVoxelCache`), skipped where the built grid's building settings allow voxels
+(large static grids in vanilla), and optional Havok placement testing. State drives
 `ProjectedBlock.UpdateVisual`, which maps state to a `VisualState` and sets preview transparency
 (hidden / hologram / buildable-transparent), honouring the projector's "show only buildable" setting.
 

@@ -1564,7 +1564,10 @@ System.NullReferenceException: Object reference not set to an instance of an obj
             if (!checkHavokIntersections)
                 return BuildCheckResult.OK;
 
-            if (CheckVoxels(previewBlock))
+            // The server's placement check (MyCubeGrid.CanPlaceBlock) takes the voxel rule from the
+            // built grid's building settings. Vanilla lets large static grids into voxels (Both).
+            var voxelPlacement = MyBlockBuilderBase.CubeBuilderDefinition.BuildingSettings.GetGridPlacementSettings(builtGrid.GridSizeEnum, builtGrid.IsStatic).VoxelPlacement;
+            if (voxelPlacement.HasValue && voxelPlacement.Value.PlacementMode != VoxelPlacementMode.Both && CheckVoxels(previewBlock))
                 return BuildCheckResult.IntersectedWithSomethingElse;
 
             var gridPlacementSettings = new MyGridPlacementSettings { SnapMode = SnapMode.OneFreeAxis };

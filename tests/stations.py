@@ -97,16 +97,19 @@ def bench_station(name: str, projected: bool = True, extra: str = "") -> str:
     return ET.tostring(station, encoding="unicode")
 
 
-def sector_objects(names=None, projected: bool = True, extras=None, report=()) -> str:
+def sector_objects(
+    names=None, projected: bool = True, extras=None, report=(), others: str = ""
+) -> str:
     """extras gives a test file's own blocks per bench: bench name ->
-    (blocks for the station, more sector objects), see survival.py"""
-    names = names or list(BENCHES)
+    (blocks for the station, more sector objects), see survival.py. others is
+    more sector objects of a test file's own."""
+    names = list(BENCHES) if names is None else names
     extras = extras or {}
     objects = control_station(names, report)
     for name in names:
         blocks, more = extras.get(name, ("", ""))
         objects += bench_station(name, projected, blocks) + more
-    return objects
+    return objects + others
 
 
 def prepare(
@@ -117,7 +120,8 @@ def prepare(
     online=False,
     extras=None,
     report=(),
+    others="",
 ):
-    objects = sector_objects(names, extras=extras, report=report)
+    objects = sector_objects(names, extras=extras, report=report, others=others)
     world.prepare_world(folder, objects, mode, settings, online)
     return folder
