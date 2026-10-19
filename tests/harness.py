@@ -164,8 +164,8 @@ class Game:
 
     def has_op(self, method: str) -> bool:
         """Whether the Remote this client compiled has a fat block call op. The
-        projection ops are proposed, not merged (notes/dis-0005-remote-ops in
-        the workspace); tests that need them skip without them. Asked of the
+        projection ops are proposed, not merged (workspace note
+        #556 in Vikunja); tests that need them skip without them. Asked of the
         report block, which no op here accepts but GetObjectBuilder."""
         try:
             self.call(stations.CONTROL_PB_ID, method)

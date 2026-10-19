@@ -106,11 +106,10 @@ researched it, while single player lets its local player through.
 
 ## Remote ops these tests need
 
-`test_weld.py`, `test_references.py`, `test_rebuild.py`, `test_load.py`,
-`test_pb_api.py` and `ds/test_client_only_ds.py` need three call ops
-that Remote doesn't have yet: `WeldProjection`, `GetObjectBuilder` and
-`LoadProjection` (proposed in the workspace at
-`notes/dis-0005-remote-ops/NOTE.md`). Without them those tests skip, and
+`test_weld.py`, `test_references.py`, `test_rebuild.py`, `test_load.py`, `test_pb_api.py` and
+`ds/test_client_only_ds.py` need three call ops that Remote doesn't have yet:
+`WeldProjection`, `GetObjectBuilder` and `LoadProjection` (proposed in workspace note
+[#556](https://tasks.cometworks.se/tasks/556)). Without them those tests skip, and
 `test_projection.py` and `test_survival.py` still run. To run them, point the rig at a Remote
 working copy that has the ops:
 
