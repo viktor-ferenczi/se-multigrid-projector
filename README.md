@@ -60,6 +60,10 @@ Directly inside the `<GitHub>` element insert:
 
 Configuration file is `MultigridProjector.cfg`, created in the `SpaceEngineersDedicated` folder.
 **FIXME:** Include a default config here, because only the ones with non-default values are saved.
+
+#### Torch compatible fork
+
+Please use https://github.com/endslay3r/MultigridProjectorTorch
 </details>
 
 ## Documentation
