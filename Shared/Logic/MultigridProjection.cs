@@ -2028,6 +2028,7 @@ System.NullReferenceException: Object reference not set to an instance of an obj
                 return false;
 
             // Clone and remap the blueprint before modifying it
+            var loadedGridBuilders = gridBuilders;
             gridBuilders = gridBuilders.Clone();
             MyEntities.RemapObjectBuilderCollection(gridBuilders);
 
@@ -2042,7 +2043,9 @@ System.NullReferenceException: Object reference not set to an instance of an obj
             // Console block (aka hologram table)?
             if (!projector.AllowWelding || projector.AllowScaling)
             {
-                gridBuilders.PrepareForConsoleProjection(projector.GetClipboard());
+                // As in the original InitFromObjectBuilder: only the grids it was given, not the clones
+                // going to the server. This clears the blocks' EntityId, which toolbars and groups need.
+                loadedGridBuilders.PrepareForConsoleProjection(projector.GetClipboard());
                 projector.SetOriginalGridBuilders(gridBuilders);
                 projector.SendNewBlueprint(gridBuilders);
                 return false;
