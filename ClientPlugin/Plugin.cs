@@ -11,8 +11,8 @@ using VRage.Plugins;
 #if !LOCAL_BUILD
 using System.Reflection;
 
-[assembly: AssemblyVersion("0.9.10")]
-[assembly: AssemblyFileVersion("0.9.10")]
+[assembly: AssemblyVersion("0.9.11")]
+[assembly: AssemblyFileVersion("0.9.11")]
 #endif
 
 namespace ClientPlugin;
