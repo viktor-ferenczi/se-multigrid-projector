@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
-using System.Runtime.CompilerServices;
 using System.Text;
 using HarmonyLib;
 
@@ -71,7 +70,7 @@ namespace MultigridProjector.Utilities
 
             try
             {
-                var actualDigest = HashMethodBody(methodInfo).ToString("x8");
+                var actualDigest = methodInfo.HashBody().ToString("x8");
                 if (!ensureOriginal.allowedHexDigests.Contains(actualDigest))
                     return $"Body of patched method {declaringType.Name}.{methodName} has changed: actual {actualDigest}, expected {ensureOriginal.AllowedHexDigestsAsText}\"";
             }
@@ -82,30 +81,6 @@ namespace MultigridProjector.Utilities
             }
 
             return "";
-        }
-
-        private static int HashMethodBody(MethodInfo methodInfo)
-        {
-            var code = PatchProcessor.GetCurrentInstructions(methodInfo);
-            return Arithmetic.CombineHashCodes(HashInstructions(code));
-        }
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static IEnumerable<int> HashInstructions(IEnumerable<CodeInstruction> instructions)
-        {
-            foreach (var instruction in instructions)
-            {
-                yield return instruction.opcode.GetHashCode();
-
-                if (instruction.operand?.GetType().IsValueType == true)
-                    yield return instruction.operand.GetHashCode();
-
-                if (instruction.operand is string)
-                    yield return instruction.operand.GetHashCode();
-
-                foreach (var label in instruction.labels)
-                    yield return label.GetHashCode();
-            }
         }
     }
 }

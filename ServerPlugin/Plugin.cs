@@ -5,7 +5,6 @@ using System.Runtime.CompilerServices;
 using HarmonyLib;
 using MultigridProjector.Utilities;
 using MultigridProjectorDedicated;
-using MultigridProjectorServer.MultigridProjector.Utilities;
 using Sandbox;
 using VRage.FileSystem;
 using VRage.Plugins;
@@ -150,8 +149,7 @@ public class Plugin : IPlugin
             // load), not the default that PluginConfig.Current holds until now.
             MultigridProjector.Config.PluginConfig.Current = config;
 
-            var isOldDotNetFramework = Environment.Version.Major < 5;
-            if (isOldDotNetFramework && !WineDetector.IsRunningInWineOrProton())
+            if (Environment.GetEnvironmentVariable("SE_PLUGIN_DISABLE_METHOD_VERIFICATION") == null)
             {
                 try
                 {

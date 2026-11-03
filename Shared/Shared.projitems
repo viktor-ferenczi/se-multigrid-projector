@@ -41,7 +41,6 @@
     <Compile Include="$(MSBuildThisFileDirectory)Patches\MyMechanicalConnectionBlockBase_OnBuildSuccess.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Patches\MyProjectorBase_GameProjectionPcu.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Patches\MyShipToolBase_UpdateAfterSimulation10.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Utilities\Arithmetic.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\Comms.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\EnsureOriginal.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\Events.cs" />
@@ -57,7 +56,6 @@
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\RwLockDictionary.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\TranspilerHelpers.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\Validation.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Utilities\WineDetector.cs" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="$(MSBuildThisFileDirectory)..\README.md">

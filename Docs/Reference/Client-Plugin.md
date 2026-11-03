@@ -8,7 +8,7 @@ See also:
 - [Client-Patches.md](./Client-Patches.md) — all Harmony patches applied during `Init`.
 - [Client-Features.md](./Client-Features.md) — extra client features (block highlight, ship welding, projector aligner, craft projection).
 - [Configuration.md](./Configuration.md) — shared config storage and the `IPluginConfig` contract.
-- [Shared-Utilities.md](./Shared-Utilities.md) — `PluginLog`, `EnsureOriginal`, `WineDetector`.
+- [Shared-Utilities.md](./Shared-Utilities.md) — `PluginLog`, `EnsureOriginal`.
 - [../Installation.md](../Installation.md) — how Pulsar loads this assembly.
 
 ---
@@ -36,7 +36,7 @@ Plugin.Init(gameInstance)
   ├─ PluginLog.Logger = new PluginLogger()
   ├─ MultigridProjector.Config.PluginConfig.Current = Config.Current
   │                                   ← bridges client Config into shared code
-  ├─ [net48 only, not Wine/Proton, env var not set]
+  ├─ [env var not set]
   │    EnsureOriginal.VerifyAll()     ← throws NotSupportedException if game IL changed
   └─ PatchHelpers.PatchAll(Harmony)
                                       ← all [HarmonyPatch] classes in the assembly, each logged at Info
@@ -76,7 +76,7 @@ Plugin.Dispose()
 
 **Key design notes:**
 
-- IL verification (`EnsureOriginal.VerifyAll`) runs only on .NET Framework (major version < 5) because the game on Windows ships with net48. It is skipped on Wine/Proton (Linux) and can be suppressed via the `SE_PLUGIN_DISABLE_METHOD_VERIFICATION` environment variable.
+- IL verification (`EnsureOriginal.VerifyAll`) runs on every runtime (.NET Framework, Mono under Wine/Proton, .NET), because the IL hash comes out the same on all of them. It can be suppressed via the `SE_PLUGIN_DISABLE_METHOD_VERIFICATION` environment variable.
 - `Plugin.Update()` is intentionally empty; per-frame work is delegated to `PluginSession.UpdateAfterSimulation`, which is called by the VRage session component system after each simulation tick.
 - Unpatching in `Dispose` is deliberately omitted to avoid interoperability issues with other Harmony-based plugins.
 

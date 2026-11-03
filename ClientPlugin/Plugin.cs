@@ -4,7 +4,6 @@ using ClientPlugin.Settings.Layouts;
 using HarmonyLib;
 using MultigridProjector.Utilities;
 using MultigridProjectorClient;
-using MultigridProjectorServer.MultigridProjector.Utilities;
 using Sandbox.Graphics.GUI;
 using VRage.Plugins;
 
@@ -42,10 +41,7 @@ public class Plugin : IPlugin
 
         PluginLog.Info("Loading client plugin");
 
-        var isOldDotNetFramework = Environment.Version.Major < 5;
-        if (isOldDotNetFramework &&
-            Environment.GetEnvironmentVariable("SE_PLUGIN_DISABLE_METHOD_VERIFICATION") == null &&
-            !WineDetector.IsRunningInWineOrProton())
+        if (Environment.GetEnvironmentVariable("SE_PLUGIN_DISABLE_METHOD_VERIFICATION") == null)
         {
             // It will throw NotSupportedException if the game code has changed,
             // Pulsar will catch this and show "Error" next to the plugin
