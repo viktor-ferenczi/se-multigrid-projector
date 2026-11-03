@@ -30,8 +30,7 @@ namespace MultigridProjector.Utilities
             foreach (var type in AccessTools.GetTypesFromAssembly(assembly))
             {
                 var error = VerifyType(type);
-                if (error.Length == 0)
-                    continue;
+                if (error.Length == 0) continue;
 
                 errors.Append(error);
                 errors.Append("\r\n");
@@ -42,23 +41,16 @@ namespace MultigridProjector.Utilities
 
             throw new NotSupportedException(
                 "Refusing to load the plugin due to potentially incompatible code changes in the game:\r\n"
-                    + errors
-                    + "\r\nPlease reach out to the plugin author for an update."
-            );
+                + errors + "\r\nPlease reach out to the plugin author for an update.");
         }
 
         private static string VerifyType(Type patchType)
         {
-            var declaringType = patchType
-                .GetCustomAttributes<HarmonyPatch>()
-                .FirstOrDefault(a => a.info.declaringType != null)
-                ?.info.declaringType;
+            var declaringType = patchType.GetCustomAttributes<HarmonyPatch>().FirstOrDefault(a => a.info.declaringType != null)?.info.declaringType;
             if (declaringType == null)
                 return "";
 
-            var harmonyAttribute = patchType
-                .GetCustomAttributes<HarmonyPatch>()
-                .FirstOrDefault(a => !string.IsNullOrEmpty(a.info.methodName));
+            var harmonyAttribute = patchType.GetCustomAttributes<HarmonyPatch>().FirstOrDefault(a => !string.IsNullOrEmpty(a.info.methodName));
             if (harmonyAttribute == null)
                 return "";
 
@@ -73,9 +65,7 @@ namespace MultigridProjector.Utilities
                 return $"Could not get method information for the {declaringType.Name}.{methodName} method patched in class {patchType.Name}";
 
 #if DEBUG
-            PluginLog.Logger.Debug(
-                $"Verifying patch method: {methodInfo.DeclaringType.Name}.{methodInfo.Name}"
-            );
+            PluginLog.Logger.Debug($"Verifying patch method: {methodInfo.DeclaringType.Name}.{methodInfo.Name}");
 #endif
 
             try
@@ -87,10 +77,7 @@ namespace MultigridProjector.Utilities
             catch (TargetInvocationException e)
             {
                 // Silencing rare exception
-                PluginLog.Error(
-                    e,
-                    $"Failed to verify body of method {declaringType.Name}.{methodName}"
-                );
+                PluginLog.Error(e, $"Failed to verify body of method {declaringType.Name}.{methodName}");
             }
 
             return "";

@@ -6,13 +6,13 @@ using MultigridProjector.Utilities;
 using MultigridProjectorClient;
 using Sandbox.Graphics.GUI;
 using VRage.Plugins;
+
 // Define assembly version when compiled by Pulsar
 #if !LOCAL_BUILD
 using System.Reflection;
 
 [assembly: AssemblyVersion("0.9.10")]
 [assembly: AssemblyFileVersion("0.9.10")]
-
 #endif
 
 namespace ClientPlugin;
@@ -28,9 +28,7 @@ public class Plugin : IPlugin
 
     private static Harmony Harmony => new Harmony("com.spaceengineers.multigridprojector");
 
-    [System.Runtime.CompilerServices.MethodImpl(
-        System.Runtime.CompilerServices.MethodImplOptions.NoInlining
-    )]
+    [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.NoInlining)]
     public void Init(object gameInstance)
     {
         Instance = this;
@@ -71,5 +69,7 @@ public class Plugin : IPlugin
         Instance = null;
     }
 
-    public void Update() { }
+    public void Update()
+    {
+    }
 }
