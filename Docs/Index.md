@@ -80,7 +80,6 @@ _18 files, 1253 lines._
 
 | File | Type | Lines |
 | ---- | ---- | ----: |
-| [Shared/Utilities/Arithmetic.cs](../Shared/Utilities/Arithmetic.cs) | csharp | 33 |
 | [Shared/Utilities/Comms.cs](../Shared/Utilities/Comms.cs) | csharp | 123 |
 | [Shared/Utilities/EnsureOriginal.cs](../Shared/Utilities/EnsureOriginal.cs) | csharp | 111 |
 | [Shared/Utilities/Events.cs](../Shared/Utilities/Events.cs) | csharp | 138 |
@@ -96,7 +95,6 @@ _18 files, 1253 lines._
 | [Shared/Utilities/RwLockDictionary.cs](../Shared/Utilities/RwLockDictionary.cs) | csharp | 43 |
 | [Shared/Utilities/TranspilerHelpers.cs](../Shared/Utilities/TranspilerHelpers.cs) | csharp | 256 |
 | [Shared/Utilities/Validation.cs](../Shared/Utilities/Validation.cs) | csharp | 15 |
-| [Shared/Utilities/WineDetector.cs](../Shared/Utilities/WineDetector.cs) | csharp | 61 |
 
 ## [Configuration (shared interface)](Reference/Configuration.md)
 

@@ -20,11 +20,10 @@ Refusing to load the plugin due to potentially incompatible code changes in the 
 When this happens the plugin needs an update for the new game version. Please report it on the
 [SE Mods Discord](https://discord.gg/PYPFPGf3Ca).
 
-## Linux / Proton
+## Disabling the check
 
-The IL code verification tends to cause issues on Linux (Wine/Proton). The plugin automatically
-skips it when it detects it is running under Wine/Proton. You can also disable it explicitly by
-defining the environment variable:
+The IL code verification runs on Windows, under Wine/Proton and on Linux alike, since the hash comes
+out the same on .NET Framework, Mono and .NET. To skip it, define the environment variable:
 
 ```
 SE_PLUGIN_DISABLE_METHOD_VERIFICATION=1

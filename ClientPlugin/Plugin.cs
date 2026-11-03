@@ -4,16 +4,15 @@ using ClientPlugin.Settings.Layouts;
 using HarmonyLib;
 using MultigridProjector.Utilities;
 using MultigridProjectorClient;
-using MultigridProjectorServer.MultigridProjector.Utilities;
 using Sandbox.Graphics.GUI;
 using VRage.Plugins;
-
 // Define assembly version when compiled by Pulsar
 #if !LOCAL_BUILD
 using System.Reflection;
 
 [assembly: AssemblyVersion("0.9.10")]
 [assembly: AssemblyFileVersion("0.9.10")]
+
 #endif
 
 namespace ClientPlugin;
@@ -29,7 +28,9 @@ public class Plugin : IPlugin
 
     private static Harmony Harmony => new Harmony("com.spaceengineers.multigridprojector");
 
-    [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.NoInlining)]
+    [System.Runtime.CompilerServices.MethodImpl(
+        System.Runtime.CompilerServices.MethodImplOptions.NoInlining
+    )]
     public void Init(object gameInstance)
     {
         Instance = this;
@@ -42,10 +43,7 @@ public class Plugin : IPlugin
 
         PluginLog.Info("Loading client plugin");
 
-        var isOldDotNetFramework = Environment.Version.Major < 5;
-        if (isOldDotNetFramework &&
-            Environment.GetEnvironmentVariable("SE_PLUGIN_DISABLE_METHOD_VERIFICATION") == null &&
-            !WineDetector.IsRunningInWineOrProton())
+        if (Environment.GetEnvironmentVariable("SE_PLUGIN_DISABLE_METHOD_VERIFICATION") == null)
         {
             // It will throw NotSupportedException if the game code has changed,
             // Pulsar will catch this and show "Error" next to the plugin
@@ -73,7 +71,5 @@ public class Plugin : IPlugin
         Instance = null;
     }
 
-    public void Update()
-    {
-    }
+    public void Update() { }
 }

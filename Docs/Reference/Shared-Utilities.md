@@ -1,8 +1,8 @@
 # Shared Utilities & Infrastructure
 
-The `Shared/Utilities` folder is the cross-cutting infrastructure layer compiled into **both** the client plugin and the dedicated-server plugin. It is organised into seven concerns: (1) **logging abstraction** (`IPluginLogger`, `PluginLog`) that hides the concrete logger supplied by Pulsar/Magnetar; (2) **patch application, IL verification and Harmony transpiler helpers** (`PatchHelpers`, `EnsureOriginal`, `TranspilerHelpers`, `Hashing`, `Arithmetic`) that apply the plugin's Harmony patches (logging exactly which game methods were patched), hash game-method bodies at startup, and throw a descriptive error if the game has been updated in an incompatible way; (3) **concurrency** (`RwLock`, `RwLockDictionary`) providing a lightweight spin-based reader/writer lock used wherever projection state is read from the game thread while background threads may write; (4) **multiplayer comms** (`Comms`, `ExecLocation`) for detecting the runtime role (single-player / server / client) and routing plugin-to-plugin handshake packets; (5) **game-thread event helpers** (`Events`) for scheduling deferred work and subscribing to one-shot game events safely; (6) **environment detection** (`WineDetector`) to identify Wine/Proton hosts; and (7) **small math and build-time helpers** (`OrientationAlgebra`, `Validation`, `IgnoresAccessChecksToAttribute`, `GameAssembliesToPublicize`).
+The `Shared/Utilities` folder is the cross-cutting infrastructure layer compiled into **both** the client plugin and the dedicated-server plugin. It is organised into six concerns: (1) **logging abstraction** (`IPluginLogger`, `PluginLog`) that hides the concrete logger supplied by Pulsar/Magnetar; (2) **patch application, IL verification and Harmony transpiler helpers** (`PatchHelpers`, `EnsureOriginal`, `TranspilerHelpers`, `Hashing`) that apply the plugin's Harmony patches (logging exactly which game methods were patched), hash game-method bodies at startup, and throw a descriptive error if the game has been updated in an incompatible way; (3) **concurrency** (`RwLock`, `RwLockDictionary`) providing a lightweight spin-based reader/writer lock used wherever projection state is read from the game thread while background threads may write; (4) **multiplayer comms** (`Comms`, `ExecLocation`) for detecting the runtime role (single-player / server / client) and routing plugin-to-plugin handshake packets; (5) **game-thread event helpers** (`Events`) for scheduling deferred work and subscribing to one-shot game events safely; and (6) **small math and build-time helpers** (`OrientationAlgebra`, `Validation`, `IgnoresAccessChecksToAttribute`, `GameAssembliesToPublicize`).
 
-See also [Core-Projection-Engine.md](./Core-Projection-Engine.md) for how the projection engine consumes these helpers, [Shared-Patches.md](./Shared-Patches.md) for how Harmony patches use `EnsureOriginal` and `TranspilerHelpers`, [Build-And-Project-Layout.md](./Build-And-Project-Layout.md) for the publicizer/access-checks build pipeline, and [../Troubleshooting.md](../Troubleshooting.md) for diagnosing `EnsureOriginal` failures and Wine/Proton environment issues.
+See also [Core-Projection-Engine.md](./Core-Projection-Engine.md) for how the projection engine consumes these helpers, [Shared-Patches.md](./Shared-Patches.md) for how Harmony patches use `EnsureOriginal` and `TranspilerHelpers`, [Build-And-Project-Layout.md](./Build-And-Project-Layout.md) for the publicizer/access-checks build pipeline, and [../Troubleshooting.md](../Troubleshooting.md) for diagnosing `EnsureOriginal` failures.
 
 ---
 
@@ -17,11 +17,9 @@ See also [Core-Projection-Engine.md](./Core-Projection-Engine.md) for how the pr
 | [`Events.cs`](../../Shared/Utilities/Events.cs) | 138 | Helpers for deferring actions to the game thread and subscribing to one-shot game events. |
 | [`RwLock.cs`](../../Shared/Utilities/RwLock.cs) | 93 | Lightweight spin-based reader/writer lock with `using`-compatible `Reader`/`Writer` scope guards. |
 | [`Hashing.cs`](../../Shared/Utilities/Hashing.cs) | 84 | FNV-1a string hash, IL instruction sequence hasher, and hash-code combiner (extension methods). |
-| [`WineDetector.cs`](../../Shared/Utilities/WineDetector.cs) | 61 | Detects Wine/Proton via `ntdll.dll!wine_get_version` and environment variables. |
 | [`OrientationAlgebra.cs`](../../Shared/Utilities/OrientationAlgebra.cs) | 60 | Converts a `(forward, up)` direction pair to the `Vector3I` projection rotation used by the projector. |
 | [`PluginLog.cs`](../../Shared/Utilities/PluginLog.cs) | 56 | Static facade (`Info`/`Debug`/`Warn`/`Error`) that delegates to the registered `IPluginLogger`. |
 | [`RwLockDictionary.cs`](../../Shared/Utilities/RwLockDictionary.cs) | 43 | `Dictionary<TKey,TValue>` subclass that embeds an `RwLock` and exposes `Read()`/`Write()` scopes. |
-| [`Arithmetic.cs`](../../Shared/Utilities/Arithmetic.cs) | 33 | Stand-alone hash-code combiner (same algorithm as `Hashing.CombineHashCodes`; used by `EnsureOriginal`). |
 | [`IgnoresAccessChecksToAttribute.cs`](../../Shared/Utilities/IgnoresAccessChecksToAttribute.cs) | 24 | Declares `System.Runtime.CompilerServices.IgnoresAccessChecksToAttribute` for non-`LOCAL_BUILD` builds where Krafs.Publicizer is not active. |
 | [`ExecLocation.cs`](../../Shared/Utilities/ExecLocation.cs) | 22 | Marker attributes (`[Everywhere]`, `[ServerOnly]`, `[ClientOnly]`) for annotating patch methods by execution context. |
 | [`Validation.cs`](../../Shared/Utilities/Validation.cs) | 15 | `EnsureInfo<T>` guard that converts a `null` `AccessTools` result into a descriptive exception. |
@@ -67,9 +65,9 @@ Static facade over `IPluginLogger`. Every call prepends the `"Multigrid Projecto
 
 _`[AttributeUsage(AttributeTargets.Class)] public class EnsureOriginal : Attribute` — namespace `MultigridProjector.Utilities`_
 
-A class-level attribute placed on Harmony patch classes alongside `[HarmonyPatch]`. When `EnsureOriginal.VerifyAll()` is called once at plugin load time, it scans every type in the calling assembly for `[HarmonyPatch]` + `[EnsureOriginal]` pairs. For each such pair it hashes the IL body of the patched game method (opcodes, value-type operands, string operands, labels) using `Arithmetic.CombineHashCodes` and compares the hex digest against the list of allowed digests supplied to the attribute. If none match the plugin refuses to load with a human-readable error listing the changed method names and the expected vs. actual digests.
+A class-level attribute placed on Harmony patch classes alongside `[HarmonyPatch]`. When `EnsureOriginal.VerifyAll()` is called once at plugin load time, it scans every type in the calling assembly for `[HarmonyPatch]` + `[EnsureOriginal]` pairs. For each such pair it hashes the IL body of the patched game method with `Hashing.HashBody` and compares the hex digest against the list of allowed digests supplied to the attribute. If none match the plugin refuses to load with a human-readable error listing the changed method names and the expected vs. actual digests.
 
-Setting the environment variable `SE_PLUGIN_DISABLE_METHOD_VERIFICATION=1` bypasses hash checking in `TranspilerHelpers.VerifyCodeHash` (but **not** `EnsureOriginal.VerifyAll` itself — that path uses `Arithmetic.CombineHashCodes` directly). See [../Troubleshooting.md](../Troubleshooting.md) for guidance on updating digests after a game update.
+Setting the environment variable `SE_PLUGIN_DISABLE_METHOD_VERIFICATION` skips `EnsureOriginal.VerifyAll` in both plugins and bypasses hash checking in `TranspilerHelpers.VerifyCodeHash`. See [../Troubleshooting.md](../Troubleshooting.md) for guidance on updating digests after a game update.
 
 | Member | Kind | Description |
 |---|---|---|
@@ -157,7 +155,7 @@ Thrown by `TranspilerHelpers` search methods when no matching instruction is fou
 
 _`public static class Hashing` — namespace `MultigridProjector.Utilities`_
 
-Extension methods for producing stable, order-sensitive hashes of strings and IL sequences. Used by `TranspilerHelpers.VerifyCodeHash` and directly in `EnsureOriginal` (via `Arithmetic.CombineHashCodes`). The string hash is FNV-1a (32-bit). The instruction-sequence hash covers opcodes, value-type operands, string operands, and branch labels; it deliberately excludes reference-type operands (e.g. `MethodBase`, `FieldInfo`) because those are bound at JIT time and not stable across runs.
+Extension methods for producing stable, order-sensitive hashes of strings and IL sequences. Used by `TranspilerHelpers.VerifyCodeHash` and `EnsureOriginal`. The string hash is FNV-1a (32-bit). The instruction-sequence hash covers opcodes, string and number operands, and branch labels; it deliberately excludes reference-type operands (e.g. `MethodBase`, `FieldInfo`) because those are bound at JIT time and not stable across runs. The hash comes out the same on .NET Framework, Mono and .NET: opcodes are hashed by their numeric `Value` and number operands by `HashOperand`, not by the runtime's `GetHashCode()`, which differs between them for opcodes (Mono), `sbyte` constants and NaN.
 
 | Member | Kind | Description |
 |---|---|---|
@@ -169,17 +167,6 @@ Extension methods for producing stable, order-sensitive hashes of strings and IL
 
 ---
 
-## Arithmetic
-
-_`public static class Arithmetic` — namespace `MultigridProjector.Utilities`_
-
-A minimal static helper holding the hash-code combiner used by `EnsureOriginal` (which cannot call the `Hashing` extension method because it lives in a different compilation unit that avoids circular dependencies).
-
-| Member | Kind | Description |
-|---|---|---|
-| `CombineHashCodes(IEnumerable<int> hashCodes)` | static method | Djb2-variant two-accumulator combiner; identical algorithm to `Hashing.CombineHashCodes`. |
-
----
 
 ## RwLock
 
@@ -271,22 +258,6 @@ Static helpers for deferring work to the game thread and for attaching one-shot 
 
 ---
 
-## WineDetector
-
-_`public static class WineDetector` — namespace `MultigridProjectorServer.MultigridProjector.Utilities`_
-
-Detects whether the dedicated server process is running inside Wine or Proton on Linux. Used to apply compatibility workarounds where behaviour differs between native Windows and Wine. See [../Troubleshooting.md](../Troubleshooting.md) for notes on known Wine/Proton issues.
-
-Detection strategy (in order):
-1. P/Invoke `ntdll.dll!wine_get_version` — present only in Wine's `ntdll.dll`.
-2. Environment variables: `WINE_WINDOWS_DIR`, `WINELOADERNOEXEC`, `PROTON_VERSION`.
-3. `STEAM_RUNTIME` environment variable containing `"steamrt"` (Proton Steam Runtime).
-
-| Member | Kind | Description |
-|---|---|---|
-| `IsRunningInWineOrProton()` | static method | Returns `true` if any Wine/Proton indicator is found; `false` on native Windows. Swallows `DllNotFoundException` and other exceptions gracefully. |
-
----
 
 ## OrientationAlgebra
 
@@ -346,7 +317,7 @@ The `Krafs.Publicizer` NuGet package emits `[IgnoresAccessChecksTo]` assembly at
 {
   "module": "shared-utilities",
   "page": "Shared-Utilities.md",
-  "overview": "Cross-cutting infrastructure compiled into both the client and server plugin. Covers logging abstraction (IPluginLogger/PluginLog), IL verification at startup (EnsureOriginal), Harmony transpiler helpers (TranspilerHelpers, Hashing, Arithmetic), a spin-based reader/writer lock (RwLock, RwLockDictionary), multiplayer role detection and packet routing (Comms), safe game-thread scheduling and one-shot event helpers (Events), Wine/Proton environment detection (WineDetector), and small math/build-time helpers (OrientationAlgebra, Validation, IgnoresAccessChecksToAttribute, GameAssembliesToPublicize).",
+  "overview": "Cross-cutting infrastructure compiled into both the client and server plugin. Covers logging abstraction (IPluginLogger/PluginLog), IL verification at startup (EnsureOriginal), Harmony transpiler helpers (TranspilerHelpers, Hashing), a spin-based reader/writer lock (RwLock, RwLockDictionary), multiplayer role detection and packet routing (Comms), safe game-thread scheduling and one-shot event helpers (Events), and small math/build-time helpers (OrientationAlgebra, Validation, IgnoresAccessChecksToAttribute, GameAssembliesToPublicize).",
   "files": [
     {"path": "Shared/Utilities/TranspilerHelpers.cs", "summary": "Extension methods on List<CodeInstruction> for searching, mutating, hashing, and recording IL; CodeInstructionNotFound exception."},
     {"path": "Shared/Utilities/Comms.cs", "summary": "Multiplayer role detection, secure-message handler registration, and server-has-plugin handshake."},
@@ -355,11 +326,9 @@ The `Krafs.Publicizer` NuGet package emits `[IgnoresAccessChecksTo]` assembly at
     {"path": "Shared/Utilities/Events.cs", "summary": "InvokeOnGameThread wrapper with release-build safety, plus one-shot game-event subscription helpers."},
     {"path": "Shared/Utilities/RwLock.cs", "summary": "Spin-based reader/writer lock with using-compatible Reader/Writer scope guards."},
     {"path": "Shared/Utilities/Hashing.cs", "summary": "FNV-1a string hash, IL instruction sequence hasher, and hash-code combiner as extension methods."},
-    {"path": "Shared/Utilities/WineDetector.cs", "summary": "Detects Wine/Proton via P/Invoke and environment variable inspection."},
     {"path": "Shared/Utilities/OrientationAlgebra.cs", "summary": "Converts (forward, up) direction pair to Vector3I projection rotation via pre-computed lookup tables."},
     {"path": "Shared/Utilities/PluginLog.cs", "summary": "Static logging facade that prepends the plugin name prefix and delegates to the injected IPluginLogger."},
     {"path": "Shared/Utilities/RwLockDictionary.cs", "summary": "Dictionary subclass that embeds an RwLock and exposes Read()/Write() scope methods."},
-    {"path": "Shared/Utilities/Arithmetic.cs", "summary": "Stand-alone hash-code combiner used by EnsureOriginal."},
     {"path": "Shared/Utilities/IgnoresAccessChecksToAttribute.cs", "summary": "Conditional declaration of IgnoresAccessChecksToAttribute for non-LOCAL_BUILD (Pulsar/Magnetar) builds."},
     {"path": "Shared/Utilities/ExecLocation.cs", "summary": "Marker attributes (Everywhere, ServerOnly, ClientOnly) annotating patch methods by execution context."},
     {"path": "Shared/Utilities/Validation.cs", "summary": "EnsureInfo<T> guard converting null AccessTools results to descriptive exceptions."},
@@ -371,14 +340,12 @@ The `Krafs.Publicizer` NuGet package emits `[IgnoresAccessChecksTo]` assembly at
     "PatchHelpers — applies Harmony patches (all/uncategorized/category) with Info-level per-patch logging; LateCategory constant for the dedicated server's two-phase startup",
     "TranspilerHelpers — extension methods for searching/mutating/hashing IL instruction lists in Harmony transpilers",
     "Hashing — FNV-1a string hash and IL instruction-sequence hasher used by TranspilerHelpers and EnsureOriginal",
-    "Arithmetic — standalone hash-code combiner used by EnsureOriginal",
     "RwLock — lightweight spin-based reader/writer lock with using-scoped Reader/Writer guards",
     "RwLockDictionary<TKey,TValue> — Dictionary with embedded RwLock and Read()/Write() scope methods",
     "Comms — multiplayer role detection, secure packet routing, and server-has-plugin handshake",
     "Events — InvokeOnGameThread with release-build safety and one-shot game-event subscription helpers",
     "IPluginLogger — logger interface injected by the host; abstracted through PluginLog static facade",
     "PluginLog — static logging facade with plugin-name prefix",
-    "WineDetector — detects Wine/Proton via P/Invoke and environment variables",
     "OrientationAlgebra — converts (forward, up) direction pair to projection rotation via lookup tables",
     "IgnoresAccessChecksToAttribute — runtime declaration enabling publicized-assembly access outside LOCAL_BUILD",
     "ExecLocation (Everywhere/ServerOnly/ClientOnly) — execution-context annotation attributes",
@@ -389,7 +356,6 @@ The `Krafs.Publicizer` NuGet package emits `[IgnoresAccessChecksTo]` assembly at
     "Sandbox.ModAPI — MyAPIGateway, IMyTerminalBlock",
     "Sandbox.Game — MyCubeGrid, MyMechanicalConnectionBlockBase, MyEntities, MySession, MyVisualScriptLogicProvider",
     "VRageMath — Vector3I, Base6Directions",
-    "System.Runtime.InteropServices — P/Invoke for WineDetector",
     "System.Threading — Interlocked, SpinWait"
   ],
   "used_by": ["shared-logic", "client-core", "server-core", "shared-patches"],
@@ -399,6 +365,6 @@ The `Krafs.Publicizer` NuGet package emits `[IgnoresAccessChecksTo]` assembly at
     "Docs/Reference/Build-And-Project-Layout.md",
     "Docs/Troubleshooting.md"
   ],
-  "notes": "PatchHelpers is the single entry point both plugins use to apply Harmony patches, logging every patched game method at Info (not Debug, which is compiled out of release builds) so patch application and timing can be verified from the shipped logs; PatchAll for the client, PatchUncategorized + PatchCategory(Late) for the dedicated server's two-phase early/late startup. EnsureOriginal hashes game-method IL at plugin load and throws NotSupportedException listing every changed method, preventing silent misbehaviour after game updates. TranspilerHelpers.VerifyCodeHash offers the same safety inline in transpiler methods and can be bypassed with SE_PLUGIN_DISABLE_METHOD_VERIFICATION. RwLock is a pure spin-wait lock with no kernel waits, suited to the short critical sections in projection state access. Comms auto-detects SinglePlayer/MultiplayerServer/MultiplayerClient/DedicatedServer at construction time and sends a 8-byte signature handshake so clients can confirm the server also has the plugin. WineDetector uses P/Invoke on ntdll.dll plus environment-variable fallbacks to distinguish native Windows from Wine/Proton on Linux."
+  "notes": "PatchHelpers is the single entry point both plugins use to apply Harmony patches, logging every patched game method at Info (not Debug, which is compiled out of release builds) so patch application and timing can be verified from the shipped logs; PatchAll for the client, PatchUncategorized + PatchCategory(Late) for the dedicated server's two-phase early/late startup. EnsureOriginal hashes game-method IL at plugin load and throws NotSupportedException listing every changed method, preventing silent misbehaviour after game updates. TranspilerHelpers.VerifyCodeHash offers the same safety inline in transpiler methods and can be bypassed with SE_PLUGIN_DISABLE_METHOD_VERIFICATION. RwLock is a pure spin-wait lock with no kernel waits, suited to the short critical sections in projection state access. Comms auto-detects SinglePlayer/MultiplayerServer/MultiplayerClient/DedicatedServer at construction time and sends a 8-byte signature handshake so clients can confirm the server also has the plugin."
 }
 ```

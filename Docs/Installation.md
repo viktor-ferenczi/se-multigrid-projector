@@ -113,8 +113,9 @@ its projector stops projecting it, and a refused one is removed and its player g
 `0`, the default, turns the limit off: projections are neither checked nor counted. Turning the
 limit on also removes saved projections over it at the next server start.
 
-## Linux (Proton) note
+## Game-code verification
 
-On Linux you may need to define the `SE_PLUGIN_DISABLE_METHOD_VERIFICATION` environment variable to
-disable the plugin's game-code (IL) verification. See [Troubleshooting](Troubleshooting.md) for the
-details and the reasoning behind the check.
+At load the plugin checks that the game methods it patches are unchanged. The check gives the same
+result on Windows, under Proton and on Linux. To skip it, for example on an untested game build,
+define the `SE_PLUGIN_DISABLE_METHOD_VERIFICATION` environment variable. See
+[Troubleshooting](Troubleshooting.md) for the details.

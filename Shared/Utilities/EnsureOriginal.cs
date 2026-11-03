@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
-using System.Runtime.CompilerServices;
 using System.Text;
 using HarmonyLib;
 
@@ -31,7 +30,8 @@ namespace MultigridProjector.Utilities
             foreach (var type in AccessTools.GetTypesFromAssembly(assembly))
             {
                 var error = VerifyType(type);
-                if (error.Length == 0) continue;
+                if (error.Length == 0)
+                    continue;
 
                 errors.Append(error);
                 errors.Append("\r\n");
@@ -42,16 +42,23 @@ namespace MultigridProjector.Utilities
 
             throw new NotSupportedException(
                 "Refusing to load the plugin due to potentially incompatible code changes in the game:\r\n"
-                + errors + "\r\nPlease reach out to the plugin author for an update.");
+                    + errors
+                    + "\r\nPlease reach out to the plugin author for an update."
+            );
         }
 
         private static string VerifyType(Type patchType)
         {
-            var declaringType = patchType.GetCustomAttributes<HarmonyPatch>().FirstOrDefault(a => a.info.declaringType != null)?.info.declaringType;
+            var declaringType = patchType
+                .GetCustomAttributes<HarmonyPatch>()
+                .FirstOrDefault(a => a.info.declaringType != null)
+                ?.info.declaringType;
             if (declaringType == null)
                 return "";
 
-            var harmonyAttribute = patchType.GetCustomAttributes<HarmonyPatch>().FirstOrDefault(a => !string.IsNullOrEmpty(a.info.methodName));
+            var harmonyAttribute = patchType
+                .GetCustomAttributes<HarmonyPatch>()
+                .FirstOrDefault(a => !string.IsNullOrEmpty(a.info.methodName));
             if (harmonyAttribute == null)
                 return "";
 
@@ -66,46 +73,27 @@ namespace MultigridProjector.Utilities
                 return $"Could not get method information for the {declaringType.Name}.{methodName} method patched in class {patchType.Name}";
 
 #if DEBUG
-            PluginLog.Logger.Debug($"Verifying patch method: {methodInfo.DeclaringType.Name}.{methodInfo.Name}");
+            PluginLog.Logger.Debug(
+                $"Verifying patch method: {methodInfo.DeclaringType.Name}.{methodInfo.Name}"
+            );
 #endif
 
             try
             {
-                var actualDigest = HashMethodBody(methodInfo).ToString("x8");
+                var actualDigest = methodInfo.HashBody().ToString("x8");
                 if (!ensureOriginal.allowedHexDigests.Contains(actualDigest))
                     return $"Body of patched method {declaringType.Name}.{methodName} has changed: actual {actualDigest}, expected {ensureOriginal.AllowedHexDigestsAsText}\"";
             }
             catch (TargetInvocationException e)
             {
                 // Silencing rare exception
-                PluginLog.Error(e, $"Failed to verify body of method {declaringType.Name}.{methodName}");
+                PluginLog.Error(
+                    e,
+                    $"Failed to verify body of method {declaringType.Name}.{methodName}"
+                );
             }
 
             return "";
-        }
-
-        private static int HashMethodBody(MethodInfo methodInfo)
-        {
-            var code = PatchProcessor.GetCurrentInstructions(methodInfo);
-            return Arithmetic.CombineHashCodes(HashInstructions(code));
-        }
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static IEnumerable<int> HashInstructions(IEnumerable<CodeInstruction> instructions)
-        {
-            foreach (var instruction in instructions)
-            {
-                yield return instruction.opcode.GetHashCode();
-
-                if (instruction.operand?.GetType().IsValueType == true)
-                    yield return instruction.operand.GetHashCode();
-
-                if (instruction.operand is string)
-                    yield return instruction.operand.GetHashCode();
-
-                foreach (var label in instruction.labels)
-                    yield return label.GetHashCode();
-            }
         }
     }
 }

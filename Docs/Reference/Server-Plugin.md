@@ -6,7 +6,7 @@ Key differences from the client plugin:
 
 - No graphical UI — configuration is rendered and edited remotely by Quasar via Magnetar.
 - Config is persisted to `MultigridProjector.cfg` (XML) in the server's user-data directory through PluginSdk's `ConfigStorage`, and is auto-saved on every property change.
-- IL verification (`EnsureOriginal.VerifyAll`) runs on startup under old .NET Framework (pre-.NET 5) **unless** Wine/Proton is detected, preventing false-positive failures on Linux hosts.
+- IL verification (`EnsureOriginal.VerifyAll`) runs on startup on every runtime, unless the `SE_PLUGIN_DISABLE_METHOD_VERIFICATION` environment variable is set
 - The session component (`PluginSession`) drives the core projection engine per simulation tick using `MyUpdateOrder.AfterSimulation`.
 - **Patches are applied early — before world load — not from `IPlugin.Init`.** On the dedicated server `IPlugin.Init` runs only *after* the world (including grids that build from projectors during load) has already loaded, which is far too late for the projector patches. A namespace-less [`Preloader`](../../ServerPlugin/Preloader.cs) class lets Magnetar/Pulsar's bootstrap call into the plugin before the game starts; the plugin then installs a Harmony hook on `MyInitializer.InvokeBeforeRun` and applies its patches the moment the game's filesystem and logger are ready. See [Lifecycle](#lifecycle) and [Preloader](#preloader) below.
 
@@ -47,7 +47,7 @@ Guarded by a static `earlyStarted` flag (both callers run on the main thread, so
    - On failure (corrupt or missing file): logs the error, constructs a `new PluginConfig()` with defaults, attempts to save it (failure is silently swallowed), and continues with the default instance.
 3. Subscribes `Config.PropertyChanged += OnConfigPropertyChanged` so that any change made by Quasar triggers an immediate `SaveConfig` call.
 4. Assigns `MultigridProjector.Config.PluginConfig.Current = config` to expose the server config to all shared code through the `IPluginConfig` interface — **before** the patches run, so they read the configured values from the moment they execute (including during world load).
-5. IL verification (old .NET Framework only, non-Wine): calls `EnsureOriginal.VerifyAll()`. If it throws `NotSupportedException`, sets the static `failed` flag, logs the error and **returns** — patches are not applied and the plugin is effectively disabled.
+5. IL verification (skipped if `SE_PLUGIN_DISABLE_METHOD_VERIFICATION` is set): calls `EnsureOriginal.VerifyAll()`. If it throws `NotSupportedException`, sets the static `failed` flag, logs the error and **returns** — patches are not applied and the plugin is effectively disabled.
 6. Calls `PatchHelpers.PatchUncategorized(Harmony)` to apply every patch **except** the deferred `"Late"` category, before world-load compilation. (See [Shared-Utilities.md → PatchHelpers](./Shared-Utilities.md#patchhelpers).)
 
 Any exception is caught, sets `failed`, and is logged (to `PluginLog` if the logger exists, otherwise the console), so a startup failure never throws back into the game.
@@ -176,5 +176,5 @@ For the `IPluginLogger` interface definition and the `PluginLog` static facade u
 - [Core-Projection-Engine.md](./Core-Projection-Engine.md) — `MultigridProjectorSession` driven by `PluginSession`
 - [Server-Patches.md](./Server-Patches.md) — Harmony patches applied early (before world load) via `PatchHelpers.PatchUncategorized`
 - [Configuration.md](./Configuration.md) — `IPluginConfig` interface and `PluginConfig.Current` static accessor used by shared code
-- [Shared-Utilities.md](./Shared-Utilities.md) — `PatchHelpers`, `IPluginLogger`, `PluginLog`, `EnsureOriginal`, `WineDetector`
+- [Shared-Utilities.md](./Shared-Utilities.md) — `PatchHelpers`, `IPluginLogger`, `PluginLog`, `EnsureOriginal`
 - [../Installation.md](../Installation.md) — Server installation, config file location, Magnetar setup

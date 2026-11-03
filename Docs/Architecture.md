@@ -75,7 +75,7 @@ The engine leans on two supporting subsystems, also in `Shared/`:
 - **[Shared Utilities & Infrastructure](Reference/Shared-Utilities.md)** — logging (`PluginLog`),
   startup IL verification (`EnsureOriginal`), Harmony transpiler helpers, the spin
   reader/writer lock (`RwLock`), hashing, multiplayer role detection and packet routing (`Comms`),
-  game-thread scheduling (`Events`), and Wine/Proton detection.
+  and game-thread scheduling (`Events`).
 
 ## How the game is hooked
 
@@ -98,8 +98,8 @@ multiplayer event handler would crash Harmony.
 Patches that rewrite IL are guarded by **`EnsureOriginal`**: at load the plugin hashes the IL of the
 game methods it patches and refuses to load if any changed, turning a future game update into a clean
 "please update the plugin" message instead of a crash (see [../Docs/Troubleshooting.md](Troubleshooting.md)).
-This check is skipped under Wine/Proton and can be disabled with
-`SE_PLUGIN_DISABLE_METHOD_VERIFICATION`.
+The hash is the same on .NET Framework, Mono (Wine/Proton) and .NET, so the check runs on every
+runtime. It can be disabled with `SE_PLUGIN_DISABLE_METHOD_VERIFICATION`.
 
 ## The update cycle
 

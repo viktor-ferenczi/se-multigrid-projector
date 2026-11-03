@@ -5,18 +5,17 @@ using System.Runtime.CompilerServices;
 using HarmonyLib;
 using MultigridProjector.Utilities;
 using MultigridProjectorDedicated;
-using MultigridProjectorServer.MultigridProjector.Utilities;
 using Sandbox;
 using VRage.FileSystem;
 using VRage.Plugins;
 using ConfigStorage = PluginSdk.Config.ConfigStorage;
-
 // Define assembly version when compiled by Magnetar
 #if !LOCAL_BUILD
 using System.Reflection;
 
 [assembly: AssemblyVersion("0.9.10")]
 [assembly: AssemblyFileVersion("0.9.10")]
+
 #endif
 
 namespace ServerPlugin;
@@ -59,7 +58,9 @@ public class Plugin : IPlugin
             return;
 
         if (!alreadyAppliedEarly)
-            PluginLog.Warn("Patches were applied late, from IPlugin.Init, because the early bootstrap did not run (expected only in Magnetar safe mode). Functionality relying on projectors during world load may not work for this session.");
+            PluginLog.Warn(
+                "Patches were applied late, from IPlugin.Init, because the early bootstrap did not run (expected only in Magnetar safe mode). Functionality relying on projectors during world load may not work for this session."
+            );
 
         // Apply any patches deferred to the "Late" category. By now the world/session has loaded, so
         // their target assemblies would be available. Currently no patch uses this category, so this
@@ -93,19 +94,28 @@ public class Plugin : IPlugin
     {
         try
         {
-            var target = AccessTools.Method(typeof(MyInitializer), nameof(MyInitializer.InvokeBeforeRun));
+            var target = AccessTools.Method(
+                typeof(MyInitializer),
+                nameof(MyInitializer.InvokeBeforeRun)
+            );
             if (target == null)
             {
-                Console.WriteLine("Multigrid Projector: Early bootstrap could not find MyInitializer.InvokeBeforeRun; patches will be applied later, from Init");
+                Console.WriteLine(
+                    "Multigrid Projector: Early bootstrap could not find MyInitializer.InvokeBeforeRun; patches will be applied later, from Init"
+                );
                 return;
             }
 
-            var postfix = new HarmonyMethod(AccessTools.Method(typeof(Plugin), nameof(OnGameInitialized)));
+            var postfix = new HarmonyMethod(
+                AccessTools.Method(typeof(Plugin), nameof(OnGameInitialized))
+            );
             new Harmony($"{HarmonyId}.bootstrap").Patch(target, postfix: postfix);
         }
         catch (Exception e)
         {
-            Console.WriteLine($"Multigrid Projector: Early bootstrap failed to install the MyInitializer.InvokeBeforeRun hook: {e}");
+            Console.WriteLine(
+                $"Multigrid Projector: Early bootstrap failed to install the MyInitializer.InvokeBeforeRun hook: {e}"
+            );
         }
     }
 
@@ -150,8 +160,7 @@ public class Plugin : IPlugin
             // load), not the default that PluginConfig.Current holds until now.
             MultigridProjector.Config.PluginConfig.Current = config;
 
-            var isOldDotNetFramework = Environment.Version.Major < 5;
-            if (isOldDotNetFramework && !WineDetector.IsRunningInWineOrProton())
+            if (Environment.GetEnvironmentVariable("SE_PLUGIN_DISABLE_METHOD_VERIFICATION") == null)
             {
                 try
                 {
@@ -160,7 +169,10 @@ public class Plugin : IPlugin
                 catch (NotSupportedException e)
                 {
                     failed = true;
-                    PluginLog.Error(e, "Disabled the plugin due to potentially incompatible code changes in the game or plugin patch collisions. Please report the exception below on the SE Mods Discord (invite is on the Workshop page):");
+                    PluginLog.Error(
+                        e,
+                        "Disabled the plugin due to potentially incompatible code changes in the game or plugin patch collisions. Please report the exception below on the SE Mods Discord (invite is on the Workshop page):"
+                    );
                     return;
                 }
             }
@@ -203,9 +215,7 @@ public class Plugin : IPlugin
         Instance = null;
     }
 
-    public void Update()
-    {
-    }
+    public void Update() { }
 
     private static PluginConfig LoadConfig(string path)
     {
