@@ -3,6 +3,7 @@ using System.Reflection;
 using HarmonyLib;
 using MultigridProjector.Utilities;
 using Sandbox.Definitions;
+using Sandbox.Engine.Multiplayer;
 using Sandbox.Game.Entities;
 using Sandbox.Game.Entities.Blocks;
 using Sandbox.Game.Entities.Cube;
@@ -205,6 +206,17 @@ namespace MultigridProjector.Extensions
             // Consistent remapping of all grids to keep sub-grid relations intact
             lock (gridBuilders)
                 MyEntities.RemapObjectBuilderCollection(gridBuilders);
+        }
+
+        // The game's SendNewBlueprint sets the blueprint here first, and the clipboard activation that
+        // starts remaps the same grid builders on a worker thread while the event serializes them. A big
+        // blueprint then reaches the server with some of its ids remapped and some not, so its subgrid
+        // relations are broken (SE-1110). The server gets a copy taken before that.
+        public static void SendNewBlueprintCopy(this MyProjectorBase projector, List<MyObjectBuilder_CubeGrid> gridBuilders)
+        {
+            var sent = gridBuilders.Clone();
+            projector.SetNewBlueprint(gridBuilders);
+            MyMultiplayer.RaiseEvent(projector, x => x.OnNewBlueprintSuccess, sent);
         }
     }
 }

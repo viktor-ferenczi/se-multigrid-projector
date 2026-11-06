@@ -2047,7 +2047,7 @@ System.NullReferenceException: Object reference not set to an instance of an obj
                 // going to the server. This clears the blocks' EntityId, which toolbars and groups need.
                 loadedGridBuilders.PrepareForConsoleProjection(projector.GetClipboard());
                 projector.SetOriginalGridBuilders(gridBuilders);
-                projector.SendNewBlueprint(gridBuilders);
+                projector.SendNewBlueprintCopy(gridBuilders);
                 return false;
             }
 
@@ -2097,7 +2097,7 @@ System.NullReferenceException: Object reference not set to an instance of an obj
 
             // Notify the server and all clients (including this one) to create the projection,
             // our data model will be created by SetNewBlueprint the same way at all locations
-            projector.SendNewBlueprint(gridBuilders);
+            projector.SendNewBlueprintCopy(gridBuilders);
 
             return false;
         }
