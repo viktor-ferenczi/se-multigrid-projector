@@ -95,6 +95,11 @@ def game(request):
         )
         yield game
     finally:
+        # The server's game log of this file, for the record
+        rig.ARTIFACTS.mkdir(parents=True, exist_ok=True)
+        (rig.ARTIFACTS / f"{request.module.__name__}.server.log").write_text(
+            ds_rig.server_log_text(), encoding="utf-8"
+        )
         if not KEEP:
             ds_rig.stop_clients()
             ds_rig.stop_server()
