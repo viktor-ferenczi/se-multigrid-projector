@@ -35,5 +35,5 @@ def test_projection_is_complete(welded):
 
 
 def test_the_server_took_the_builtby_hack(welded):
-    assert compat.server_lines(compat.LEGACY_RPC)
+    assert compat.server_lines(compat.LEGACY_RPC, wait=60)
     assert not compat.server_lines(compat.MOD_MESSAGES)

@@ -19,15 +19,16 @@ BENCHES = ["survival"]
 WORLD_SETTINGS = {"GameMode": "Survival", "EnableResearch": "false"}
 MGP_SERVER_CONFIG = compat.FAST_PRESENCE
 SERVER_PLUGINS = [compat.ANTI_CHEAT]
+EDIT_WORLD = compat.anti_cheat_config
 ADMINS = False
-STANDING = (3, 1, 1)
+# A plain player can't teleport: the character spawns in the middle of the bench
+STATION_EXTRAS = compat.medical_room_extras()
 
 
 @pytest.fixture(scope="module")
 def welded(game):
     game.require_ops("WeldProjection")
     assert compat.wait_until(lambda: compat.client_lines(compat.FULL_MODE), 30)
-    compat.stand_on(game, "survival", STANDING)
     grids = compat.grid_count(game)
     projector = bench_ids(bench_index("survival"))["projector"]
     requested = compat.weld_passes(game, projector, instant=False)
@@ -46,7 +47,7 @@ def test_subgrids_are_built(game, welded):
 
 
 def test_builds_arrive_as_mod_messages(game, welded):
-    assert compat.server_lines(compat.MOD_MESSAGES)
+    assert compat.server_lines(compat.MOD_MESSAGES, wait=60)
     assert not compat.server_lines("BuildInternal RPC from")
     assert not compat.server_lines(compat.REFUSED)
 

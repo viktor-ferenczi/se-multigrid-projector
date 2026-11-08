@@ -64,5 +64,6 @@ def test_joiner_welds_every_subgrid(game):
     assert compat.wait_until(lambda: compat.client_lines(compat.FULL_MODE, JOINER), 60)
     report = game.weld(bench_ids(bench_index("large"))["projector"])
     assert report.complete, {s.index: s.states for s in report.subgrids if s.states}
-    assert compat.client_lines(compat.MOD_MESSAGES, HOST)
+    # The game writes its log a while later
+    assert compat.wait_until(lambda: compat.client_lines(compat.MOD_MESSAGES, HOST), 60)
     assert not compat.client_lines("BuildInternal RPC from", HOST)

@@ -31,6 +31,6 @@ def test_vanilla_client_welds_the_first_grid(game):
         if cubes.get(block_min(b), {}).get("subtypeId") == b.findtext("SubtypeName")
     ]
     assert built
-    assert compat.server_lines(compat.VANILLA_RPC)
+    assert compat.server_lines(compat.VANILLA_RPC, wait=60)
     assert not compat.server_lines(compat.MOD_MESSAGES)
     assert not compat.server_lines(compat.LEGACY_RPC)

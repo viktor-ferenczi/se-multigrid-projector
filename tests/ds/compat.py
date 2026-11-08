@@ -17,6 +17,8 @@ from pathlib import Path
 import pytest
 
 import ds_rig
+import stations
+import world
 from fixtures import bench_ids, bench_index
 from se_remote import CallOp
 
@@ -39,8 +41,9 @@ MOD_MESSAGES = "arrive as mod messages"
 VANILLA_RPC = "with vanilla arguments"
 LEGACY_RPC = "with the subgrid index in builtBy"
 REFUSED = "Refused a build request"
-# What Anti-Cheat's projector guard says when it refuses
-ANTI_CHEAT_REFUSALS = ("projector-build request", "area-build request")
+# Anti-Cheat logs a refusal only when it kicks, which anti_cheat_config makes
+# it do on the first one
+ANTI_CHEAT_KICK = "AntiCheat: Kicking"
 
 needs_anti_cheat = pytest.mark.skipif(
     not (ANTI_CHEAT_REPO / "AntiCheatServer.xml").exists(),
@@ -64,8 +67,33 @@ def client_lines(text: str, client=ds_rig.CLIENT) -> list[tuple[datetime, str]]:
     return found
 
 
-def server_lines(text: str) -> list[str]:
-    return [l for l in ds_rig.server_log_text().splitlines() if text in l]
+def server_lines(text: str, wait: float = 0) -> list[str]:
+    """The server's log lines containing text. The game writes its log a
+    while later: wait is how long to wait for the first one."""
+
+    def lines():
+        return [l for l in ds_rig.server_log_text().splitlines() if text in l]
+
+    return wait_until(lines, wait) if wait else lines()
+
+
+def medical_room_extras(bench: str = "survival", cell=(6, 1, 0)) -> dict:
+    """STATION_EXTRAS: a medical room shared with all on the bench's floor
+    strip, in the middle, so a player who isn't an admin (and so can't use the
+    admin teleport) spawns within reach of every projected block"""
+    room = world.block(
+        "MedicalRoom",
+        "LargeMedicalRoom",
+        cell,
+        bench_ids(bench_index(bench))["grid"] + 900,
+        stations_owned() + "<Enabled>true</Enabled>",
+    )
+    return {bench: (room, "")}
+
+
+def stations_owned() -> str:
+    owner = stations.PB_OWNER
+    return f"<Owner>{owner}</Owner><BuiltBy>{owner}</BuiltBy><ShareMode>All</ShareMode>"
 
 
 def wait_until(check, timeout: float, interval: float = 0.5):
@@ -107,9 +135,22 @@ def grid_count(game) -> int:
     return len(game.grids())
 
 
+def anti_cheat_config(_world=None) -> None:
+    """EDIT_WORLD of the Anti-Cheat tests: the plugin on, kicking on the first
+    refusal, so every refusal shows in the server log with its reason. The
+    other options keep their defaults (all guards on)."""
+    ds_rig.SERVER_DATA.mkdir(parents=True, exist_ok=True)
+    (ds_rig.SERVER_DATA / "AntiCheat.cfg").write_text(
+        '<?xml version="1.0" encoding="utf-8"?>'
+        '<PluginConfig xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" '
+        'xmlns:xsd="http://www.w3.org/2001/XMLSchema">'
+        "<Enabled>true</Enabled><KickOnValidationFailure>true</KickOnValidationFailure>"
+        "<ValidationFailuresBeforeKick>1</ValidationFailuresBeforeKick>"
+        "<EnforceBuildRequestAuthority>true</EnforceBuildRequestAuthority>"
+        "</PluginConfig>",
+        encoding="utf-8",
+    )
+
+
 def anti_cheat_refusals() -> list[str]:
-    return [
-        l
-        for l in ds_rig.server_log_text().splitlines()
-        if any(r in l for r in ANTI_CHEAT_REFUSALS)
-    ]
+    return server_lines(ANTI_CHEAT_KICK)
