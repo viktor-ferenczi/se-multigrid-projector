@@ -7,6 +7,7 @@ using HarmonyLib;
 using MultigridProjector.Logic;
 using MultigridProjector.Utilities;
 using Sandbox.Game.Entities.Blocks;
+using VRage.Network;
 using VRageMath;
 
 namespace MultigridProjectorClient.Patches
@@ -54,6 +55,10 @@ namespace MultigridProjectorClient.Patches
             long builtBy)
         {
             var projector = __instance;
+
+            // Only for the record: who sends which arguments
+            if (!MyEventContext.Current.IsLocallyInvoked)
+                BuildRequests.NoteRpc(MyEventContext.Current.Sender.Value, owner, builtBy);
 
             try
             {

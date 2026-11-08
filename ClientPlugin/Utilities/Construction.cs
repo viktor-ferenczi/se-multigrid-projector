@@ -178,19 +178,41 @@ namespace MultigridProjectorClient.Utilities
             return MyCubeGrid.TestBlockPlacementArea(blockDefinition, new MyBlockOrientation(), worldMatrix, ref settings, localBox, dynamicMode);
         }
 
-        // Returns true if building of the block should be handled by the server, false if it is handled by the client
-        public static bool WeldBlock(MyProjectorBase projector, MySlimBlock cubeBlock, long owner, ref long builtBy)
+        // Returns true if the vanilla Build should run (it sends the vanilla BuildInternal RPC), false if the plugin handled it
+        public static bool WeldBlock(MyProjectorBase projector, MySlimBlock cubeBlock, long owner, long builder, bool requestInstant, ref long builtBy)
         {
             // Find the multigrid projection, fall back to the default implementation if this projector is not handled by the plugin
             if (!TryGetSubgrid(cubeBlock, out var subgrid, out _))
                 return true;
 
-            // Let the server side MGP to handle building if it is available
-            if (Comms.ServerHasPlugin)
+            // Single player or hosting the game: the vanilla RPC is a local call, which MGP's
+            // BuildInternal patch takes the subgrid index from
+            if (Comms.Role != Role.MultiplayerClient)
             {
-                // Deliver the subgrid index via the builtBy field, the owner will be used instead in BuildInternal
                 builtBy = subgrid.Index;
                 return true;
+            }
+
+            // Full mode: ask the server plugin with a build request of its own. The vanilla
+            // BuildInternal RPC is not sent at all.
+            if (Comms.ServerHasPlugin)
+            {
+                if (projector.AllowWelding)
+                {
+                    Comms.SendBuildRequest(new BuildRequest
+                    {
+                        ProjectorId = projector.EntityId,
+                        SubgridIndex = subgrid.Index,
+                        X = cubeBlock.Position.X,
+                        Y = cubeBlock.Position.Y,
+                        Z = cubeBlock.Position.Z,
+                        Owner = owner,
+                        Builder = builder,
+                        RequestInstant = requestInstant,
+                    });
+                }
+
+                return false;
             }
 
             // Fall back to building only the main grid (first subgrid) on vanilla server if the client welding feature is disabled

@@ -114,6 +114,11 @@ public class Config : INotifyPropertyChanged, IPluginConfig
     // player and in a game the client hosts.
     public int ProjectionPcuLimitPercent => 0;
 
+    // Presence packets when hosting a game, as the server plugin's defaults
+    public int PresenceDelaySeconds => 5;
+    public int PresenceIntervalSeconds => 300;
+    public bool LegacyClientSupport => true;
+
     #endregion
 
     #region Property change notification boilerplate

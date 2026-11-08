@@ -1,8 +1,11 @@
-using Sandbox.Game;
+using System;
+using System.Diagnostics;
+using System.Linq;
+using MultigridProjector.Config;
+using MultigridProjector.Logic;
+using Sandbox.Game.Multiplayer;
 using Sandbox.Game.World;
 using Sandbox.ModAPI;
-using System;
-using System.Linq;
 
 // ReSharper disable once CheckNamespace
 namespace MultigridProjector.Utilities
@@ -15,15 +18,30 @@ namespace MultigridProjector.Utilities
         DedicatedServer,
     }
 
+    // MGP's traffic between the client and server plugins on mod channel Presence.Channel.
+    //
+    // A server (dedicated or a client hosting the game) sends every connected client a presence
+    // packet with its version, a few seconds after the client joined and then at an interval.
+    // A client starts in client-only mode, where it sends exactly what a vanilla client sends,
+    // and switches to the full feature set (ServerHasPlugin) on the first presence packet of its
+    // own major version. In full mode it sends its projector build requests as mod messages,
+    // which the server checks and builds (BuildRequests).
     public class Comms : IDisposable
     {
         public static Role Role;
         public static bool ServerHasPlugin;
-        private const ushort HandlerId = 0x7b94;
-        private static readonly byte[] Signature = { 2, 3, 5, 7, 11, 13, 17, 19 };
 
-        public delegate void OnPacketReceived(byte[] data, ulong fromSteamId, bool fromServer);
-        public static event OnPacketReceived PacketReceived;
+        // The version this plugin advertises and accepts, like "1.0.0"
+        public static readonly string PluginVersion = GetPluginVersion();
+
+        // MGP 0.9.x clients switch to full mode on any packet from the server on the legacy channel
+        private static readonly byte[] LegacySignature = { 2, 3, 5, 7, 11, 13, 17, 19 };
+
+        private static readonly Stopwatch Clock = Stopwatch.StartNew();
+        private readonly PresenceSchedule schedule = new PresenceSchedule();
+        private readonly byte[] presence;
+        private bool loggedIgnoredPresence;
+        private int frame;
 
         public Comms()
         {
@@ -36,46 +54,23 @@ namespace MultigridProjector.Utilities
                 return;
             }
 
-            MyAPIGateway.Multiplayer.RegisterSecureMessageHandler(HandlerId, DoPacketReceived);
+            ServerHasPlugin = Role != Role.MultiplayerClient;
 
-            // Wait until the message handler is registered
-            Events.InvokeOnGameThread(() =>
-            {
-                // If connecting to a server listen if it has MGP
-                if (Role == Role.MultiplayerClient)
-                {
-                    ServerHasPlugin = false;
+            // A test hook: the version a server advertises, to test clients of another major version
+            var advertised =
+                Environment.GetEnvironmentVariable("MGP_TEST_PRESENCE_VERSION") ?? PluginVersion;
+            presence = Presence.EncodePresence(advertised);
 
-                    PacketReceived += OnServerPluginMessage;
-                }
+            MyAPIGateway.Multiplayer.RegisterSecureMessageHandler(Presence.Channel, OnMessage);
 
-                // If hosting a game let players know we have MGP
-                else if (Role == Role.MultiplayerServer || Role == Role.DedicatedServer)
-                {
-                    ServerHasPlugin = true;
-
-                    // This will not fire as we connect to our own game due to the delay with InvokeOnGameThread
-                    MyVisualScriptLogicProvider.PlayerConnected += SendServerHasPlugin;
-                }
-            });
-        }
-
-        private static void SendServerHasPlugin(long playerId)
-        {
-            ulong steamId = MySession.Static.Players.TryGetSteamId(playerId);
-            SendToClient(HandlerId, Signature, steamId);
-            PluginLog.Debug($"Sent Message to {steamId} (check if this is garage collected)");
-        }
-
-        private static void OnServerPluginMessage(byte[] data, ulong fromSteamId, bool fromServer)
-        {
-            if (!fromServer || Enumerable.SequenceEqual(data, Signature))
-                return;
-
-            ServerHasPlugin = true;
-            PacketReceived -= OnServerPluginMessage;
-
-            PluginLog.Debug("Server plugin is present");
+            PluginLog.Info(
+                $"Comms: {Role}, version {PluginVersion}"
+                    + (
+                        Role == Role.MultiplayerClient
+                            ? ", client-only mode until the server's presence packet"
+                            : $", advertising {advertised}"
+                    )
+            );
         }
 
         public void Dispose()
@@ -83,41 +78,126 @@ namespace MultigridProjector.Utilities
             if (Role == Role.SinglePlayer)
                 return;
 
-            MyAPIGateway.Multiplayer.UnregisterSecureMessageHandler(HandlerId, DoPacketReceived);
+            MyAPIGateway.Multiplayer.UnregisterSecureMessageHandler(Presence.Channel, OnMessage);
+        }
 
-            if (Role == Role.MultiplayerServer)
-                MyVisualScriptLogicProvider.PlayerConnected -= SendServerHasPlugin;
+        // Called on every simulation frame
+        public void Update()
+        {
+            if (Role != Role.DedicatedServer && Role != Role.MultiplayerServer)
+                return;
 
-            if (Role == Role.MultiplayerClient)
-                PacketReceived -= OnServerPluginMessage;
+            // Once a second is plenty for a schedule counted in seconds
+            if (++frame % 60 != 0)
+                return;
+
+            var config = PluginConfig.Current;
+            var online = MySession.Static?.Players?.GetOnlinePlayers();
+            if (online == null)
+                return;
+
+            var clients = online
+                .Where(p => p.IsRealPlayer && p.Id.SerialId == 0 && p.Id.SteamId != Sync.MyId)
+                .Select(p => p.Id.SteamId);
+
+            foreach (
+                var steamId in schedule.Due(
+                    clients,
+                    Clock.Elapsed.TotalSeconds,
+                    config.PresenceDelaySeconds,
+                    config.PresenceIntervalSeconds
+                )
+            )
+            {
+                MyAPIGateway.Multiplayer.SendMessageTo(Presence.Channel, presence, steamId);
+
+                if (config.LegacyClientSupport)
+                    MyAPIGateway.Multiplayer.SendMessageTo(
+                        Presence.LegacyChannel,
+                        LegacySignature,
+                        steamId
+                    );
+
+                PluginLog.Debug($"Sent the presence packet to {steamId}");
+            }
+        }
+
+        private void OnMessage(ushort channel, byte[] data, ulong sender, bool fromServer)
+        {
+            try
+            {
+                if (Role == Role.MultiplayerClient)
+                {
+                    if (fromServer)
+                        OnPresence(data);
+                    return;
+                }
+
+                // Only the server takes build requests, from its clients
+                if (fromServer || sender == Sync.MyId)
+                    return;
+
+                if (!BuildRequest.TryDecode(data, out var request))
+                {
+                    PluginLog.Debug(
+                        $"Ignored a malformed packet of {data?.Length ?? 0} bytes from {sender}"
+                    );
+                    return;
+                }
+
+                BuildRequests.Handle(sender, request);
+            }
+            catch (Exception e)
+            {
+                PluginLog.Error(e, $"Failed to handle a packet from {sender}");
+            }
+        }
+
+        private void OnPresence(byte[] data)
+        {
+            if (Presence.IsCompatible(data, PluginVersion, out var serverVersion))
+            {
+                if (!ServerHasPlugin)
+                    PluginLog.Info(
+                        $"Server plugin present, version {serverVersion}: full feature set"
+                    );
+
+                ServerHasPlugin = true;
+                return;
+            }
+
+            if (loggedIgnoredPresence)
+                return;
+
+            loggedIgnoredPresence = true;
+            var shown = serverVersion ?? $"{data?.Length ?? 0} bytes that are not a version";
+            PluginLog.Info(
+                $"Ignored the server's presence packet ({shown}), it is not compatible with {PluginVersion}: client-only mode"
+            );
+        }
+
+        public static void SendBuildRequest(BuildRequest request)
+        {
+            MyAPIGateway.Multiplayer.SendMessageToServer(Presence.Channel, request.Encode());
+        }
+
+        private static string GetPluginVersion()
+        {
+            var version = typeof(Comms).Assembly.GetName().Version;
+            return $"{version.Major}.{version.Minor}.{Math.Max(0, version.Build)}";
         }
 
         private static Role DetectRole()
         {
             if (MyAPIGateway.Utilities.IsDedicated)
                 return Role.DedicatedServer;
-            
+
             if (MyAPIGateway.Multiplayer.MultiplayerActive)
-                return MyAPIGateway.Multiplayer.IsServer ? Role.MultiplayerServer : Role.MultiplayerClient;
+                return MyAPIGateway.Multiplayer.IsServer
+                    ? Role.MultiplayerServer
+                    : Role.MultiplayerClient;
 
             return Role.SinglePlayer;
-        }
-
-        private static void DoPacketReceived(ushort handlerId, byte[] data, ulong fromSteamId, bool fromServer)
-        {
-            PacketReceived?.Invoke(data, fromSteamId, fromServer);
-        }
-
-        public static void SendToServer<T>(ushort handlerId, T packet, bool reliable = true)
-        {
-            byte[] data = MyAPIGateway.Utilities.SerializeToBinary(packet);
-            MyAPIGateway.Multiplayer.SendMessageToServer(HandlerId, data, reliable);
-        }
-
-        public static void SendToClient<T>(ushort handlerId, T packet, ulong steamId, bool reliable = true)
-        {
-            byte[] data = MyAPIGateway.Utilities.SerializeToBinary(packet);
-            MyAPIGateway.Multiplayer.SendMessageTo(HandlerId, data, steamId, reliable);
         }
     }
 }

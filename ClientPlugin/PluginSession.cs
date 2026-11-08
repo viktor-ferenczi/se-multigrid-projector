@@ -1,3 +1,4 @@
+using MultigridProjector.Utilities;
 using MultigridProjector.Logic;
 using MultigridProjectorClient.Utilities;
 using ClientPlugin;
@@ -45,7 +46,8 @@ namespace MultigridProjectorClient
             if (Config.Current.BlockHighlight)
                 BlockHighlight.HighlightLoop();
 
-            if (Config.Current.ShipWelding)
+            // With the server plugin present the server welds with the ship welders itself
+            if (Config.Current.ShipWelding && !Comms.ServerHasPlugin)
                 ShipWelding.WeldLoop();
         }
     }

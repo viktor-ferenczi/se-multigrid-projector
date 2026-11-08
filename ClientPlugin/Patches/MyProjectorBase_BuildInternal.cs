@@ -6,6 +6,7 @@ using HarmonyLib;
 using MultigridProjector.Logic;
 using MultigridProjector.Utilities;
 using Sandbox.Game.Entities.Blocks;
+using VRage.Network;
 using VRageMath;
 
 #if !DEBUG
@@ -58,6 +59,10 @@ namespace MultigridProjectorClient.Patches
             long builtBy)
         {
             var projector = __instance;
+
+            // Only for the record: who sends which arguments
+            if (!MyEventContext.Current.IsLocallyInvoked)
+                BuildRequests.NoteRpc(MyEventContext.Current.Sender.Value, owner, builtBy);
             
             // Find the multigrid projection, fall back to the default implementation if this projector is not handled by the plugin
             if (!MultigridProjection.TryFindProjectionByProjector(projector, out var projection))

@@ -20,16 +20,18 @@ namespace MultigridProjectorClient.Patches
             MyProjectorBase __instance,
             MySlimBlock cubeBlock,
             long owner,
+            long builder,
+            bool requestInstant,
             ref long builtBy)
         {
             var projector = __instance;
 
 #if DEBUG
-            return Construction.WeldBlock(projector, cubeBlock, owner, ref builtBy);
-#else    
+            return Construction.WeldBlock(projector, cubeBlock, owner, builder, requestInstant, ref builtBy);
+#else
             try
             {
-                return Construction.WeldBlock(projector, cubeBlock, owner, ref builtBy);
+                return Construction.WeldBlock(projector, cubeBlock, owner, builder, requestInstant, ref builtBy);
             }
             catch (Exception e)
             {
