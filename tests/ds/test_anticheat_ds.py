@@ -1,7 +1,7 @@
 """Full mode builds pass Anti-Cheat (SE-1273, SE-1252): a survival player
 without admin rights welds a projection with subgrids on a server with MGP and
 Anti-Cheat's projector build guard. MGP 0.9.x put the subgrid index into the
-vanilla BuildInternal RPC's builtBy, which the guard refuses with a kick. MGP
+vanilla BuildInternal RPC's builtBy, which the guard refused with a kick. MGP
 1.x sends full mode builds as mod messages and checks the player's identity,
 character, reach and rate itself."""
 

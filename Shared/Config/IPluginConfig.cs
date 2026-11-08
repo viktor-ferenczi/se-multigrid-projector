@@ -26,9 +26,5 @@ namespace MultigridProjector.Config
         // the server sends it (Comms), and between the repeats. Tests shorten them.
         int PresenceDelaySeconds { get; }
         int PresenceIntervalSeconds { get; }
-
-        // Also tell MGP 0.9.x clients that the server has the plugin, on their old channel. They
-        // then send the subgrid index in BuildInternal's builtBy, which the server still takes.
-        bool LegacyClientSupport { get; }
     }
 }

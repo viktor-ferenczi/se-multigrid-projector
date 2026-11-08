@@ -66,14 +66,13 @@ def prepare_server(
     report=(),
     plugin_config: dict | None = None,
     others: str = "",
-    mgp_repo: Path = rig.REPO,
     plugins=(),
     admins: bool = True,
 ) -> None:
     """A fresh copy of the test world and the server's configs. Without mgp the
     server runs DirectTransport only, as a vanilla server would. plugin_config
     sets options of the MGP server plugin by name, the rest keep their
-    defaults. mgp_repo is the MGP working copy the server compiles. plugins
+    defaults. plugins
     are more server plugins as (id, source name, folder, xml file) tuples.
     Without admins the clients join as plain players."""
     stations.prepare(
@@ -93,7 +92,7 @@ def prepare_server(
         shutil.copy(MAGNETAR_TEMPLATE / "config.xml", SERVER_CONFIG / "config.xml")
     sources = SERVER_CONFIG / "Sources" / "sources.xml"
     rig.register_source(
-        sources, "se-multigrid-projector", mgp_repo, "MultigridProjectorServer.xml"
+        sources, "se-multigrid-projector", rig.REPO, "MultigridProjectorServer.xml"
     )
     for _, name, folder, xml in plugins:
         rig.register_source(sources, name, folder, xml)
@@ -204,14 +203,10 @@ def server_log_text() -> str:
     return logs[-1].read_text(errors="replace") if logs else ""
 
 
-def start_client(
-    client: rig.Client = CLIENT, mgp: bool = True, mgp_repo: Path = rig.REPO
-):
+def start_client(client: rig.Client = CLIENT, mgp: bool = True):
     """Starts a client, which joins on its own, and returns its API once the
     character stands in the world"""
-    rig.launch(
-        client, ["--connect", f"127.0.0.1:{SERVER_PORT}"], mgp=mgp, mgp_repo=mgp_repo
-    )
+    rig.launch(client, ["--connect", f"127.0.0.1:{SERVER_PORT}"], mgp=mgp)
     remote = rig.wait_api(client)
     rig.wait_world(remote, 900)
     rig.ensure_character(remote)

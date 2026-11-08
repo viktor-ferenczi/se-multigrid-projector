@@ -78,7 +78,7 @@ These patches intercept every code path that triggers block construction or weld
 #### `MyProjectorBase_BuildInternal`
 - **Target:** `MyProjectorBase.BuildInternal(Vector3I, long, long, bool, long)`
 - **Kind:** Transpiler — replaces the entire method body with a call to `MyProjectorBase_BuildInternal.BuildInternal` (server-only path)
-- Implemented as a Transpiler rather than a Prefix to avoid a Harmony crash that occurs when patching multiplayer event handlers with a Prefix. Decodes the subgrid index from `builtBy` and calls `projection.BuildInternal`.
+- Implemented as a Transpiler rather than a Prefix to avoid a Harmony crash that occurs when patching multiplayer event handlers with a Prefix. Takes the subgrid index from `builtBy` only on local calls (single player, hosting), uses the first subgrid for a client's RPC, and calls `projection.BuildInternal`.
 
 #### `MyProjectorBase_CanBuild`
 - **Target:** `MyProjectorBase.CanBuild(MySlimBlock, bool)`

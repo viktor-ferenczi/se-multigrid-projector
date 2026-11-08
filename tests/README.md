@@ -45,16 +45,11 @@ player joins in every server test, and these set the repeat to 3 s:
 | `test_anticheat_ds.py` | MGP, Anti-Cheat | MGP, plain player | full mode welds of main grid and subgrids arrive as mod messages, Anti-Cheat refuses nothing |
 | `test_protocol_mismatch_ds.py` | MGP of another protocol id, Anti-Cheat | MGP, plain player | the client ignores the packet once, stays client-only and sends only vanilla build requests |
 | `test_vanilla_client_ds.py` | MGP | none | the vanilla client welds the first grid with vanilla requests |
-| `test_legacy_client_ds.py` | MGP | MGP 0.9.12 | the old client gets its old signature and welds every subgrid with the subgrid index in `builtBy` |
-| `test_legacy_server_ds.py` | MGP 0.9.12 | MGP | the client stays client-only and welds the first grid |
-| `test_anticheat_mgp09_ds.py` | MGP 0.9.12, Anti-Cheat | MGP 0.9.12, plain player | before 1.0.0: Anti-Cheat kicks the welder |
-| `test_anticheat_legacy_off_ds.py` | MGP with `LegacyClientSupport` off, Anti-Cheat | MGP 0.9.12, plain player | the old client stays client-only and isn't kicked |
 | `test_lobby_host_ds.py` | client 1 hosting a lobby | client 2 | the host's client plugin sends the presence packet and builds the joiner's requests |
 
 The Anti-Cheat tests need `MGP_ANTI_CHEAT_REPO`, a working copy of
-CometWorks/anti-cheat whose guards compile under Magnetar (SE-1251), and the
-0.9.12 ones `MGP_09_REPO`, a checkout of MGP 0.9.12. Without them those tests
-skip. Plain players can't use the admin teleport, so those benches get a
+CometWorks/anti-cheat whose guards compile under Magnetar (SE-1251). Without it
+they skip. Plain players can't use the admin teleport, so those benches get a
 medical room shared with all, and the character spawns there. Anti-Cheat is
 set to kick on the first refusal, since it logs a refusal only when it kicks.
 
@@ -193,6 +188,5 @@ dotnet test tests/unit
 | `MGP_WINDOWED=1` | a real window instead of headless |
 | `MGP_EXTRA_ARGS` | more launcher options, like `-bin64 <game Bin64>` when Pulsar can't find the game |
 | `MGP_ANTI_CHEAT_REPO` | the Anti-Cheat working copy of the compatibility tests |
-| `MGP_09_REPO` | the MGP 0.9.12 checkout of the compatibility tests |
 
 What MGP logged during each test goes to `tests/artifacts/<test file>.log`.

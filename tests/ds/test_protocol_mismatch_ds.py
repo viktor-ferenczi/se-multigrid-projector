@@ -44,7 +44,7 @@ def test_presence_is_ignored_once(game, welded):
 def test_client_sends_only_vanilla_requests(game, welded):
     assert welded
     assert compat.server_lines(compat.VANILLA_RPC, wait=60)
-    assert not compat.server_lines(compat.LEGACY_RPC)
+    assert not compat.server_lines(compat.NOT_VANILLA_RPC)
     assert not compat.server_lines(compat.MOD_MESSAGES)
 
 

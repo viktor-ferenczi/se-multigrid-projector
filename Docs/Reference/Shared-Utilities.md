@@ -220,7 +220,7 @@ _`public class Comms : IDisposable` — namespace `MultigridProjector.Utilities`
 
 MGP's traffic between the client and server plugins on mod channel `0xD83A` (`Presence.Channel`). On construction it detects the runtime role and registers a secure-message handler on that channel.
 
-- **Server** (`DedicatedServer`, or `MultiplayerServer` when a client hosts the game): `Update`, called every frame, keeps a `PresenceSchedule` of the online players. Each gets a presence packet `PresenceDelaySeconds` (default 5) after it shows up in the online player list, then every `PresenceIntervalSeconds` (default 300). There is no connect event involved, so lost packets and cluster node switches are covered by the repeat. With `LegacyClientSupport` (default on) the old 8-byte signature also goes out on `0x7b94` for MGP 0.9.x clients. Build requests from clients go to `BuildRequests.Handle`.
+- **Server** (`DedicatedServer`, or `MultiplayerServer` when a client hosts the game): `Update`, called every frame, keeps a `PresenceSchedule` of the online players. Each gets a presence packet `PresenceDelaySeconds` (default 10) after it shows up in the online player list, then every `PresenceIntervalSeconds` (default 300). There is no connect event involved, so lost packets and cluster node switches are covered by the repeat. Build requests from clients go to `BuildRequests.Handle`.
 - **Client** (`MultiplayerClient`): starts in client-only mode (`ServerHasPlugin = false`), where it sends exactly what a vanilla client sends. It switches to the full feature set on the first presence packet carrying its own protocol id (`Presence.ProtocolId`). Any other packet is ignored and logged once.
 
 The presence packet is ASCII: the protocol id, a space and the plugin version, like `ada94b93-b115-4fa6-9cd9-8e4766d87706 1.0.0`. Only the id decides compatibility; the version is for the logs. The id changes on any update that breaks the client/server traffic or state the two sides can't reconcile. It is not the plugin's Id and has nothing to do with the MGP API.
@@ -240,7 +240,7 @@ The presence packet is ASCII: the protocol id, a space and the plugin version, l
 
 _[`Presence.cs`](../../Shared/Utilities/Presence.cs), free of game types so `tests/unit` compiles it_
 
-- `Presence`: the channel ids, the protocol id, encoding and parsing of the presence packet, `IsCompatible`.
+- `Presence`: the channel id, the protocol id, encoding and parsing of the presence packet, `IsCompatible`.
 - `BuildRequest`: a full mode build request: projector entity id, subgrid index, preview block position, owner, builder and the instant flag, after a type byte, little endian.
 - `PresenceSchedule`: who is due a presence packet when.
 - `BuildRateLimit`: build requests per sender per second.

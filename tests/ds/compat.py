@@ -1,9 +1,8 @@
 """Helpers of the client/server compatibility tests (SE-1273): the presence
-packet, client-only and full mode, Anti-Cheat on the server and MGP 0.9.x on
-either side.
+packet, client-only and full mode, and Anti-Cheat on the server.
 
 MGP_ANTI_CHEAT_REPO is a working copy of CometWorks/anti-cheat (its projector
-build guard), MGP_09_REPO one of MGP 0.9.12. Tests needing one skip without it.
+build guard). The tests needing it skip without it.
 """
 
 from __future__ import annotations
@@ -29,9 +28,8 @@ ANTI_CHEAT = (
     ANTI_CHEAT_REPO,
     "AntiCheatServer.xml",
 )
-MGP_09_REPO = Path(os.environ.get("MGP_09_REPO", "/nonexistent"))
 
-# Seconds, short for the tests; production is 5 and 300
+# Seconds, short for the tests; the defaults are 10 and 300
 FAST_PRESENCE = {"PresenceDelaySeconds": 1, "PresenceIntervalSeconds": 3}
 
 FULL_MODE = "server plugin present, full feature set"
@@ -39,7 +37,7 @@ PRESENCE = "Presence packet from the server"
 IGNORED = "Ignored the server's presence packet"
 MOD_MESSAGES = "arrive as mod messages"
 VANILLA_RPC = "with vanilla arguments"
-LEGACY_RPC = "with the subgrid index in builtBy"
+NOT_VANILLA_RPC = "not the owner"
 REFUSED = "Refused a build request"
 # Anti-Cheat logs a refusal only when it kicks, which anti_cheat_config makes
 # it do on the first one
@@ -49,11 +47,6 @@ needs_anti_cheat = pytest.mark.skipif(
     not (ANTI_CHEAT_REPO / "AntiCheatServer.xml").exists(),
     reason="MGP_ANTI_CHEAT_REPO is not an anti-cheat working copy",
 )
-needs_mgp_09 = pytest.mark.skipif(
-    not (MGP_09_REPO / "MultigridProjectorClient.xml").exists(),
-    reason="MGP_09_REPO is not an MGP 0.9.x working copy",
-)
-
 _STAMP = re.compile(r"^(\d{4}-\d\d-\d\d \d\d:\d\d:\d\d\.\d+) - ")
 
 
@@ -116,7 +109,7 @@ def stand_on(game, bench: str, cell) -> None:
 
 def weld_passes(game, projector_id: int, instant: bool, timeout=120.0, settle=15.0):
     """Hand welder passes until none requests anything for settle seconds,
-    without MGP's PB report (a 0.9.x or no server plugin has none)"""
+    without MGP's PB report (a server without the plugin has none)"""
     deadline = time.monotonic() + timeout
     quiet_since = time.monotonic()
     total = 0

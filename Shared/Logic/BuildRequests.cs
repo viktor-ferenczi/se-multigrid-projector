@@ -104,23 +104,17 @@ namespace MultigridProjector.Logic
                 );
         }
 
-        // A BuildInternal RPC from a client, for the record. Vanilla clients and MGP 1.x clients in
-        // client-only mode send builtBy = owner. MGP 0.9.x clients in full mode put the subgrid
-        // index there, which MultigridProjection.BuildInternal still takes.
+        // A BuildInternal RPC from a client, for the record. Vanilla clients and MGP clients in
+        // client-only mode send builtBy = owner.
         public static void NoteRpc(ulong sender, long owner, long builtBy)
         {
-            if (builtBy == owner)
-                LogOnce(
-                    sender,
-                    "vanilla rpc",
-                    $"BuildInternal RPC from {sender} with vanilla arguments"
-                );
-            else
-                LogOnce(
-                    sender,
-                    "legacy rpc",
-                    $"BuildInternal RPC from {sender} with the subgrid index in builtBy (MGP 0.9.x client)"
-                );
+            LogOnce(
+                sender,
+                "rpc",
+                builtBy == owner
+                    ? $"BuildInternal RPC from {sender} with vanilla arguments"
+                    : $"BuildInternal RPC from {sender} with builtBy {builtBy}, not the owner {owner}"
+            );
         }
 
         private static void Refuse(ulong sender, string reason, BuildRequest request)

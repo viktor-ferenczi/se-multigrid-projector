@@ -22,9 +22,6 @@ namespace MultigridProjector.Utilities
         // Fixed by SE-1273. Nothing else known (plugins, mods, scripts, worlds) uses it.
         public const ushort Channel = 0xD83A;
 
-        // MGP 0.9.x clients switch to full mode on any server packet on this channel
-        public const ushort LegacyChannel = 0x7b94;
-
         // Replace it with a new random UUID (uuid4) in any update that would break the client and
         // server plugins talking to each other: a change of the mod messages, or of state the two
         // sides can't reconcile. Clients and servers with different ids then work as with a vanilla

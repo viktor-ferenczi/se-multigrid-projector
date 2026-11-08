@@ -68,13 +68,16 @@ namespace MultigridProjectorClient.Patches
             if (!MultigridProjection.TryFindProjectionByProjector(projector, out var projection))
                 return;
 
-            // We use the builtBy field to pass the subgrid index
+            // Only MGP's own Build patches call this locally, with the subgrid index in builtBy. A
+            // client's RPC always builds on the first subgrid: vanilla clients and MGP clients in
+            // client-only mode send builtBy = owner, MGP clients in full mode don't send this RPC.
+            var subgridIndex = MyEventContext.Current.IsLocallyInvoked ? builtBy : 0;
 #if DEBUG
-            projection.BuildInternal(cubeBlockPosition, owner, builder, requestInstant, builtBy);
+            projection.BuildInternal(cubeBlockPosition, owner, builder, requestInstant, subgridIndex);
 #else            
             try
             {
-                projection.BuildInternal(cubeBlockPosition, owner, builder, requestInstant, builtBy);
+                projection.BuildInternal(cubeBlockPosition, owner, builder, requestInstant, subgridIndex);
             }
             catch (Exception e)
             {

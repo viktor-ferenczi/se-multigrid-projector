@@ -115,9 +115,8 @@ public class Config : INotifyPropertyChanged, IPluginConfig
     public int ProjectionPcuLimitPercent => 0;
 
     // Presence packets when hosting a game, as the server plugin's defaults
-    public int PresenceDelaySeconds => 5;
+    public int PresenceDelaySeconds => 10;
     public int PresenceIntervalSeconds => 300;
-    public bool LegacyClientSupport => true;
 
     #endregion
 

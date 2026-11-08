@@ -12,8 +12,7 @@ namespace MultigridProjector.Config
     {
         public bool PreviewBlockVisuals => true;
         public int ProjectionPcuLimitPercent => 0;
-        public int PresenceDelaySeconds => 5;
+        public int PresenceDelaySeconds => 10;
         public int PresenceIntervalSeconds => 300;
-        public bool LegacyClientSupport => true;
     }
 }

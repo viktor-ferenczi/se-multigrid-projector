@@ -7,8 +7,7 @@ for a server without the MGP server plugin, and BENCHES, WORLD_SETTINGS,
 STATION_EXTRAS, SECTOR_OBJECTS and REPORT_PROJECTORS as in single player.
 MGP_SERVER_CONFIG sets server plugin options and EDIT_WORLD is called with the
 world folder before the server starts. MGP_CLIENT = False joins with a vanilla
-client. MGP_SERVER_REPO and MGP_CLIENT_REPO point a side at another MGP working
-copy, SERVER_PLUGINS adds server plugins (see ds_rig.prepare_server),
+client, SERVER_PLUGINS adds server plugins (see ds_rig.prepare_server),
 SERVER_ENV sets server environment variables and ADMINS = False joins as a
 plain player.
 
@@ -63,13 +62,12 @@ def game(request):
                 settings=getattr(request.module, "WORLD_SETTINGS", None),
                 extras=getattr(request.module, "STATION_EXTRAS", None),
                 report=getattr(request.module, "REPORT_PROJECTORS", ()),
-                # The presence packet 1 s after the join, not 5 s
+                # The presence packet 1 s after the join, not 10 s
                 plugin_config={
                     "PresenceDelaySeconds": 1,
                     **getattr(request.module, "MGP_SERVER_CONFIG", {}),
                 },
                 others=getattr(request.module, "SECTOR_OBJECTS", ""),
-                mgp_repo=getattr(request.module, "MGP_SERVER_REPO", rig.REPO),
                 plugins=getattr(request.module, "SERVER_PLUGINS", ()),
                 admins=getattr(request.module, "ADMINS", True),
             )
@@ -79,13 +77,10 @@ def game(request):
             ds_rig.start_server(env=getattr(request.module, "SERVER_ENV", None))
             remote = ds_rig.start_client(
                 mgp=getattr(request.module, "MGP_CLIENT", True),
-                mgp_repo=getattr(request.module, "MGP_CLIENT_REPO", rig.REPO),
             )
             if (
                 getattr(request.module, "MGP_SERVER", True)
                 and getattr(request.module, "MGP_CLIENT", True)
-                and getattr(request.module, "MGP_CLIENT_REPO", rig.REPO) == rig.REPO
-                and getattr(request.module, "MGP_SERVER_REPO", rig.REPO) == rig.REPO
                 and not getattr(request.module, "SERVER_ENV", None)
             ):
                 wait_full_mode()
