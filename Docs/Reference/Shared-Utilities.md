@@ -245,15 +245,6 @@ _[`Presence.cs`](../../Shared/Utilities/Presence.cs), free of game types so `tes
 - `PresenceSchedule`: who is due a presence packet when.
 - `BuildRateLimit`: build requests per sender per second.
 
----|---|---|
-| `Role` | `static Role` | The detected role for this session (set in the constructor). |
-| `ServerHasPlugin` | `static bool` | `true` once the server is known to have the plugin installed (always `true` in single-player and on the server itself). |
-| `PacketReceived` | `static event OnPacketReceived` | Fired for every incoming secure-message packet after signature dispatch; subscribers receive `(byte[] data, ulong fromSteamId, bool fromServer)`. |
-| `Comms()` | constructor | Detects role, registers handler, schedules deferred handshake logic via `Events.InvokeOnGameThread`. |
-| `Dispose()` | method | Unregisters secure-message handler and event hooks. |
-| `SendToServer<T>(handlerId, packet, reliable)` | static method | Serialize `packet` with `MyAPIGateway.Utilities.SerializeToBinary` and send to the server. |
-| `SendToClient<T>(handlerId, packet, steamId, reliable)` | static method | Serialize `packet` and send to a specific client by Steam ID. |
-
 ### Role (enum)
 
 | Value | Meaning |

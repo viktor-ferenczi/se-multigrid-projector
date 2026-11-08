@@ -9,7 +9,7 @@ The `ClientPlugin/Patches` directory contains all Harmony patches that are appli
 | File | Lines | Patched target | Purpose |
 |------|------:|----------------|---------|
 | [MySpaceProjector_CreateTerminalControls.cs](../../ClientPlugin/Patches/MySpaceProjector_CreateTerminalControls.cs) | 122 | `MySpaceProjector.CreateTerminalControls` | Injects custom terminal controls and toolbar actions; removes vanilla block-marker controls |
-| [MyProjectorBase_BuildInternal.cs](../../ClientPlugin/Patches/MyProjectorBase_BuildInternal.cs) | 81 | `MyProjectorBase.BuildInternal` | Replaces entire body to call `MultigridProjection.BuildInternal`, encoding subgrid index via `builtBy` |
+| [MyProjectorBase_BuildInternal.cs](../../ClientPlugin/Patches/MyProjectorBase_BuildInternal.cs) | 81 | `MyProjectorBase.BuildInternal` | Replaces entire body to call `MultigridProjection.BuildInternal`, taking the subgrid index from `builtBy` on local calls only |
 | [MyGuiBlueprintScreenPatches.cs](../../ClientPlugin/Patches/MyGuiBlueprintScreenPatches.cs) | 70 | `MyGuiBlueprintScreen_Reworked.CreateBlueprintFromClipboard`, `MyBlueprintUtils.SavePrefabToFile` | Normalises blueprint world position and aligns grid to repair projector before saving |
 | [MyProjectorBase_InitFromObjectBuilder.cs](../../ClientPlugin/Patches/MyProjectorBase_InitFromObjectBuilder.cs) | 63 | `MyProjectorBase.InitFromObjectBuilder` | Delegates to `MultigridProjection.InitFromObjectBuilder`; shows unsupported/client-weld dialog when server lacks plugin |
 | [MyProjectorBase_SetNewBlueprint.cs](../../ClientPlugin/Patches/MyProjectorBase_SetNewBlueprint.cs) | 59 | `MyProjectorBase.Remap` | Replaces Remap with a safe remapping sequence that preserves subgrid entity-ID consistency |

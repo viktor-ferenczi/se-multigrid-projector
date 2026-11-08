@@ -84,6 +84,8 @@ directory.
 | ------ | ------- | ----------- |
 | Preview block visuals | On | See below. |
 | Projection PCU limit percent | 0 (off) | See below. |
+| Presence delay | 10 | Seconds from a player joining to the first presence packet, which switches their client plugin to full mode. |
+| Presence interval | 300 | Seconds between presence packets, which cover lost packets and players moving between cluster nodes. |
 
 #### Preview block visuals
 
