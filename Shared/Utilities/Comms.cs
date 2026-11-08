@@ -21,17 +21,18 @@ namespace MultigridProjector.Utilities
     // MGP's traffic between the client and server plugins on mod channel Presence.Channel.
     //
     // A server (dedicated or a client hosting the game) sends every connected client a presence
-    // packet with its version, a few seconds after the client joined and then at an interval.
+    // packet with its protocol id and version, a few seconds after the client joined and then at
+    // an interval.
     // A client starts in client-only mode, where it sends exactly what a vanilla client sends,
-    // and switches to the full feature set (ServerHasPlugin) on the first presence packet of its
-    // own major version. In full mode it sends its projector build requests as mod messages,
+    // and switches to the full feature set (ServerHasPlugin) on the first presence packet with
+    // its own protocol id. In full mode it sends its projector build requests as mod messages,
     // which the server checks and builds (BuildRequests).
     public class Comms : IDisposable
     {
         public static Role Role;
         public static bool ServerHasPlugin;
 
-        // The version this plugin advertises and accepts, like "1.0.0"
+        // The version this plugin advertises for the logs, like "1.0.0"
         public static readonly string PluginVersion = GetPluginVersion();
 
         // MGP 0.9.x clients switch to full mode on any packet from the server on the legacy channel
@@ -56,19 +57,20 @@ namespace MultigridProjector.Utilities
 
             ServerHasPlugin = Role != Role.MultiplayerClient;
 
-            // A test hook: the version a server advertises, to test clients of another major version
+            // A test hook: the protocol id a server advertises, to test clients of another protocol
+            var testProtocolId = Environment.GetEnvironmentVariable("MGP_TEST_PROTOCOL_ID");
             var advertised =
-                Environment.GetEnvironmentVariable("MGP_TEST_PRESENCE_VERSION") ?? PluginVersion;
-            presence = Presence.EncodePresence(advertised);
+                testProtocolId == null ? Presence.ProtocolId : new Guid(testProtocolId);
+            presence = Presence.EncodePresence(advertised, PluginVersion);
 
             MyAPIGateway.Multiplayer.RegisterSecureMessageHandler(Presence.Channel, OnMessage);
 
             PluginLog.Info(
-                $"Comms: {Role}, version {PluginVersion}"
+                $"Comms: {Role}, version {PluginVersion}, protocol {Presence.ProtocolId}"
                     + (
                         Role == Role.MultiplayerClient
                             ? ", client-only mode until the server's presence packet"
-                            : $", advertising {advertised}"
+                            : $", advertising protocol {advertised}"
                     )
             );
         }
@@ -155,7 +157,7 @@ namespace MultigridProjector.Utilities
 
         private void OnPresence(byte[] data)
         {
-            if (Presence.IsCompatible(data, PluginVersion, out var serverVersion))
+            if (Presence.IsCompatible(data, Presence.ProtocolId, out var serverVersion))
             {
                 if (!ServerHasPlugin)
                     PluginLog.Info(
@@ -170,9 +172,11 @@ namespace MultigridProjector.Utilities
                 return;
 
             loggedIgnoredPresence = true;
-            var shown = serverVersion ?? $"{data?.Length ?? 0} bytes that are not a version";
+            var shown = Presence.TryParsePresence(data, out var serverProtocolId, out _)
+                ? $"protocol {serverProtocolId}, version {serverVersion}"
+                : $"{data?.Length ?? 0} bytes that are not a presence packet";
             PluginLog.Info(
-                $"Ignored the server's presence packet ({shown}), it is not compatible with {PluginVersion}: client-only mode"
+                $"Ignored the server's presence packet ({shown}), this client speaks protocol {Presence.ProtocolId}: client-only mode"
             );
         }
 

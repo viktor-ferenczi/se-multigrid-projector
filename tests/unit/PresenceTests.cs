@@ -1,3 +1,4 @@
+using System;
 using System.Linq;
 using System.Text;
 using MultigridProjector.Utilities;
@@ -7,67 +8,87 @@ public class PresenceTests
 {
     private static byte[] Bytes(string text) => Encoding.ASCII.GetBytes(text);
 
-    [Theory]
-    [InlineData("1.0.0", 1)]
-    [InlineData("1.2", 1)]
-    [InlineData("2.10.3.4", 2)]
-    [InlineData("0.9.12", 0)]
-    public void ParsesVersions(string text, int major)
+    private const string Id = "ada94b93-b115-4fa6-9cd9-8e4766d87706";
+    private static readonly Guid Other = new Guid("0f8e2c4d-6b1a-4e3f-9d2c-7a5b3e1f0c9d");
+
+    [Fact]
+    public void TheProtocolIdIsFixedInTheCode()
     {
-        Assert.True(Presence.TryParseVersion(Bytes(text), out var version, out var parsedMajor));
-        Assert.Equal(text, version);
-        Assert.Equal(major, parsedMajor);
+        Assert.Equal(new Guid(Id), Presence.ProtocolId);
+    }
+
+    [Theory]
+    [InlineData(Id + " 1.0.0", "1.0.0")]
+    [InlineData(Id + " 1.2", "1.2")]
+    [InlineData(Id + " 2.10.3.4", "2.10.3.4")]
+    public void ParsesPresencePackets(string text, string version)
+    {
+        Assert.True(Presence.TryParsePresence(Bytes(text), out var protocolId, out var parsed));
+        Assert.Equal(new Guid(Id), protocolId);
+        Assert.Equal(version, parsed);
     }
 
     [Theory]
     [InlineData("")]
-    [InlineData("1")]
-    [InlineData("1.0.0.0.0")]
-    [InlineData("1..0")]
-    [InlineData(".1.0")]
-    [InlineData("v1.0.0")]
-    [InlineData("1.0.0-beta")]
-    [InlineData("1.0.0 ")]
-    [InlineData("1234567890.0")]
-    public void RefusesWhatIsNotAVersion(string text)
+    [InlineData("1.0.0")]
+    [InlineData(Id)]
+    [InlineData(Id + " ")]
+    [InlineData(Id + " 1")]
+    [InlineData(Id + " 1.0.0.0.0")]
+    [InlineData(Id + " 1..0")]
+    [InlineData(Id + " v1.0.0")]
+    [InlineData(Id + " 1.0.0-beta")]
+    [InlineData(Id + " 1.0.0 ")]
+    [InlineData(Id + "  1.0.0")]
+    [InlineData(Id + " 1234567890.0")]
+    [InlineData("1.0.0 " + Id)]
+    [InlineData("{" + Id + "} 1.0.0")]
+    [InlineData("ada94b93b1154fa69cd98e4766d87706 1.0.0")]
+    [InlineData("not-a-guid-at-all-not-a-guid-at-all0 1.0.0")]
+    public void RefusesWhatIsNotAPresencePacket(string text)
     {
-        Assert.False(Presence.TryParseVersion(Bytes(text), out _, out _));
+        Assert.False(Presence.TryParsePresence(Bytes(text), out _, out _));
     }
 
     [Fact]
-    public void RefusesTheLegacySignatureAndProtobufWrappedBytes()
+    public void RefusesTheLegacySignatureAndOtherBytes()
     {
         // What a 0.9.x server sends on the old channel, raw and as SendToClient serialized it
         Assert.False(
-            Presence.TryParseVersion(new byte[] { 2, 3, 5, 7, 11, 13, 17, 19 }, out _, out _)
+            Presence.TryParsePresence(new byte[] { 2, 3, 5, 7, 11, 13, 17, 19 }, out _, out _)
         );
         Assert.False(
-            Presence.TryParseVersion(new byte[] { 10, 8, 2, 3, 5, 7, 11, 13, 17, 19 }, out _, out _)
+            Presence.TryParsePresence(
+                new byte[] { 10, 8, 2, 3, 5, 7, 11, 13, 17, 19 },
+                out _,
+                out _
+            )
         );
-        Assert.False(Presence.TryParseVersion(null, out _, out _));
+        Assert.False(Presence.TryParsePresence(null, out _, out _));
+        Assert.False(Presence.TryParsePresence(Bytes(Id + " 1.0.0\n"), out _, out _));
         Assert.False(
-            Presence.TryParseVersion(Enumerable.Repeat((byte)'1', 64).ToArray(), out _, out _)
+            Presence.TryParsePresence(Bytes(Id + " 1." + new string('0', 64)), out _, out _)
         );
-    }
-
-    [Theory]
-    [InlineData("1.0.0", "1.0.0", true)]
-    [InlineData("1.4.2", "1.0.0", true)]
-    [InlineData("1.0.0", "1.9", true)]
-    [InlineData("2.0.0", "1.0.0", false)]
-    [InlineData("0.9.12", "1.0.0", false)]
-    [InlineData("10.0.0", "1.0.0", false)]
-    [InlineData("1.0.0-rc", "1.0.0", false)]
-    public void CompatibleOnlyWithTheSameMajor(string server, string client, bool compatible)
-    {
-        Assert.Equal(compatible, Presence.IsCompatible(Bytes(server), client, out _));
     }
 
     [Fact]
-    public void EncodesThePlainVersion()
+    public void EncodesTheIdAndVersion()
     {
-        Assert.Equal(Bytes("1.0.0"), Presence.EncodePresence("1.0.0"));
-        Assert.Equal(1, Presence.Major("1.0.0"));
+        Assert.Equal(Bytes(Id + " 1.0.0"), Presence.EncodePresence(new Guid(Id), "1.0.0"));
+    }
+
+    [Fact]
+    public void CompatibleOnlyWithTheSameProtocolId()
+    {
+        var own = Presence.EncodePresence(Presence.ProtocolId, "7.3.1");
+        Assert.True(Presence.IsCompatible(own, Presence.ProtocolId, out var version));
+        Assert.Equal("7.3.1", version);
+
+        // Same version, another protocol: not compatible
+        var other = Presence.EncodePresence(Other, "1.0.0");
+        Assert.False(Presence.IsCompatible(other, Presence.ProtocolId, out _));
+
+        Assert.False(Presence.IsCompatible(Bytes("1.0.0"), Presence.ProtocolId, out _));
     }
 
     [Fact]

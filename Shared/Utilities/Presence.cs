@@ -9,9 +9,11 @@ namespace MultigridProjector.Utilities
     // The wire format of MGP's mod channel and the server's presence schedule. Kept free of game
     // types, so the unit tests in tests/unit can compile it without the game.
     //
-    // A server with the MGP plugin sends each client a presence packet: the plugin version as
-    // ASCII, like "1.0.0". A client switches to its full feature set only on a presence packet of
-    // its own major version. Until then it sends exactly what a vanilla client sends.
+    // A server with the MGP plugin sends each client a presence packet: the protocol id and the
+    // plugin version as ASCII, separated by a space, like
+    // "ada94b93-b115-4fa6-9cd9-8e4766d87706 1.0.0". A client switches to its full feature set only
+    // on a presence packet with its own protocol id. Until then it sends exactly what a vanilla
+    // client sends. The version is only for the logs.
     //
     // In full mode the client asks the server for each projected block it welds with a build
     // request on the same channel: a type byte, then the fields of BuildRequest, little endian.
@@ -23,51 +25,73 @@ namespace MultigridProjector.Utilities
         // MGP 0.9.x clients switch to full mode on any server packet on this channel
         public const ushort LegacyChannel = 0x7b94;
 
+        // Replace it with a new random UUID (uuid4) in any update that would break the client and
+        // server plugins talking to each other: a change of the mod messages, or of state the two
+        // sides can't reconcile. Clients and servers with different ids then work as with a vanilla
+        // counterpart. Not the plugin's Id, and unrelated to the version and to the MGP API.
+        public static readonly Guid ProtocolId = new Guid("ada94b93-b115-4fa6-9cd9-8e4766d87706");
+
         public const byte BuildRequestType = 1;
 
-        private const int MaxVersionLength = 32;
+        private const int MaxLength = 64;
 
-        public static byte[] EncodePresence(string version) => Encoding.ASCII.GetBytes(version);
+        public static byte[] EncodePresence(Guid protocolId, string version) =>
+            Encoding.ASCII.GetBytes($"{protocolId:D} {version}");
 
-        // A version is 2 to 4 dot separated non-negative integers, like "1.0.0"
-        public static bool TryParseVersion(byte[] data, out string version, out int major)
+        // A presence packet: a protocol id in the "D" format, a space and a version of 2 to 4 dot
+        // separated non-negative integers
+        public static bool TryParsePresence(byte[] data, out Guid protocolId, out string version)
         {
+            protocolId = Guid.Empty;
             version = null;
-            major = -1;
 
-            if (data == null || data.Length == 0 || data.Length > MaxVersionLength)
+            if (data == null || data.Length == 0 || data.Length > MaxLength)
                 return false;
 
             foreach (var b in data)
-                if (b != '.' && (b < '0' || b > '9'))
+                if (b < 0x20 || b > 0x7e)
                     return false;
 
-            var text = Encoding.ASCII.GetString(data);
+            var parts = Encoding.ASCII.GetString(data).Split(' ');
+            if (
+                parts.Length != 2
+                || !Guid.TryParseExact(parts[0], "D", out var id)
+                || !IsVersion(parts[1])
+            )
+                return false;
+
+            protocolId = id;
+            version = parts[1];
+            return true;
+        }
+
+        private static bool IsVersion(string text)
+        {
             var parts = text.Split('.');
             if (parts.Length < 2 || parts.Length > 4)
                 return false;
 
             foreach (var part in parts)
+            {
                 if (part.Length == 0 || part.Length > 9)
                     return false;
 
-            version = text;
-            major = int.Parse(parts[0]);
+                foreach (var c in part)
+                    if (c < '0' || c > '9')
+                        return false;
+            }
+
             return true;
         }
 
-        public static int Major(string version) => int.Parse(version.Split('.')[0]);
-
-        // A client takes the full feature set only from a server of its own major version
+        // A client takes the full feature set only from a server with its own protocol id
         public static bool IsCompatible(
             byte[] presence,
-            string clientVersion,
+            Guid protocolId,
             out string serverVersion
-        )
-        {
-            return TryParseVersion(presence, out serverVersion, out var major)
-                && major == Major(clientVersion);
-        }
+        ) =>
+            TryParsePresence(presence, out var serverProtocolId, out serverVersion)
+            && serverProtocolId == protocolId;
     }
 
     public struct BuildRequest
