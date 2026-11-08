@@ -73,7 +73,7 @@ These patches intercept every code path that triggers block construction or weld
 #### `MyProjectorBase_Build`
 - **Target:** `MyProjectorBase.Build(MySlimBlock, long, ref long)`
 - **Kind:** Prefix (client-only)
-- Routes through `Construction.WeldBlock`, which encodes the subgrid index into the `builtBy` field before forwarding the build request. This is the entry point for player-triggered welding.
+- Routes through `Construction.WeldBlock`, which picks the way the build request goes: a full mode mod message, the vanilla RPC, or client welding. This is the entry point for player-triggered welding.
 
 #### `MyProjectorBase_BuildInternal`
 - **Target:** `MyProjectorBase.BuildInternal(Vector3I, long, long, bool, long)`

@@ -173,7 +173,9 @@ def ensure_pulsar(client: Client) -> None:
     )
 
 
-def write_client_configs(client: Client, mgp: bool = True) -> None:
+def write_client_configs(
+    client: Client, mgp: bool = True, mgp_repo: Path = REPO
+) -> None:
     legacy = client.pulsar / "Legacy"
     dev_folders = ["remote", "direct-transport"] + ([MGP_CLIENT_ID] if mgp else [])
     (legacy / "Profiles" / "Current.xml").write_text(
@@ -185,7 +187,7 @@ def write_client_configs(client: Client, mgp: bool = True) -> None:
         sources, "direct-transport", DIRECT_TRANSPORT_REPO, "DirectTransportClient.xml"
     )
     register_source(
-        sources, "se-multigrid-projector", REPO, "MultigridProjectorClient.xml"
+        sources, "se-multigrid-projector", mgp_repo, "MultigridProjectorClient.xml"
     )
 
     appdata = client.appdata
@@ -283,11 +285,15 @@ def running_pid(client: Client) -> int | None:
     return _alive(client.pid_file, str(client.launcher))
 
 
-def launch(client: Client, extra_args=(), mgp: bool = True) -> None:
+def launch(
+    client: Client, extra_args=(), mgp: bool = True, mgp_repo: Path = REPO
+) -> None:
+    """mgp_repo is the MGP working copy the client compiles, another version's
+    for the compatibility tests"""
     if running_pid(client):
         raise RuntimeError(f"Client {client.index} is already running")
     ensure_pulsar(client)
-    write_client_configs(client, mgp)
+    write_client_configs(client, mgp, mgp_repo)
     client.log.unlink(missing_ok=True)
     env = {} if WINDOWED else {"PULSAR_NO_RENDER": "true"}
     start_process(

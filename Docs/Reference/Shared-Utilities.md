@@ -11,7 +11,8 @@ See also [Core-Projection-Engine.md](./Core-Projection-Engine.md) for how the pr
 | File | Lines | Purpose |
 |---|---|---|
 | [`TranspilerHelpers.cs`](../../Shared/Utilities/TranspilerHelpers.cs) | 256 | Extension methods on `List<CodeInstruction>` for searching, mutating, hashing, and recording IL; `CodeInstructionNotFound` exception. |
-| [`Comms.cs`](../../Shared/Utilities/Comms.cs) | 123 | Multiplayer role detection, secure-message routing, and server-has-plugin handshake. |
+| [`Comms.cs`](../../Shared/Utilities/Comms.cs) | 209 | Multiplayer role detection, the presence packet and full mode build requests on mod channel `0xD83A`. |
+| [`Presence.cs`](../../Shared/Utilities/Presence.cs) | 213 | Wire format of the presence packet and build requests, the presence schedule and the build rate limit. |
 | [`EnsureOriginal.cs`](../../Shared/Utilities/EnsureOriginal.cs) | 111 | Class-level attribute that hashes game-method IL at startup and refuses to load if the hash does not match. |
 | [`PatchHelpers.cs`](../../Shared/Utilities/PatchHelpers.cs) | 103 | Applies the plugin's Harmony patches (all / uncategorized / by category) and Info-logs exactly which game methods were patched, so a run can be verified from the log alone. |
 | [`Events.cs`](../../Shared/Utilities/Events.cs) | 138 | Helpers for deferring actions to the game thread and subscribing to one-shot game events. |
@@ -217,12 +218,34 @@ Constructors mirror `Dictionary<TKey,TValue>` (capacity, comparer, copy-from-dic
 
 _`public class Comms : IDisposable` — namespace `MultigridProjector.Utilities`_
 
-Manages the plugin-level multiplayer presence. On construction it detects the runtime role and registers a secure-message handler (handler ID `0x7b94`). In `MultiplayerClient` role it listens for a specific 8-byte signature packet from the server and sets `ServerHasPlugin = true` when it arrives; in `MultiplayerServer` / `DedicatedServer` role it fires that packet at every connecting player via `MyVisualScriptLogicProvider.PlayerConnected`. The static `PacketReceived` event is the general routing point: other subsystems subscribe to it and filter by content.
+MGP's traffic between the client and server plugins on mod channel `0xD83A` (`Presence.Channel`). On construction it detects the runtime role and registers a secure-message handler on that channel.
 
-`Dispose` unregisters the secure-message handler and the `PlayerConnected` hook to prevent leaks across hot-reload cycles.
+- **Server** (`DedicatedServer`, or `MultiplayerServer` when a client hosts the game): `Update`, called every frame, keeps a `PresenceSchedule` of the online players. Each gets a presence packet `PresenceDelaySeconds` (default 5) after it shows up in the online player list, then every `PresenceIntervalSeconds` (default 300). There is no connect event involved, so lost packets and cluster node switches are covered by the repeat. With `LegacyClientSupport` (default on) the old 8-byte signature also goes out on `0x7b94` for MGP 0.9.x clients. Build requests from clients go to `BuildRequests.Handle`.
+- **Client** (`MultiplayerClient`): starts in client-only mode (`ServerHasPlugin = false`), where it sends exactly what a vanilla client sends. It switches to the full feature set on the first presence packet carrying its own protocol id (`Presence.ProtocolId`). Any other packet is ignored and logged once.
+
+The presence packet is ASCII: the protocol id, a space and the plugin version, like `ada94b93-b115-4fa6-9cd9-8e4766d87706 1.0.0`. Only the id decides compatibility; the version is for the logs. The id changes on any update that breaks the client/server traffic or state the two sides can't reconcile. It is not the plugin's Id and has nothing to do with the MGP API.
 
 | Member | Kind | Description |
 |---|---|---|
+| `Role` | `static Role` | The detected role for this session (set in the constructor). |
+| `ServerHasPlugin` | `static bool` | `true` once the client got a compatible presence packet; always `true` in single player and on the server itself. |
+| `PluginVersion` | `static string` | The plugin's assembly version, like `1.0.0`. |
+| `Update()` | method | Sends the due presence packets (servers only), once a second. |
+| `SendBuildRequest(BuildRequest)` | static method | A full mode build request to the server. |
+| `Dispose()` | method | Unregisters the message handler. |
+
+`MGP_TEST_PROTOCOL_ID` in a server's environment changes the protocol id it advertises, for testing a client of another protocol.
+
+## Presence, BuildRequest, PresenceSchedule, BuildRateLimit
+
+_[`Presence.cs`](../../Shared/Utilities/Presence.cs), free of game types so `tests/unit` compiles it_
+
+- `Presence`: the channel ids, the protocol id, encoding and parsing of the presence packet, `IsCompatible`.
+- `BuildRequest`: a full mode build request: projector entity id, subgrid index, preview block position, owner, builder and the instant flag, after a type byte, little endian.
+- `PresenceSchedule`: who is due a presence packet when.
+- `BuildRateLimit`: build requests per sender per second.
+
+---|---|---|
 | `Role` | `static Role` | The detected role for this session (set in the constructor). |
 | `ServerHasPlugin` | `static bool` | `true` once the server is known to have the plugin installed (always `true` in single-player and on the server itself). |
 | `PacketReceived` | `static event OnPacketReceived` | Fired for every incoming secure-message packet after signature dispatch; subscribers receive `(byte[] data, ulong fromSteamId, bool fromServer)`. |

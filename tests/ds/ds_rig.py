@@ -66,11 +66,16 @@ def prepare_server(
     report=(),
     plugin_config: dict | None = None,
     others: str = "",
+    mgp_repo: Path = rig.REPO,
+    plugins=(),
+    admins: bool = True,
 ) -> None:
     """A fresh copy of the test world and the server's configs. Without mgp the
     server runs DirectTransport only, as a vanilla server would. plugin_config
     sets options of the MGP server plugin by name, the rest keep their
-    defaults."""
+    defaults. mgp_repo is the MGP working copy the server compiles. plugins
+    are more server plugins as (id, source name, folder, xml file) tuples.
+    Without admins the clients join as plain players."""
     stations.prepare(
         WORLD,
         benches,
@@ -88,8 +93,10 @@ def prepare_server(
         shutil.copy(MAGNETAR_TEMPLATE / "config.xml", SERVER_CONFIG / "config.xml")
     sources = SERVER_CONFIG / "Sources" / "sources.xml"
     rig.register_source(
-        sources, "se-multigrid-projector", rig.REPO, "MultigridProjectorServer.xml"
+        sources, "se-multigrid-projector", mgp_repo, "MultigridProjectorServer.xml"
     )
+    for _, name, folder, xml in plugins:
+        rig.register_source(sources, name, folder, xml)
     rig.register_source(
         sources,
         "direct-transport",
@@ -97,14 +104,17 @@ def prepare_server(
         "DirectTransportServer.xml",
     )
     (SERVER_CONFIG / "Profiles").mkdir(exist_ok=True)
-    plugins = ["direct-transport"] + ([rig.MGP_SERVER_ID] if mgp else [])
+    enabled = ["direct-transport"] + ([rig.MGP_SERVER_ID] if mgp else [])
+    enabled += [plugin_id for plugin_id, *_ in plugins]
     (SERVER_CONFIG / "Profiles" / "Current.xml").write_text(
-        rig.profile_xml(plugins), encoding="utf-8"
+        rig.profile_xml(enabled), encoding="utf-8"
     )
 
     text = DS_CONFIG_TEMPLATE.read_text(encoding="utf-8")
-    admins = "".join(
-        f"<unsignedLong>{c.steam_id}</unsignedLong>" for c in (CLIENT, CLIENT2)
+    admins = (
+        "".join(f"<unsignedLong>{c.steam_id}</unsignedLong>" for c in (CLIENT, CLIENT2))
+        if admins
+        else ""
     )
     for tag, value in {
         "IP": "127.0.0.1",
@@ -149,9 +159,9 @@ def server_pid() -> int | None:
     return rig._alive(SERVER_PID, str(SERVER_CONFIG))
 
 
-def start_server(timeout: float = 2400.0) -> None:
+def start_server(timeout: float = 2400.0, env: dict | None = None) -> None:
     """Starts the server and waits for its world. The RAM guard may hold the
-    start for a while."""
+    start for a while. env adds environment variables."""
     if server_pid():
         raise RuntimeError(f"The test server is already running, pid {server_pid()}")
     rig.start_process(
@@ -173,7 +183,7 @@ def start_server(timeout: float = 2400.0) -> None:
         MAGNETAR,
         SERVER_LOG,
         SERVER_PID,
-        {"SE_DIRECT_TRANSPORT": "1"},
+        {"SE_DIRECT_TRANSPORT": "1", **(env or {})},
     )
     deadline = time.monotonic() + timeout
     while "Game ready" not in SERVER_LOG.read_text(errors="replace"):
@@ -194,10 +204,14 @@ def server_log_text() -> str:
     return logs[-1].read_text(errors="replace") if logs else ""
 
 
-def start_client(client: rig.Client = CLIENT, mgp: bool = True):
+def start_client(
+    client: rig.Client = CLIENT, mgp: bool = True, mgp_repo: Path = rig.REPO
+):
     """Starts a client, which joins on its own, and returns its API once the
     character stands in the world"""
-    rig.launch(client, ["--connect", f"127.0.0.1:{SERVER_PORT}"], mgp=mgp)
+    rig.launch(
+        client, ["--connect", f"127.0.0.1:{SERVER_PORT}"], mgp=mgp, mgp_repo=mgp_repo
+    )
     remote = rig.wait_api(client)
     rig.wait_world(remote, 900)
     rig.ensure_character(remote)

@@ -159,10 +159,12 @@ namespace MultigridProjector.Utilities
         {
             if (Presence.IsCompatible(data, Presence.ProtocolId, out var serverVersion))
             {
-                if (!ServerHasPlugin)
-                    PluginLog.Info(
-                        $"Server plugin present, version {serverVersion}: full feature set"
-                    );
+                // One line every few minutes, it shows when the server's packets arrive
+                PluginLog.Info(
+                    ServerHasPlugin
+                        ? $"Presence packet from the server, version {serverVersion}"
+                        : $"Presence packet from the server, version {serverVersion}: server plugin present, full feature set"
+                );
 
                 ServerHasPlugin = true;
                 return;

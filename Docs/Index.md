@@ -14,6 +14,7 @@ _15 files, 4748 lines._
 | File | Type | Lines |
 | ---- | ---- | ----: |
 | [Shared/Logic/BlockMinLocation.cs](../Shared/Logic/BlockMinLocation.cs) | csharp | 26 |
+| [Shared/Logic/BuildRequests.cs](../Shared/Logic/BuildRequests.cs) | csharp | 144 |
 | [Shared/Logic/Connection.cs](../Shared/Logic/Connection.cs) | csharp | 59 |
 | [Shared/Logic/FastBlockLocation.cs](../Shared/Logic/FastBlockLocation.cs) | csharp | 53 |
 | [Shared/Logic/MultigridProjection.cs](../Shared/Logic/MultigridProjection.cs) | csharp | 2300 |
@@ -80,7 +81,8 @@ _18 files, 1253 lines._
 
 | File | Type | Lines |
 | ---- | ---- | ----: |
-| [Shared/Utilities/Comms.cs](../Shared/Utilities/Comms.cs) | csharp | 123 |
+| [Shared/Utilities/Comms.cs](../Shared/Utilities/Comms.cs) | csharp | 209 |
+| [Shared/Utilities/Presence.cs](../Shared/Utilities/Presence.cs) | csharp | 213 |
 | [Shared/Utilities/EnsureOriginal.cs](../Shared/Utilities/EnsureOriginal.cs) | csharp | 111 |
 | [Shared/Utilities/Events.cs](../Shared/Utilities/Events.cs) | csharp | 138 |
 | [Shared/Utilities/ExecLocation.cs](../Shared/Utilities/ExecLocation.cs) | csharp | 22 |
