@@ -43,7 +43,7 @@ This same agent source is what a **PB script** embeds (the `IngameApiTest` examp
 - The agent exposes an `Available` flag and a `Version` string. Both are set only once a valid response arrives.
 - `HandleModMessage` treats the response as valid only if the array is non-null and `Length >= 12`. If the plugin is missing or returns an incompatible array, `Available` stays `false`.
 - While `Available` is `false`, **every** agent method short-circuits to a safe default (`0`, `false`, `null`, `""`, or `BlockState.Unknown`) instead of calling into a missing delegate. Consumers should branch on `Available` (or treat these defaults as "no projection") to remain robust when the plugin is absent.
-- The interface's `Version` getter reflects the Multigrid Projector version (currently `0.9.2`). The plugin advertises its version through array slot `[0]`; the shim hard-codes the same value.
+- The interface's `Version` getter is the version of this API, not of the plugin. It has its own numbering and stays on `0.x` (currently `0.10.0`), because agents embedded in mods and PB scripts set `Available = false` unless it starts with `0.` (SE-1274). The plugin itself is `1.0.0` and later. The plugin reports the API version in array slot `[0]`; the shim hard-codes the same value. Raise it when the API changes, not on every plugin release.
 
 ### Fallback when the plugin is absent
 
@@ -59,7 +59,7 @@ The contract every consumer programs against. It is implemented by the plugin en
 
 | Member | Kind | Description |
 | --- | --- | --- |
-| `Version` | `string` property (get) | The Multigrid Projector version string (e.g. `0.9.2`). |
+| `Version` | `string` property (get) | The API version string (e.g. `0.10.0`), not the plugin version. |
 | `GetSubgridCount(long projectorId)` | `int` method | Number of subgrids in the active projection; returns `0` if there is no projection. |
 | `GetOriginalGridBuilders(long projectorId)` | `List<MyObjectBuilder_CubeGrid>` method | The original grid builders the projection is based on; returns `null` if no blueprint is loaded. |
 | `GetPreviewGrid(long projectorId, int subgridIndex)` | `IMyCubeGrid` method | The preview grid (hologram) for the given subgrid. It always exists while the projection is active, even if the subgrid is fully built. |
@@ -83,7 +83,7 @@ The client/PB-side adapter. A consumer instantiates it **once** (one instance se
 | --- | --- | --- |
 | `MultigridProjectorModAgent()` | constructor | Registers the response handler for `ModApiResponseId` and sends the request to `ModApiRequestId`, initiating the handshake. |
 | `Available` | `bool` property (get) | `true` once a valid delegate array (length >= 12) has been received; `false` if the plugin is absent or incompatible. All methods short-circuit to defaults while `false`. |
-| `Version` | `string` property (get) | Version string reported by the plugin (array slot `[0]`); `null` until a valid response arrives. |
+| `Version` | `string` property (get) | API version reported by the plugin (array slot `[0]`); `null` until a valid response arrives. |
 | `GetSubgridCount` … `IsSubgridComplete` | methods | Implement every [`IMultigridProjectorApi`](#imultigridprojectorapi) member by casting and invoking the corresponding delegate (`api[1]`..`api[12]`). Return defaults when `Available` is `false`. |
 | `WorkshopId`, `ModApiRequestId`, `ModApiResponseId` | private `const long` | Steam Workshop ID (`2415983416`) and the derived mod-message request/response channel IDs. |
 | `HandleModMessage(object obj)` | private method | Response handler: validates the `object[]`, captures `Version` from slot `[0]`, and sets `Available = true`. |
@@ -100,7 +100,7 @@ The shim only supports **single-grid** projection: `GetSubgridCount` returns `0`
 | --- | --- | --- |
 | `MultigridProjectorModShim(IMyProjector projector, double scanCooldownSeconds = 2.0)` | constructor | Wraps `projector` and subscribes to its built grid's `OnBlockIntegrityChanged`, `OnBlockAdded`, `OnBlockRemoved`, `OnGridSplit`, and `OnGridMerge` events. `scanCooldownSeconds` throttles emulated scan increments. |
 | `Dispose()` | method | Unsubscribes all grid event handlers. Must be called when the projector closes or the shim is no longer needed. |
-| `Version` | `string` property (get) | Hard-coded `0.9.2`, matching the plugin's API version. |
+| `Version` | `string` property (get) | Hard-coded `0.10.0`, the same API version the plugin reports. |
 | `GetSubgridCount` | method | Returns `1` if the projector is projecting, else `0`. |
 | `GetOriginalGridBuilders` | method | Returns a single-item list built from the projected grid's object builder (cached); `null` if not projecting. |
 | `GetPreviewGrid` | method | Returns `projector.ProjectedGrid` for `subgridIndex == 0` while projecting; otherwise `null`. |

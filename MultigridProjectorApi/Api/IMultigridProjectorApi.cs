@@ -7,7 +7,9 @@ namespace MultigridProjector.Api
 {
     public interface IMultigridProjectorApi
     {
-        // Multigrid Projector version: 1.0.0
+        // The version of this API, not of the plugin: 0.10.0. It has its own numbering and stays
+        // on 0.x, since agents embedded in mods and PB scripts turn themselves off unless it
+        // starts with "0." (SE-1274). The plugin itself is versioned separately, from 1.0.0 on.
         string Version { get; }
 
         // Returns the number of subgrids in the active projection, returns zero if there is no projection

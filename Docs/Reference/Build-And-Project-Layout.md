@@ -54,6 +54,14 @@ import may not apply) the same version is asserted via an `[assembly: AssemblyVe
 `#if !LOCAL_BUILD` in [`ClientPlugin/Plugin.cs`](../../ClientPlugin/Plugin.cs) and
 [`ServerPlugin/Plugin.cs`](../../ServerPlugin/Plugin.cs).
 
+The Mod and PB API has a version of its own, separate from the plugin's: `Version` in
+[`MultigridProjectorApiProvider`](../../Shared/Logic/MultigridProjectorApiProvider.cs) and
+[`MultigridProjectorModShim`](../../MultigridProjectorApi/Api/MultigridProjectorModShim.cs), noted in
+[`IMultigridProjectorApi`](../../MultigridProjectorApi/Api/IMultigridProjectorApi.cs). It stays on
+`0.x` (`0.10.0` with plugin `1.0.0`), because agents embedded in mods and PB scripts turn themselves off
+unless it starts with `0.`. A plugin release doesn't change it; an API change does. See
+[Public-API.md](./Public-API.md).
+
 ### Build constants
 
 | Constant | Where | Meaning |
