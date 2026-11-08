@@ -36,7 +36,9 @@ namespace MultigridProjector.Utilities
         public static readonly string PluginVersion = GetPluginVersion();
 
         // MGP 0.9.x clients switch to full mode on any packet from the server on the legacy channel
+        // that is not the raw signature. 0.9.x servers sent it protobuf serialized, so do we.
         private static readonly byte[] LegacySignature = { 2, 3, 5, 7, 11, 13, 17, 19 };
+        private static byte[] legacyPacket;
 
         private static readonly Stopwatch Clock = Stopwatch.StartNew();
         private readonly PresenceSchedule schedule = new PresenceSchedule();
@@ -116,7 +118,7 @@ namespace MultigridProjector.Utilities
                 if (config.LegacyClientSupport)
                     MyAPIGateway.Multiplayer.SendMessageTo(
                         Presence.LegacyChannel,
-                        LegacySignature,
+                        legacyPacket ??= MyAPIGateway.Utilities.SerializeToBinary(LegacySignature),
                         steamId
                     );
 
