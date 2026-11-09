@@ -18,6 +18,7 @@ namespace MultigridProjector.Api
 
         // ReSharper disable once MemberCanBePrivate.Global
         public bool Available { get; private set; }
+        // The API version the plugin reports, not the plugin version, see IMultigridProjectorApi.Version
         public string Version { get; private set; }
 
         public int GetSubgridCount(long projectorId)

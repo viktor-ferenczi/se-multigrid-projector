@@ -35,7 +35,7 @@ projector block** in the world. On each attached projector it:
 
 1. Constructs a `MultigridProjectorModAgent`; falls back to `MultigridProjectorModShim` if the
    plugin is absent.
-2. Logs the plugin/shim version to chat once (static flag `mgpVersionLogged`).
+2. Logs the API version reported by the plugin or the shim to chat once (static flag `mgpVersionLogged`).
 3. Every 100 simulation frames (`UpdateBeforeSimulation100`) detects when the active blueprint
    changes by comparing the `gridBuilders` list reference returned by `GetOriginalGridBuilders`.
 4. On a blueprint change, calls `GatherBlueprintDetails` which logs a full dump of every subgrid
@@ -96,7 +96,7 @@ The mod folder is `ModApiTest/Mod/`. If the `Mods` property is set (for example 
 ```
 Mod/
   modinfo.sbmi           — Steam Workshop ID (2433810091)
-  metadata.mod           — ModVersion 0.9.2
+  metadata.mod           — ModVersion 1.0.0
   thumb.jpg
   Data/
     Scripts/

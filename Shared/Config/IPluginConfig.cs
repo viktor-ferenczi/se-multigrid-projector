@@ -21,5 +21,10 @@ namespace MultigridProjector.Config
         // Limit on the PCU of the projections each player may load, in percent of the player's PCU
         // limit. 0 turns it off. Server-side only (ProjectionLimits), always 0 on the client.
         int ProjectionPcuLimitPercent { get; }
+
+        // Seconds from a client showing up among the online players to the first presence packet
+        // the server sends it (Comms), and between the repeats. Tests shorten them.
+        int PresenceDelaySeconds { get; }
+        int PresenceIntervalSeconds { get; }
     }
 }

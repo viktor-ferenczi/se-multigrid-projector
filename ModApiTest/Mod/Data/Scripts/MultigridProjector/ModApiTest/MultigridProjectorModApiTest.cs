@@ -53,7 +53,7 @@ namespace MultigridProjector.ModApiTest
 
             if (!mgpVersionLogged)
             {
-                MyAPIGateway.Utilities.ShowMessage("Multigrid Projector", mgp is MultigridProjectorModAgent ? $"Plugin v{mgp.Version}" : $"Shim v{mgp.Version}");
+                MyAPIGateway.Utilities.ShowMessage("Multigrid Projector", mgp is MultigridProjectorModAgent ? $"Plugin, API v{mgp.Version}" : $"Shim, API v{mgp.Version}");
                 mgpVersionLogged = true;
             }
 

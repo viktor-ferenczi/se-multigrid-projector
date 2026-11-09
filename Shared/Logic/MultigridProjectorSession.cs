@@ -46,6 +46,8 @@ namespace MultigridProjector.Logic
 
         public void Update()
         {
+            comms.Update();
+
             if (!pbPresent)
                 return;
 

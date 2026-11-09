@@ -21,6 +21,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\MyObjectBuilderExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\MyProjectorBaseExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Logic\BlockMinLocation.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Logic\BuildRequests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Logic\Connection.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Logic\FastBlockLocation.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Logic\MultigridProjection.cs" />
@@ -42,6 +43,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Patches\MyProjectorBase_GameProjectionPcu.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Patches\MyShipToolBase_UpdateAfterSimulation10.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\Comms.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Utilities\Presence.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\EnsureOriginal.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\Events.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\ExecLocation.cs" />

@@ -1371,13 +1371,15 @@ System.NullReferenceException: Object reference not set to an instance of an obj
         }
 
         [ServerOnly]
-        public void BuildInternal(Vector3I previewCubeBlockPosition, long owner, long builder, bool requestInstant, long builtBy)
+        // A vanilla BuildInternal RPC from a client (vanilla, or MGP in client-only mode) builds on the
+        // first subgrid. MGP's own requests name the subgrid: local calls from its Build patches and
+        // the full mode build requests (BuildRequests).
+        public void BuildInternal(Vector3I previewCubeBlockPosition, long owner, long builder, bool requestInstant, long requestedSubgridIndex)
         {
             if (!Initialized || Projector.Closed)
                 return;
 
-            // Allow welding only on the first subgrid if the client does not have the MGP plugin installed or an MGP unaware mod sends in a request
-            var subgridIndex = builtBy >= 0 && builtBy < GridCount ? (int)builtBy : 0;
+            var subgridIndex = requestedSubgridIndex >= 0 && requestedSubgridIndex < GridCount ? (int)requestedSubgridIndex : 0;
 
             // Find the subgrid to build on
             Subgrid subgrid;
@@ -1422,7 +1424,7 @@ System.NullReferenceException: Object reference not set to an instance of an obj
                 var myMultiplayerServerBase = MyMultiplayer.Static as MyMultiplayerServerBase;
                 myMultiplayerServerBase?.ValidationFailed(MyEventContext.Current.Sender.Value, false, stackTrace: false,
                     additionalInfo:
-                    $"MultigridProjection.BuildInternal: previewCubeBlockPosition={previewCubeBlockPosition}; owner={owner}; builder={builder}; requestInstant={requestInstant}; builtBy={builtBy}; subgridIndex={subgridIndex}; previewBlock={previewBlock}; Projector.AllowWelding={Projector.AllowWelding}");
+                    $"MultigridProjection.BuildInternal: previewCubeBlockPosition={previewCubeBlockPosition}; owner={owner}; builder={builder}; requestInstant={requestInstant}; subgridIndex={subgridIndex}; previewBlock={previewBlock}; Projector.AllowWelding={Projector.AllowWelding}");
                 return;
             }
 

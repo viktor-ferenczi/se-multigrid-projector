@@ -35,6 +35,24 @@ welding places what the vanilla server can't build. There is no PB API on the
 server, so it checks the projector's totals and follows each welded base on the
 station to its head and subgrid through Remote.
 
+The client/server compatibility tests (SE-1273) are in `ds/` too, with their
+helpers in `ds/compat.py`. The server sends its presence packet 1 s after a
+player joins in every server test, and these set the repeat to 3 s:
+
+| File | Server | Client | What it checks |
+|---|---|---|---|
+| `test_presence_ds.py` | MGP | MGP | full mode soon after the join, the packet repeating every 3 s |
+| `test_anticheat_ds.py` | MGP, Anti-Cheat | MGP, plain player | full mode welds of main grid and subgrids arrive as mod messages, Anti-Cheat refuses nothing |
+| `test_protocol_mismatch_ds.py` | MGP of another protocol id, Anti-Cheat | MGP, plain player | the client ignores the packet once, stays client-only and sends only vanilla build requests |
+| `test_vanilla_client_ds.py` | MGP | none | the vanilla client welds the first grid with vanilla requests |
+| `test_lobby_host_ds.py` | client 1 hosting a lobby | client 2 | the host's client plugin sends the presence packet and builds the joiner's requests |
+
+The Anti-Cheat tests need `MGP_ANTI_CHEAT_REPO`, a working copy of
+CometWorks/anti-cheat whose guards compile under Magnetar (SE-1251). Without it
+they skip. Plain players can't use the admin teleport, so those benches get a
+medical room shared with all, and the character spawns there. Anti-Cheat is
+set to kick on the first refusal, since it logs a refusal only when it kicks.
+
 The mechanical combinations are the game's own, from its CubeBlocks
 definitions, DLC blocks left out (the clients run without Steam):
 
@@ -168,6 +186,7 @@ dotnet test tests/unit
 | `MGP_KEEP=1` | leave the client (and server) running after the run |
 | `MGP_ATTACH=1` | reuse a client (and server) of the slot already in the test world |
 | `MGP_WINDOWED=1` | a real window instead of headless |
-| `MGP_EXTRA_ARGS` | more launcher options |
+| `MGP_EXTRA_ARGS` | more launcher options, like `-bin64 <game Bin64>` when Pulsar can't find the game |
+| `MGP_ANTI_CHEAT_REPO` | the Anti-Cheat working copy of the compatibility tests |
 
 What MGP logged during each test goes to `tests/artifacts/<test file>.log`.

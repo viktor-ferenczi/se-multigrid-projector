@@ -7,6 +7,7 @@
 
   <ItemGroup>
     <Compile Include="../../ClientPlugin/Extra/BillOfMaterials.cs" Link="BillOfMaterials.cs" />
+    <Compile Include="../../Shared/Utilities/Presence.cs" Link="Presence.cs" />
   </ItemGroup>
 
   <ItemGroup>

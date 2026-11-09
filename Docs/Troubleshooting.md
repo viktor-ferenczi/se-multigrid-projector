@@ -35,6 +35,11 @@ Set it on the host running the game (client) or the dedicated server.
 
 - With only the **client** plugin installed, most multigrid welding already works.
 - Installing the **server** plugin as well enables full functionality for everyone connected.
+  The server tells each client plugin that it is there with a presence packet a few seconds after
+  the player joins. Until then, and on servers without the plugin, the client sends only what a
+  vanilla client would. The client log shows `server plugin present, full feature set` once it
+  switched. A client and server whose plugin versions can't talk to each other ignore each other
+  and stay in that client-only mode: update both.
 - Make your players aware of Pulsar so they can install the client plugin.
 
 ## Configuration files

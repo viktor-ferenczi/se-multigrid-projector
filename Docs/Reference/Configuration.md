@@ -38,13 +38,15 @@ Everything else (the client feature toggles) is client-only and never reaches sh
 | ------ | ---- | ----------- |
 | `PreviewBlockVisuals` | bool (get) | Whether the plugin manages the appearance of not-yet-built (preview) blocks: buildable blocks as semi-transparent ghosts, unbuildable as holograms (or hidden under *Show only buildable*), built blocks hidden, and the projector's sound/emissive state driven to match. When `false` the plugin leaves preview visuals untouched (mod compatibility). Always `true` on the client; server-configurable. |
 | `ProjectionPcuLimitPercent` | int (get) | The server's projection limit in percent of each player's PCU limit, read by `ProjectionLimits`; `0` turns it off. Always `0` on the client. |
+| `PresenceDelaySeconds` | int (get) | Seconds from a player showing up online to the first presence packet (`Comms`). Default 10; fixed on the client, used when it hosts. |
+| `PresenceIntervalSeconds` | int (get) | Seconds between repeats of the presence packet to every online player. Default 300. |
 
 *`static class PluginConfig`* holds the active implementation:
 
 | Member | Kind | Description |
 | ------ | ---- | ----------- |
 | `PluginConfig.Current` | static `IPluginConfig` | The active config. Assigned by each plugin's `Init`. Defaults to `DefaultPluginConfig` (all-defaults) until then, so shared code is always safe to read. |
-| `DefaultPluginConfig` | internal class | Fallback returning `PreviewBlockVisuals => true` and `ProjectionPcuLimitPercent => 0`. |
+| `DefaultPluginConfig` | internal class | Fallback returning `PreviewBlockVisuals => true`, `ProjectionPcuLimitPercent => 0` and the presence defaults (10 s, 300 s). |
 
 ## Client configuration
 

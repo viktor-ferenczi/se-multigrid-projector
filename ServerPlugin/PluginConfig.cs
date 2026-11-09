@@ -24,4 +24,14 @@ public class PluginConfig : PluginSdk.Config.PluginConfig, IPluginConfig
         "is the one who built the projector. 200 lets a ship that uses all of the player's PCU load its own repair " +
         "projection. 0 (the default) turns the limit off: projections are neither checked nor counted.")]
     public int ProjectionPcuLimitPercent { get; set => SetField(ref field, value); }
+
+    [IntOption(0, 600,
+        "Seconds from a player joining to the first packet that tells their Multigrid Projector client plugin the server " +
+        "has the plugin too. The client then switches from its vanilla compatible mode to the full feature set.")]
+    public int PresenceDelaySeconds { get; set => SetField(ref field, value); } = 10;
+
+    [IntOption(1, 3600,
+        "Seconds between repeats of that packet to every connected player. The repeat covers lost packets and " +
+        "players arriving without a join, like on a cluster node switch.")]
+    public int PresenceIntervalSeconds { get; set => SetField(ref field, value); } = 300;
 }

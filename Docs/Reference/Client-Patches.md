@@ -9,7 +9,7 @@ The `ClientPlugin/Patches` directory contains all Harmony patches that are appli
 | File | Lines | Patched target | Purpose |
 |------|------:|----------------|---------|
 | [MySpaceProjector_CreateTerminalControls.cs](../../ClientPlugin/Patches/MySpaceProjector_CreateTerminalControls.cs) | 122 | `MySpaceProjector.CreateTerminalControls` | Injects custom terminal controls and toolbar actions; removes vanilla block-marker controls |
-| [MyProjectorBase_BuildInternal.cs](../../ClientPlugin/Patches/MyProjectorBase_BuildInternal.cs) | 81 | `MyProjectorBase.BuildInternal` | Replaces entire body to call `MultigridProjection.BuildInternal`, encoding subgrid index via `builtBy` |
+| [MyProjectorBase_BuildInternal.cs](../../ClientPlugin/Patches/MyProjectorBase_BuildInternal.cs) | 81 | `MyProjectorBase.BuildInternal` | Replaces entire body to call `MultigridProjection.BuildInternal`, taking the subgrid index from `builtBy` on local calls only |
 | [MyGuiBlueprintScreenPatches.cs](../../ClientPlugin/Patches/MyGuiBlueprintScreenPatches.cs) | 70 | `MyGuiBlueprintScreen_Reworked.CreateBlueprintFromClipboard`, `MyBlueprintUtils.SavePrefabToFile` | Normalises blueprint world position and aligns grid to repair projector before saving |
 | [MyProjectorBase_InitFromObjectBuilder.cs](../../ClientPlugin/Patches/MyProjectorBase_InitFromObjectBuilder.cs) | 63 | `MyProjectorBase.InitFromObjectBuilder` | Delegates to `MultigridProjection.InitFromObjectBuilder`; shows unsupported/client-weld dialog when server lacks plugin |
 | [MyProjectorBase_SetNewBlueprint.cs](../../ClientPlugin/Patches/MyProjectorBase_SetNewBlueprint.cs) | 59 | `MyProjectorBase.Remap` | Replaces Remap with a safe remapping sequence that preserves subgrid entity-ID consistency |
@@ -73,12 +73,12 @@ These patches intercept every code path that triggers block construction or weld
 #### `MyProjectorBase_Build`
 - **Target:** `MyProjectorBase.Build(MySlimBlock, long, ref long)`
 - **Kind:** Prefix (client-only)
-- Routes through `Construction.WeldBlock`, which encodes the subgrid index into the `builtBy` field before forwarding the build request. This is the entry point for player-triggered welding.
+- Routes through `Construction.WeldBlock`, which picks the way the build request goes: a full mode mod message, the vanilla RPC, or client welding. This is the entry point for player-triggered welding.
 
 #### `MyProjectorBase_BuildInternal`
 - **Target:** `MyProjectorBase.BuildInternal(Vector3I, long, long, bool, long)`
 - **Kind:** Transpiler — replaces the entire method body with a call to `MyProjectorBase_BuildInternal.BuildInternal` (server-only path)
-- Implemented as a Transpiler rather than a Prefix to avoid a Harmony crash that occurs when patching multiplayer event handlers with a Prefix. Decodes the subgrid index from `builtBy` and calls `projection.BuildInternal`.
+- Implemented as a Transpiler rather than a Prefix to avoid a Harmony crash that occurs when patching multiplayer event handlers with a Prefix. Takes the subgrid index from `builtBy` only on local calls (single player, hosting), uses the first subgrid for a client's RPC, and calls `projection.BuildInternal`.
 
 #### `MyProjectorBase_CanBuild`
 - **Target:** `MyProjectorBase.CanBuild(MySlimBlock, bool)`
