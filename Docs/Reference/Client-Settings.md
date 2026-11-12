@@ -12,7 +12,7 @@ See [Client-Plugin.md](./Client-Plugin.md) for the `Config` class that this fram
 |------|-------|---------|
 | [SettingsGenerator.cs](../../ClientPlugin/Settings/SettingsGenerator.cs) | 149 | Reflects `Config`; orchestrates element creation, layout, and dialog lifecycle |
 | [SettingsScreen.cs](../../ClientPlugin/Settings/SettingsScreen.cs) | 70 | `MyGuiScreenBase` subclass; saves config on close |
-| [ConfigStorage.cs](../../ClientPlugin/Settings/ConfigStorage.cs) | 44 | XML serialise/deserialise of `Config` to `%UserData%/Storage/<Plugin>.cfg` |
+| [ConfigStorage.cs](../../ClientPlugin/Settings/ConfigStorage.cs) | 66 | XML serialise/deserialise of `Config` to `%UserData%/Storage/<Plugin>.cfg`, converting the file of MGP before 0.9.2 |
 | [Elements/Element.cs](../../ClientPlugin/Settings/Elements/Element.cs) | 10 | `IElement` interface — contract all attribute types implement |
 | [Elements/Control.cs](../../ClientPlugin/Settings/Elements/Control.cs) | 30 | Layout metadata wrapper around a `MyGuiControlBase` instance |
 | [Elements/Checkbox.cs](../../ClientPlugin/Settings/Elements/Checkbox.cs) | 35 | `[Checkbox]` attribute — `bool` toggle |

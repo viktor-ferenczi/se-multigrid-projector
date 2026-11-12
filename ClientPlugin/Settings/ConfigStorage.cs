@@ -23,22 +23,44 @@ public static class ConfigStorage
     {
         var path = ConfigFilePath;
         if (!File.Exists(path))
-        {
             return Config.Default;
+
+        if (TryRead(path, new XmlSerializer(typeof(Config)), out var config))
+            return config;
+
+        // Before 0.9.2 the file held the same options under a ConfigObject root element. Reading
+        // it failed and left every option at its default, Ship Welding on included (SE-1381).
+        if (TryRead(path, new XmlSerializer(typeof(Config), new XmlRootAttribute("ConfigObject")), out config))
+        {
+            try
+            {
+                Save(config);
+                MyLog.Default.WriteLineAndConsole($"{ConfigFileName}: Converted the config file of an old version: {path}");
+            }
+            catch (Exception e)
+            {
+                MyLog.Default.Warning($"{ConfigFileName}: Read the config file of an old version, but failed to convert it: {path}: {e.Message}");
+            }
+
+            return config;
         }
 
-        var xmlSerializer = new XmlSerializer(typeof(Config));
+        MyLog.Default.Warning($"{ConfigFileName}: Failed to read the config file, all options are at their defaults: {path}");
+        return Config.Default;
+    }
+
+    private static bool TryRead(string path, XmlSerializer serializer, out Config config)
+    {
         try
         {
-            using (var streamReader = File.OpenText(path))
-                return (Config)xmlSerializer.Deserialize(streamReader) ?? Config.Default;
+            using (var reader = File.OpenText(path))
+                config = serializer.Deserialize(reader) as Config;
         }
         catch (Exception)
         {
-            MyLog.Default.Warning($"{ConfigFileName}: Failed to read config file: {ConfigFilePath}");
+            config = null;
         }
-            
-        return Config.Default;
+
+        return config != null;
     }
-        
 }

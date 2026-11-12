@@ -97,9 +97,9 @@ and `ServerPlugin` on a machine with the game installed is the recommended final
 - **Impact:** An existing user's old file fails to deserialize; `ConfigStorage.Load()` catches the
   exception and returns `Config.Default`, so settings silently reset to defaults **once** after the
   upgrade. (Most defaults are `true`, limiting the surprise.)
-- **Fix (optional):** Add `[XmlRoot("ConfigObject")]` to `Config` (or a tiny one‑time migration that
-  reads the old root) if preserving existing users' settings matters; otherwise document the one‑time
-  reset.
+- **Fixed in 1.0.1 (SE-1381):** `ConfigStorage.Load()` reads a file with the old root, keeps its
+  options and saves it in the new format. A player whose old file had been ignored got Ship Welding
+  without choosing it, which made the Havok shape leak of the placement test much worse.
 
 ### D4 — Stale namespaces / usings left over from the rename *(cosmetic, no functional impact)*
 

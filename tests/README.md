@@ -35,6 +35,16 @@ welding places what the vanilla server can't build. There is no PB API on the
 server, so it checks the projector's totals and follows each welded base on the
 station to its head and subgrid through Remote.
 
+`ds/test_havok_leak_ds.py` measures the client's Havok memory near a repair
+projection of a damaged ship (SE-1381): a server without the MGP plugin, the
+client's character in a cockpit, enabled ship welders without components next
+to missing armor slopes and corners, and one damaged block for the server's
+vanilla welders. It reads the Physics column of the game's `MEMORY VALUES` log
+lines, one a minute, and fails when the client's grows by more than 4 MB in
+4 minutes. The client starts with an MGP 0.9.1 config file, which must come out
+converted with its options kept. `MGP_BUGFIXES_REPO`, a working copy of
+CometWorks/bugfixes, adds the Bugfixes plugin to the client and the server.
+
 The client/server compatibility tests (SE-1273) are in `ds/` too, with their
 helpers in `ds/compat.py`. The server sends its presence packet 1 s after a
 player joins in every server test, and these set the repeat to 3 s:
@@ -188,5 +198,6 @@ dotnet test tests/unit
 | `MGP_WINDOWED=1` | a real window instead of headless |
 | `MGP_EXTRA_ARGS` | more launcher options, like `-bin64 <game Bin64>` when Pulsar can't find the game |
 | `MGP_ANTI_CHEAT_REPO` | the Anti-Cheat working copy of the compatibility tests |
+| `MGP_BUGFIXES_REPO` | the Bugfixes working copy of `ds/test_havok_leak_ds.py` |
 
 What MGP logged during each test goes to `tests/artifacts/<test file>.log`.

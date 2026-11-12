@@ -173,9 +173,11 @@ def ensure_pulsar(client: Client) -> None:
     )
 
 
-def write_client_configs(client: Client, mgp: bool = True) -> None:
+def write_client_configs(client: Client, mgp: bool = True, plugins=()) -> None:
+    """plugins: more client plugins as (id, source name, folder, xml file)"""
     legacy = client.pulsar / "Legacy"
     dev_folders = ["remote", "direct-transport"] + ([MGP_CLIENT_ID] if mgp else [])
+    dev_folders += [plugin_id for plugin_id, *_ in plugins]
     (legacy / "Profiles" / "Current.xml").write_text(
         profile_xml(dev_folders), encoding="utf-8"
     )
@@ -187,6 +189,8 @@ def write_client_configs(client: Client, mgp: bool = True) -> None:
     register_source(
         sources, "se-multigrid-projector", REPO, "MultigridProjectorClient.xml"
     )
+    for _, name, folder, xml in plugins:
+        register_source(sources, name, folder, xml)
 
     appdata = client.appdata
     appdata.mkdir(parents=True, exist_ok=True)
@@ -283,11 +287,11 @@ def running_pid(client: Client) -> int | None:
     return _alive(client.pid_file, str(client.launcher))
 
 
-def launch(client: Client, extra_args=(), mgp: bool = True) -> None:
+def launch(client: Client, extra_args=(), mgp: bool = True, plugins=()) -> None:
     if running_pid(client):
         raise RuntimeError(f"Client {client.index} is already running")
     ensure_pulsar(client)
-    write_client_configs(client, mgp)
+    write_client_configs(client, mgp, plugins)
     client.log.unlink(missing_ok=True)
     env = {} if WINDOWED else {"PULSAR_NO_RENDER": "true"}
     start_process(
