@@ -9,15 +9,18 @@ them into an HkListShape with HkReferencePolicy.None and releases only the list.
 The client's Havok memory grew by tens of MB a minute until Havok ran out.
 
 The welders have no components, so nothing gets built and the checks go on for
-the whole test. The game logs the Havok memory every minute in the Physics
-column of its MEMORY VALUES lines; the test reads those of the client and, for
-the record, of the server, whose vanilla ship welders run the same check.
+the whole test. The game logs the Havok memory in the Physics column of its
+MEMORY VALUES lines, once a minute. The stats-probe plugin next to this file
+makes the client log them every 2 seconds, so 40 seconds of them are enough.
+
+The leak is the game's and the Bugfixes plugin fixes it. With MGP_BUGFIXES_REPO
+set to a working copy of CometWorks/bugfixes the client and the server run with
+Bugfixes and the memory must stay flat. Without it the memory must grow: that
+run shows that Ship Welding still does its checks, and it fails once the game
+or MGP stops leaking, when the test has nothing left to guard.
 
 The station has one damaged block in the welders' reach. A vanilla ship
 welder searches the projection only while it has a target, as on a damaged ship.
-
-MGP_BUGFIXES_REPO set to a working copy of CometWorks/bugfixes runs the client
-and the server with the Bugfixes plugin too, which has the game fix as well.
 
 The client starts with the config file of an MGP before 0.9.2, as the report's
 player had. MGP failed to read it and silently used the defaults; now it
@@ -40,9 +43,11 @@ from stations import PB_OWNER
 MGP_SERVER = False
 BENCHES: list[str] = []
 
+PROBE = Path(__file__).parent / "stats-probe"
+CLIENT_PLUGINS = [("stats-probe", "stats-probe", PROBE, "StatsProbe.xml")]
 BUGFIXES = os.environ.get("MGP_BUGFIXES_REPO")
 if BUGFIXES:
-    CLIENT_PLUGINS = [("bugfixes", "bugfixes", Path(BUGFIXES), "BugfixesClient.xml")]
+    CLIENT_PLUGINS += [("bugfixes", "bugfixes", Path(BUGFIXES), "BugfixesClient.xml")]
     SERVER_PLUGINS = [("bugfixes", "bugfixes", Path(BUGFIXES), "BugfixesServer.xml")]
 
 STATION = 777000900000000
@@ -50,7 +55,11 @@ PROJECTOR = STATION + 1
 COCKPIT = STATION + 3
 COCKPIT_CELL = (0, 1, 6)
 STANDING = (1, 1, 6)
-WELDER_ROWS = (2, 3, 4)
+# A long row of welders: the leak grows with the welders and the blocks in reach.
+# Havok takes the first 40 MB or so from the free space of its pool, where the
+# Physics value does not show it. This many welders leak that in seconds.
+LENGTH = 100
+WELDER_ROWS = range(1, LENGTH - 1)
 # The missing blocks: on the floor in front of the welders, every kind the
 # game builds the Havok shape of from the block's topology
 MISSING_KINDS = (
@@ -61,12 +70,16 @@ MISSING_KINDS = (
 )
 # Built, but damaged: the vanilla welders' target
 DAMAGED = (4, 1, 3)
-MISSING = [(x, 1, z) for x in (2, 3, 4) for z in range(1, 6) if (x, 1, z) != DAMAGED]
+MISSING = [(x, 1, z) for x in (2, 3, 4) for z in WELDER_ROWS if (x, 1, z) != DAMAGED]
 
-# MEMORY VALUES lines after the character sat down, one a minute
-SAMPLES = 5
+# The stats-probe plugin's log interval
+LOG_SECONDS = 2
+# MEMORY VALUES lines after the character sat down: 40 seconds
+SAMPLES = 21
 # Havok's pooled memory moves by a megabyte or two on its own
-MAX_GROWTH_MB = 4
+MAX_GROWTH_MB = 2
+# Without the game fix
+MIN_LEAK_MB = 10
 
 OWNED = (
     f"<Owner>{PB_OWNER}</Owner><BuiltBy>{PB_OWNER}</BuiltBy><ShareMode>All</ShareMode>"
@@ -100,7 +113,7 @@ def _blocks(projection: str | None) -> str:
             + "<Enabled>true</Enabled><UseConveyorSystem>true</UseConveyorSystem>",
             forward="Left",
         )
-    xml += "".join(world.armor((x, 0, z)) for x in range(7) for z in range(7))
+    xml += "".join(world.armor((x, 0, z)) for x in range(7) for z in range(LENGTH))
     damaged = "<IntegrityPercent>0.3</IntegrityPercent><BuildPercent>0.3</BuildPercent>"
     xml += world.block(
         "CubeBlock", "LargeBlockArmorBlock", DAMAGED, 0, damaged if projection else ""
@@ -197,27 +210,29 @@ def wait_samples(count: int, after: int, timeout: float) -> list[int]:
         time.sleep(5)
 
 
-def test_havok_memory_stays_flat_with_ship_welding(game):
+def test_havok_memory_with_ship_welding(game):
     game.wait_grids([STATION])
     stats = game.api.get_block(STATION, (0, 1, 0))["projector"]
     print(f"projector: {stats}")
     assert stats["isProjecting"]
 
-    server_before = len(physics_mb(ds_rig.server_log_text()))
+    welders = [game.api.get_block(STATION, (5, 1, z)) for z in WELDER_ROWS]
+    assert all(welder["isWorking"] for welder in welders)
     before = client_physics_mb()
     sit_in_cockpit(game)
-    values = wait_samples(SAMPLES, len(before), timeout=60 * (SAMPLES + 2))
-    server = physics_mb(ds_rig.server_log_text())[server_before:]
+    values = wait_samples(SAMPLES, len(before), timeout=LOG_SECONDS * SAMPLES * 4)
 
     growth = values[-1] - values[0]
-    minutes = len(values) - 1
+    seconds = LOG_SECONDS * (len(values) - 1)
     print(f"client Physics MB before sitting down: {before[-3:]}")
-    print(f"client Physics MB, one a minute in the cockpit: {values}")
-    print(f"server Physics MB in the same minutes: {server}")
+    print(f"client Physics MB, every {LOG_SECONDS} s in the cockpit: {values}")
     print(
-        f"client growth: {growth} MB in {minutes} min ({growth / minutes:.1f} MB/min)"
+        f"client growth: {growth} MB in {seconds} s ({growth * 60 / seconds:.1f} MB/min)"
     )
-    assert growth <= MAX_GROWTH_MB, values
+    if BUGFIXES:
+        assert growth <= MAX_GROWTH_MB, values
+    else:
+        assert growth >= MIN_LEAK_MB, values
 
 
 def test_old_config_is_converted(game):

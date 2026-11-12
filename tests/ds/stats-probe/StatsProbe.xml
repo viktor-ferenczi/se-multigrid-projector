@@ -1,0 +1,13 @@
+<?xml version="1.0"?>
+<PluginData
+  xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:type="GitHubPlugin"
+>
+  <Id>stats-probe</Id>
+  <RepoId>viktor-ferenczi/se-multigrid-projector</RepoId>
+  <FriendlyName>Stats Probe</FriendlyName>
+  <Author>Viktor</Author>
+  <Tooltip>Test only: logs the game statistics every 2 seconds</Tooltip>
+  <Commit>TODO</Commit>
+</PluginData>

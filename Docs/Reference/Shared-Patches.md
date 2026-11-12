@@ -11,7 +11,6 @@ Patch applicability is controlled by placement attributes (`[Everywhere]`, `[Ser
 | File | Lines | Purpose |
 |------|-------|---------|
 | [`MyBlueprintIdTrackerPatches.cs`](../../Shared/Patches/MyBlueprintIdTrackerPatches.cs) | 30 | Suppresses all `MyBlueprintIdTracker` callbacks to prevent spurious ID-remapping during projection |
-| [`MyCubeGrid_TestBlockPlacementArea.cs`](../../Shared/Patches/MyCubeGrid_TestBlockPlacementArea.cs) | 70 | Transpiler fixing the game's Havok shape leak in the block placement test |
 | [`MyCubeGrid_TestPlacementAreaCube.cs`](../../Shared/Patches/MyCubeGrid_TestPlacementAreaCube.cs) | 83 | Postfix on the placement-area test to approve projected blocks that belong to a known multigrid projection |
 | [`MyGridPhysicalHierarchy_BreakLink.cs`](../../Shared/Patches/MyGridPhysicalHierarchy_BreakLink.cs) | 54 | Server-only Prefix crash-guard that skips `BreakLink` when either grid node is `null` |
 | [`MyMechanicalConnectionBlockBase_CreateTopPart.cs`](../../Shared/Patches/MyMechanicalConnectionBlockBase_CreateTopPart.cs) | 111 | Server-only Transpiler that extends the `topSize` enum logic so MGP can force same-size or opposite-size top parts |
@@ -36,20 +35,6 @@ Patch applicability is controlled by placement attributes (`[Everywhere]`, `[Ser
 | `OnRemapPrefix` | Prefix | Returns `false`, preventing `MyBlueprintIdTracker.OnRemap` from executing |
 | `OnAddedPrefix` | Prefix | Returns `false`, preventing `MyBlueprintIdTracker.OnAdded` from executing |
 | `OnRemovePrefix` | Prefix | Returns `false`, preventing `MyBlueprintIdTracker.OnRemove` from executing |
-
----
-
-## MyCubeGrid_TestBlockPlacementArea
-
-*`public static class MyCubeGrid_TestBlockPlacementArea` — `[HarmonyPatch]`, target from `TargetMethod()`*
-
-**Patched target:** the `MyCubeGrid.TestBlockPlacementArea` overload with the most parameters (16), which `TestPlacementAreaCube` calls.
-
-**Patch kind:** Transpiler, `[Everywhere]`.
-
-For a block without model collision shapes whose cube topology is not `StandaloneBox` (armor blocks, for example) the game builds fresh convex shapes with `MyCubeBlockCollector.AddConvexShape` and wraps them in an `HkListShape` created with `HkReferencePolicy.None`. Releasing the list at the end drops only the list's own reference on each child, so every Havok placement test of such a block leaked one or two convex shapes. MGP calls the test through `CanBuild(checkHavokIntersections: true)` for every projected block in reach of Ship Welding, Block Highlight and the hand welder, and a client near a repair projection of a damaged ship ran out of Havok memory (SE-1381).
-
-The transpiler changes the policy argument after `AddConvexShape` from `None` (`ldc.i4.1`) to `TakeOwnership` (`ldc.i4.0`). The Bugfixes plugin carries the same fix; when the argument is no longer `ldc.i4.1`, another plugin changed it already and the transpiler leaves it, logging that at info level. When the list shape is not found after `AddConvexShape`, it logs a warning and changes nothing.
 
 ---
 

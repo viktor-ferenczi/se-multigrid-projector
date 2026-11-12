@@ -52,7 +52,6 @@ _6 files, 342 lines._
 | File | Type | Lines |
 | ---- | ---- | ----: |
 | [Shared/Patches/MyBlueprintIdTrackerPatches.cs](../Shared/Patches/MyBlueprintIdTrackerPatches.cs) | csharp | 30 |
-| [Shared/Patches/MyCubeGrid_TestBlockPlacementArea.cs](../Shared/Patches/MyCubeGrid_TestBlockPlacementArea.cs) | csharp | 70 |
 | [Shared/Patches/MyCubeGrid_TestPlacementAreaCube.cs](../Shared/Patches/MyCubeGrid_TestPlacementAreaCube.cs) | csharp | 83 |
 | [Shared/Patches/MyGridPhysicalHierarchy_BreakLink.cs](../Shared/Patches/MyGridPhysicalHierarchy_BreakLink.cs) | csharp | 54 |
 | [Shared/Patches/MyMechanicalConnectionBlockBase_CreateTopPart.cs](../Shared/Patches/MyMechanicalConnectionBlockBase_CreateTopPart.cs) | csharp | 111 |

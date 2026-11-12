@@ -37,13 +37,15 @@ station to its head and subgrid through Remote.
 
 `ds/test_havok_leak_ds.py` measures the client's Havok memory near a repair
 projection of a damaged ship (SE-1381): a server without the MGP plugin, the
-client's character in a cockpit, enabled ship welders without components next
-to missing armor slopes and corners, and one damaged block for the server's
-vanilla welders. It reads the Physics column of the game's `MEMORY VALUES` log
-lines, one a minute, and fails when the client's grows by more than 4 MB in
-4 minutes. The client starts with an MGP 0.9.1 config file, which must come out
-converted with its options kept. `MGP_BUGFIXES_REPO`, a working copy of
-CometWorks/bugfixes, adds the Bugfixes plugin to the client and the server.
+client's character in a cockpit, a long row of enabled ship welders without
+components next to missing armor slopes and corners. It reads the Physics
+column of the game's `MEMORY VALUES` log lines, which the `ds/stats-probe`
+plugin makes the client write every 2 seconds, for 40 seconds. The leak is the
+game's and the Bugfixes plugin fixes it: with `MGP_BUGFIXES_REPO`, a working
+copy of CometWorks/bugfixes, the client and the server run with Bugfixes and
+the memory must stay flat. Without it the memory must grow by 10 MB or more,
+which shows that Ship Welding still runs its checks. The client starts with an
+MGP 0.9.1 config file, which must come out converted with its options kept.
 
 The client/server compatibility tests (SE-1273) are in `ds/` too, with their
 helpers in `ds/compat.py`. The server sends its presence packet 1 s after a

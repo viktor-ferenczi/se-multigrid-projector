@@ -259,6 +259,12 @@ def start_process(
 
 def _group_alive(pgid: int) -> bool:
     try:
+        # Reaps the group leader if this process started it. Left a zombie, it
+        # kept the group alive until the stop timeout ran out.
+        os.waitpid(pgid, os.WNOHANG)
+    except ChildProcessError:
+        pass
+    try:
         os.killpg(pgid, 0)
         return True
     except ProcessLookupError:
