@@ -30,6 +30,8 @@ class Combo:
     children: list["Combo"] = field(default_factory=list)
     # Orientation of the base in its grid; hinges mount with their right side
     up: str = "Up"
+    # Degrees the top subgrid is turned around the base's axis in the blueprint
+    angle: float = 0
     # Where it stands on its bench, set by Bench
     min: tuple[int, int, int] = (0, 0, 0)
 
@@ -281,7 +283,41 @@ SURVIVAL = Bench(
     armor=[(4, 1, 1)],
 )
 
+# Two rotors two cells apart, each with an arm of three armor blocks over its
+# head. The second arm is turned by 30 degrees in the blueprint, so its far end
+# leans over the gap and a little into the cells of the first arm. The game's
+# placement test rejects a block touching a grid that is not axis aligned with
+# the target grid, whichever arm is built later (SE-1402).
+ANGLED = Bench(
+    "angled",
+    "Large",
+    [
+        _rotor("arm", "MotorStator", "LargeStator", "AddRotorTopPart", "LargeRotor", 3),
+        _rotor(
+            "turned-arm",
+            "MotorStator",
+            "LargeStator",
+            "AddRotorTopPart",
+            "LargeRotor",
+            3,
+        ),
+    ],
+    spacing=2,
+)
+# Negative: towards the first arm
+ANGLED.combos[1].angle = -30
+
 BENCHES = {
     b.name: b
-    for b in (LARGE, SMALL, WHEELS_LARGE, WHEELS_SMALL, CHAIN, REFS, GROUP, SURVIVAL)
+    for b in (
+        LARGE,
+        SMALL,
+        WHEELS_LARGE,
+        WHEELS_SMALL,
+        CHAIN,
+        REFS,
+        GROUP,
+        SURVIVAL,
+        ANGLED,
+    )
 }

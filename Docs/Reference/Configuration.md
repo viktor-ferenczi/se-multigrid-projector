@@ -39,6 +39,7 @@ Everything else (the client feature toggles) is client-only and never reaches sh
 | `PreviewBlockVisuals` | bool (get) | Whether the plugin manages the appearance of not-yet-built (preview) blocks: buildable blocks as semi-transparent ghosts, unbuildable as holograms (or hidden under *Show only buildable*), built blocks hidden, and the projector's sound/emissive state driven to match. When `false` the plugin leaves preview visuals untouched (mod compatibility). Always `true` on the client; server-configurable. |
 | `ProjectionPcuLimitPercent` | int (get) | The server's projection limit in percent of each player's PCU limit, read by `ProjectionLimits`; `0` turns it off. Always `0` on the client. |
 | `PresenceDelaySeconds` | int (get) | Seconds from a player showing up online to the first presence packet (`Comms`). Default 10; fixed on the client, used when it hosts. |
+| `BuildBesideAngledSubgrids` | bool (get) | Whether a projected block may be built beside a built subgrid of the same projection that the game finds in the way without it reaching into the inner half of the block (`MultigridProjection.IsBarelyTouchingOnlySiblingSubgrids`, SE-1402). Default `true`; a checkbox on the client, an option on the server. |
 | `PresenceIntervalSeconds` | int (get) | Seconds between repeats of the presence packet to every online player. Default 300. |
 
 *`static class PluginConfig`* holds the active implementation:
@@ -93,6 +94,7 @@ remotely from those attributes** — the plugin contains no server-side UI code.
 | ------ | ---- | ------- | ----------- |
 | `PreviewBlockVisuals` | bool | `true` | Implements the shared-interface member above. Turn **off** only for compatibility with mods that drive projector / preview-block transparency themselves. |
 | `ProjectionPcuLimitPercent` | int | `0` | Limit on the PCU of the projections a player may load, in percent of the player's PCU limit (GitHub issue #86). A projection loads only while the PCU of the player's blocks, of their other projections and of the new one stays within it; the player is whoever built the projector. A projection counts until the projector stops projecting it. The count is the plugin's own, it doesn't use up the player's PCU, so a repair projection doesn't block welding the blocks it is for. `200` lets a ship that uses all of the player's PCU load its own repair projection. `0` turns it off: projections are neither checked nor counted, and neither is the game's own one PCU per block for the projectors the plugin handles. A refused projection is removed from the projector, also one saved in the world when the server starts. |
+| `BuildBesideAngledSubgrids` | bool | `true` | Lets projected blocks be built beside another subgrid of the same blueprint which the game's placement test finds in the way, as long as it does not reach into the inner half of the block (SE-1402). Other grids, characters, floating objects and voxels keep blocking. |
 
 If the config file is missing or corrupt the server recreates it with defaults (the corrupt file is
 moved aside) — see [../Troubleshooting.md](../Troubleshooting.md).

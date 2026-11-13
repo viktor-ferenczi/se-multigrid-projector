@@ -6,6 +6,7 @@ using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading;
 using HarmonyLib;
+using Havok;
 using MultigridProjector.Api;
 using MultigridProjector.Config;
 using MultigridProjector.Utilities;
@@ -14,6 +15,7 @@ using Sandbox;
 using Sandbox.Common.ObjectBuilders;
 using Sandbox.Definitions;
 using Sandbox.Engine.Multiplayer;
+using Sandbox.Engine.Physics;
 using Sandbox.Game.Entities;
 using Sandbox.Game.Entities.Blocks;
 using Sandbox.Game.Entities.Cube;
@@ -1595,6 +1597,83 @@ System.NullReferenceException: Object reference not set to an instance of an obj
                 return false;
 
             return true;
+        }
+
+        [ThreadStatic]
+        private static List<HkBodyCollision> siblingQueryResults;
+
+        // The game's placement test rejects a block as soon as its shape touches another dynamic
+        // grid which is not axis aligned with the target grid, without looking at the cells. A
+        // subgrid mounted at an angle next to another one of the same blueprint, like a drone held
+        // by clamps, then keeps the blocks beside it from ever being built, with nothing visibly
+        // in the way (SE-1402).
+        //
+        // Lets such a block through if everything in its cells belongs to the built subgrids of
+        // this projection and none of that reaches into the inner half of the block. Havok has no
+        // penetration depth to ask for, a box of half the size at the same place stands in for
+        // "less than half of the block". Anything else in the cells keeps the block rejected:
+        // other grids (a welder arm), characters, floating objects, voxels.
+        [Everywhere]
+        public bool IsBarelyTouchingOnlySiblingSubgrids(MyCubeGrid targetGrid, Vector3I min, Vector3I max)
+        {
+            var gridSize = targetGrid.GridSize;
+            var halfExtents = ((Vector3)(max - min) * gridSize + gridSize) / 2f;
+            var matrix = MatrixD.CreateTranslation((Vector3D)(max + min) * 0.5 * gridSize) * targetGrid.WorldMatrix;
+            var translation = matrix.Translation;
+            var rotation = Quaternion.CreateFromRotationMatrix(matrix);
+
+            var results = siblingQueryResults ?? (siblingQueryResults = new List<HkBodyCollision>());
+            try
+            {
+                // Who is in the cells of the block? The full cells, so nothing is missed.
+                MyPhysics.GetPenetrationsBox(ref halfExtents, ref translation, ref rotation, results, MyPhysics.CollisionLayers.BlockPlacementTestCollisionLayer);
+                var siblingFound = false;
+                using (subgridsLock.Read())
+                {
+                    foreach (var result in results)
+                    {
+                        if (!TryGetObstacle(result, targetGrid, out var obstacle))
+                            continue;
+
+                        if (!(obstacle is MyCubeGrid grid) || !TryFindSubgridByBuiltGrid(grid, out _))
+                            return false;
+
+                        siblingFound = true;
+                    }
+                }
+
+                // The game had another reason to reject the block
+                if (!siblingFound)
+                    return false;
+
+                results.Clear();
+                var innerHalfExtents = halfExtents * 0.5f;
+                MyPhysics.GetPenetrationsBox(ref innerHalfExtents, ref translation, ref rotation, results, MyPhysics.CollisionLayers.BlockPlacementTestCollisionLayer);
+                foreach (var result in results)
+                {
+                    if (TryGetObstacle(result, targetGrid, out _))
+                        return false;
+                }
+
+                return true;
+            }
+            finally
+            {
+                results.Clear();
+            }
+        }
+
+        private static bool TryGetObstacle(HkBodyCollision collision, MyCubeGrid targetGrid, out MyEntity obstacle)
+        {
+            obstacle = null;
+            if (!(collision.Body.GetEntity(0) is MyEntity entity))
+                return false;
+
+            if (entity.Physics != null && entity.Physics.IsPhantom)
+                return false;
+
+            obstacle = entity.GetTopMostParent();
+            return obstacle != targetGrid;
         }
 
         private const int MaxHandWeldableCubes = 32;
