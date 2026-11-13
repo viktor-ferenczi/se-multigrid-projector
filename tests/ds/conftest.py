@@ -7,7 +7,8 @@ for a server without the MGP server plugin, and BENCHES, WORLD_SETTINGS,
 STATION_EXTRAS, SECTOR_OBJECTS and REPORT_PROJECTORS as in single player.
 MGP_SERVER_CONFIG sets server plugin options and EDIT_WORLD is called with the
 world folder before the server starts. MGP_CLIENT = False joins with a vanilla
-client, SERVER_PLUGINS adds server plugins (see ds_rig.prepare_server),
+client, SERVER_PLUGINS adds server plugins (see ds_rig.prepare_server) and
+CLIENT_PLUGINS client plugins (rig.write_client_configs),
 SERVER_ENV sets server environment variables and ADMINS = False joins as a
 plain player.
 
@@ -77,6 +78,7 @@ def game(request):
             ds_rig.start_server(env=getattr(request.module, "SERVER_ENV", None))
             remote = ds_rig.start_client(
                 mgp=getattr(request.module, "MGP_CLIENT", True),
+                plugins=getattr(request.module, "CLIENT_PLUGINS", ()),
             )
             if (
                 getattr(request.module, "MGP_SERVER", True)

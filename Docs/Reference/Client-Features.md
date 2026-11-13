@@ -13,7 +13,7 @@ The files under `ClientPlugin/Extra/` implement the user-facing quality-of-life 
 | [BillOfMaterials.cs](../../ClientPlugin/Extra/BillOfMaterials.cs) | 102 | Assemble Projection | Format the Bill of Materials for Isy's Inventory Manager or GOAT Sorter |
 | [ProjectorAligner.cs](../../ClientPlugin/Extra/ProjectorAligner.cs) | 300 | Projector Aligner | Interactively move and rotate a projection using block-placement keys |
 | [BlockHighlight.cs](../../ClientPlugin/Extra/BlockHighlight.cs) | 243 | Block Highlight | Draw color-coded wireframe overlays on projected blocks to show their build/weld status |
-| [ShipWelding.cs](../../ClientPlugin/Extra/ShipWelding.cs) | 150 | Ship Welding | Drive ship-mounted welders to place projected blocks while the player pilots the craft |
+| [ShipWelding.cs](../../ClientPlugin/Extra/ShipWelding.cs) | 157 | Ship Welding | Drive ship-mounted welders to place projected blocks while the player pilots the craft |
 | [ApplyPaint.cs](../../ClientPlugin/Extra/ApplyPaint.cs) | 63 | Apply Paint | Copy color and armor skin from the blueprint's preview blocks onto their already-built counterparts |
 | [RepairProjection.cs](../../ClientPlugin/Extra/RepairProjection.cs) | 58 | Repair Projection | Load the projector's own mechanical group as a repair blueprint without leaving the cockpit |
 | [ToolbarFix.cs](../../ClientPlugin/Extra/ToolbarFix.cs) | 51 | Fix All Toolbars | Merge toolbar slots and fix block relations from the repair projection onto the live grid |
@@ -137,7 +137,7 @@ Three toolbar actions are also registered: `BlockHighlightToggle`, `BlockHighlig
 
 **Player perspective.** When enabled (`Config.Current.ShipWelding`, label "Ship Welding"), ship-mounted welders on the grid (and all mechanically linked subgrids) of the craft the player is currently piloting will automatically place projected blocks — no server plugin required. This extends the client-welding logic to automated welders.
 
-**Technical.** `PluginSession` calls `ShipWelding.WeldLoop()` every frame when `Config.Current.ShipWelding` is true. `WeldLoop` locates the pilot's `MyShipController`, collects all `MyShipWelder` blocks on the mechanical group, then for each welder queries projected blocks inside its `DetectorSphere` using `MyEntities.GetEntitiesInSphere`. For each weldable block (`CanBuild == OK`) it calls `TryWeldPreviewBlock`, which:
+**Technical.** `PluginSession` calls `ShipWelding.WeldLoop()` every frame when `Config.Current.ShipWelding` is true and the server has no MGP plugin (`!Comms.ServerHasPlugin`). `WeldLoop` does its work every 10th frame, as the game's ship welders do; each pass runs a Havok placement test for every projected block in reach (SE-1381). It locates the pilot's `MyShipController`, collects all `MyShipWelder` blocks on the mechanical group, then for each working welder (`IsWorking`) queries projected blocks inside its `DetectorSphere` using `MyEntities.GetEntitiesInSphere`. For each weldable block (`CanBuild == OK`) it calls `TryWeldPreviewBlock`, which:
 
 1. Checks that the welder's conveyor system can pull the first component of the block (`GridConveyorSystem.PullItem`); if successful the item is consumed in-place.
 2. Validates world limits via `welder.IsWithinWorldLimits`.
@@ -149,7 +149,7 @@ Three toolbar actions are also registered: `BlockHighlightToggle`, `BlockHighlig
 
 | Member | Kind | Description |
 |--------|------|-------------|
-| `WeldLoop()` | `static void` | Per-frame update called from `PluginSession`; drives all welders on the piloted craft |
+| `WeldLoop()` | `static void` | Called every frame from `PluginSession`; every 10th frame it drives all welders on the piloted craft |
 
 ---
 

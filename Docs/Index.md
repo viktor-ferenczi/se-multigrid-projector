@@ -162,7 +162,7 @@ _8 files, 1589 lines._
 | [ClientPlugin/Extra/CraftProjection.cs](../ClientPlugin/Extra/CraftProjection.cs) | csharp | 316 |
 | [ClientPlugin/Extra/ProjectorAligner.cs](../ClientPlugin/Extra/ProjectorAligner.cs) | csharp | 300 |
 | [ClientPlugin/Extra/RepairProjection.cs](../ClientPlugin/Extra/RepairProjection.cs) | csharp | 57 |
-| [ClientPlugin/Extra/ShipWelding.cs](../ClientPlugin/Extra/ShipWelding.cs) | csharp | 150 |
+| [ClientPlugin/Extra/ShipWelding.cs](../ClientPlugin/Extra/ShipWelding.cs) | csharp | 157 |
 | [ClientPlugin/Extra/ToolbarFix.cs](../ClientPlugin/Extra/ToolbarFix.cs) | csharp | 51 |
 
 ## [Client GUI Dialogs](Reference/Client-Menus.md)
@@ -181,7 +181,7 @@ _18 files, 1182 lines._
 
 | File | Type | Lines |
 | ---- | ---- | ----: |
-| [ClientPlugin/Settings/ConfigStorage.cs](../ClientPlugin/Settings/ConfigStorage.cs) | csharp | 44 |
+| [ClientPlugin/Settings/ConfigStorage.cs](../ClientPlugin/Settings/ConfigStorage.cs) | csharp | 66 |
 | [ClientPlugin/Settings/Elements/Button.cs](../ClientPlugin/Settings/Elements/Button.cs) | csharp | 36 |
 | [ClientPlugin/Settings/Elements/Checkbox.cs](../ClientPlugin/Settings/Elements/Checkbox.cs) | csharp | 35 |
 | [ClientPlugin/Settings/Elements/Color.cs](../ClientPlugin/Settings/Elements/Color.cs) | csharp | 86 |

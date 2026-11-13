@@ -203,10 +203,13 @@ def server_log_text() -> str:
     return logs[-1].read_text(errors="replace") if logs else ""
 
 
-def start_client(client: rig.Client = CLIENT, mgp: bool = True):
+def start_client(client: rig.Client = CLIENT, mgp: bool = True, plugins=()):
     """Starts a client, which joins on its own, and returns its API once the
-    character stands in the world"""
-    rig.launch(client, ["--connect", f"127.0.0.1:{SERVER_PORT}"], mgp=mgp)
+    character stands in the world. plugins are more client plugins, as for
+    rig.write_client_configs."""
+    rig.launch(
+        client, ["--connect", f"127.0.0.1:{SERVER_PORT}"], mgp=mgp, plugins=plugins
+    )
     remote = rig.wait_api(client)
     rig.wait_world(remote, 900)
     rig.ensure_character(remote)
