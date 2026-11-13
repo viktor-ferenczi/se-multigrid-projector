@@ -34,4 +34,12 @@ public class PluginConfig : PluginSdk.Config.PluginConfig, IPluginConfig
         "Seconds between repeats of that packet to every connected player. The repeat covers lost packets and " +
         "players arriving without a join, like on a cluster node switch.")]
     public int PresenceIntervalSeconds { get; set => SetField(ref field, value); } = 300;
+
+    [BoolOption(
+        "Let projected blocks be built beside another subgrid of the same blueprint which the game finds in the way, " +
+        "as long as that subgrid does not reach into the inner half of the block. The game refuses a block whose " +
+        "shape touches a grid mounted at an angle, even with nothing visibly in the way, which can stop the building " +
+        "of blueprints with subgrids close to each other. Enabled by default. Other grids, characters, floating " +
+        "objects and voxels in the way keep blocking either way.")]
+    public bool BuildBesideAngledSubgrids { get; set => SetField(ref field, value); } = true;
 }

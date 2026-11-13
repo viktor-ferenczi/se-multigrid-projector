@@ -15,6 +15,7 @@ Run it on a free client of the slot when the game changes::
 
 from __future__ import annotations
 
+import math
 import sys
 import time
 import xml.etree.ElementTree as ET
@@ -352,8 +353,64 @@ def connected_grids(sector: Sector, grid) -> list:
     return result
 
 
+def _vector(element) -> tuple[float, float, float]:
+    return tuple(float(element.get(a)) for a in "xyz")
+
+
+def _set_vector(element, vector) -> None:
+    for a, value in zip("xyz", vector):
+        element.set(a, repr(float(value)))
+
+
+def _cross(a, b):
+    return (
+        a[1] * b[2] - a[2] * b[1],
+        a[2] * b[0] - a[0] * b[2],
+        a[0] * b[1] - a[1] * b[0],
+    )
+
+
+def _rotate(v, axis, degrees: float):
+    """Rodrigues' rotation of v around a unit axis"""
+    c, s = math.cos(math.radians(degrees)), math.sin(math.radians(degrees))
+    dot = sum(a * b for a, b in zip(axis, v))
+    cross = _cross(axis, v)
+    return tuple(v[i] * c + cross[i] * s + axis[i] * dot * (1 - c) for i in range(3))
+
+
+def turn_top_grid(sector: Sector, base_id: int, degrees: float) -> None:
+    """Turns the subgrid on a base standing upright on its grid around the
+    base's axis, the way a rotor at that angle holds it. MGP poses the built
+    subgrid like the blueprint's."""
+    base_grid, base = sector.block_grid(base_id)
+    head_grid, head = sector.block_grid(int(base.findtext("TopBlockId")))
+    axis = _vector(base_grid.find("PositionAndOrientation/Up"))
+    pose = head_grid.find("PositionAndOrientation")
+    position, forward, up = (
+        _vector(pose.find(tag)) for tag in ("Position", "Forward", "Up")
+    )
+    right = _cross(forward, up)
+    size = 2.5 if head_grid.findtext("GridSizeEnum") == "Large" else 0.5
+    x, y, z = block_min(head)
+    center = tuple(
+        position[i] + size * (x * right[i] + y * up[i] - z * forward[i])
+        for i in range(3)
+    )
+    arm = _rotate(tuple(p - c for p, c in zip(position, center)), axis, degrees)
+    _set_vector(pose.find("Position"), tuple(c + a for c, a in zip(center, arm)))
+    _set_vector(pose.find("Forward"), _rotate(forward, axis, degrees))
+    _set_vector(pose.find("Up"), _rotate(up, axis, degrees))
+    # The same orientation again, which the game would read last
+    orientation = pose.find("Orientation")
+    if orientation is not None:
+        pose.remove(orientation)
+
+
 def write_blueprint(sector: Sector, bench: Bench, index: int) -> Path:
     ids = bench_ids(index)
+    for n, combo in enumerate(bench.combos):
+        if combo.angle:
+            turn_top_grid(sector, ids["grid"] + 100 + n, combo.angle)
     grids = []
     for grid in connected_grids(sector, sector.grid(ids["grid"])):
         element = ET.fromstring(ET.tostring(grid))

@@ -13,6 +13,7 @@ uses the workspace's Linux scripts, so it doesn't run on Windows yet.
 | `test_references.py` | toolbar items (in toolbars and waypoint actions), bound and turret cameras, tool, weapon and selection lists, and block groups of welded blocks across subgrids, and the same after a referenced block is welded again |
 | `test_rebuild.py` | welding again after losing a top subgrid, a base or a block on a subgrid, and after a save and reload halfway |
 | `test_load.py` | a blueprint loaded into a projector during the session, the way the blueprint screen does it |
+| `test_angled.py` | a block beside a sibling subgrid mounted at an angle gets built: the far block of each of two rotor arms, one turned by 30 degrees in the blueprint, is taken away and welded back while the other arm is complete (SE-1402) |
 | `test_survival.py` | survival welding by ship welders fed from cargo containers: the heads created at construction stage get finished, and every component that leaves the containers ends up in a block. Also the welder on a piston of GitHub issue #136, reaching into a projected block's cell |
 | `test_voxel.py` | projected blocks reaching into the terrain: a large static station welds its column into the ground, a small static station stops at the terrain, as the game's own build check decides by the grid's building settings |
 | `test_pb_api.py` | MGP's PB API holding together on every tick while subgrids are taken away and welded again, with and without block highlighting (GitHub issue #114) |
@@ -74,6 +75,9 @@ definitions, DLC blocks left out (the clients run without Steam):
   5x5, plain and mirrored) with its wheel
 - `chain`: a hinge carrying a piston carrying a rotor, and a rotor carrying two
   pistons
+- `angled`: two rotors two cells apart with an arm of three armor blocks each.
+  `fixtures.py` turns the second arm by 30 degrees towards the first when it
+  writes the blueprint (`Combo.angle`), so the arms' far ends touch.
 - `survival`: a rotor and a piston, and an armor block on the floor strip.
   `survival.py` adds the ship welders, conveyors and stocked cargo containers
   to the station, and a piston lying on the strip with a welder on its head

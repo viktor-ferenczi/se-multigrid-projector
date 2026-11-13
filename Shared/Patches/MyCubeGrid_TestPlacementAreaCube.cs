@@ -1,5 +1,6 @@
 using System;
 using HarmonyLib;
+using MultigridProjector.Config;
 using MultigridProjector.Logic;
 using MultigridProjector.Utilities;
 using Sandbox.Definitions;
@@ -53,6 +54,7 @@ namespace MultigridProjector.Patches
         private static void Postfix(
             MyCubeGrid targetGrid,
             Vector3I min,
+            Vector3I max,
             bool isProjected,
             // ReSharper disable once InconsistentNaming
             ref bool __result)
@@ -67,11 +69,11 @@ namespace MultigridProjector.Patches
                 return;
             
 #if DEBUG
-            __result = __result || projection.TestPlacementAreaCube(subgrid, targetGrid, min);
+            __result = projection.TestPlacementAreaCube(subgrid, targetGrid, min) || PluginConfig.Current.BuildBesideAngledSubgrids && projection.IsBarelyTouchingOnlySiblingSubgrids(targetGrid, min, max);
 #else
             try
             {
-                __result = __result || projection.TestPlacementAreaCube(subgrid, targetGrid, min);
+                __result = projection.TestPlacementAreaCube(subgrid, targetGrid, min) || PluginConfig.Current.BuildBesideAngledSubgrids && projection.IsBarelyTouchingOnlySiblingSubgrids(targetGrid, min, max);
             }
             catch (Exception e)
             {

@@ -26,5 +26,12 @@ namespace MultigridProjector.Config
         // the server sends it (Comms), and between the repeats. Tests shorten them.
         int PresenceDelaySeconds { get; }
         int PresenceIntervalSeconds { get; }
+
+        // Whether a projected block may be built beside another built subgrid of the same
+        // projection that the game's placement test finds in the way, as long as that subgrid
+        // does not reach into the inner half of the block. Without it blocks next to a subgrid
+        // mounted at an angle cannot be built (MultigridProjection.IsBarelyTouchingOnlySiblingSubgrids,
+        // SE-1402). On by default, on the client and on the server.
+        bool BuildBesideAngledSubgrids { get; }
     }
 }

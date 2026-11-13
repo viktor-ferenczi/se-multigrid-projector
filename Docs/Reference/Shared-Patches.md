@@ -52,7 +52,9 @@ The patch uses the `[EnsureOriginal]` attribute (from [Shared-Utilities.md](./Sh
 
 | Member | Kind | Description |
 |--------|------|-------------|
-| `Postfix` | Postfix | If `__result` is `false` and `isProjected` is `true`, delegates to `MultigridProjection.TestPlacementAreaCube` to potentially flip the result to `true` |
+| `Postfix` | Postfix | If `__result` is `false` and `isProjected` is `true`, asks `MultigridProjection.TestPlacementAreaCube` and then `MultigridProjection.IsBarelyTouchingOnlySiblingSubgrids`; either one flips the result to `true` |
+
+The second rule is for subgrids mounted at an angle next to each other (SE-1402). The `BuildBesideAngledSubgrids` option turns it off (on by default, see [Configuration.md](./Configuration.md)). The game rejects a block as soon as its shape touches another dynamic grid that is not axis aligned with the target grid, without a cell level check, so a block beside such a sibling subgrid could never be built, with nothing visibly in the way. `IsBarelyTouchingOnlySiblingSubgrids` queries Havok with a box over the block's full cells: anything in it other than built subgrids of the same projection (a welder arm, a character, a floating object, a voxel) keeps the rejection. If there are only sibling subgrids, a second query with a box of half the size at the same place must hit none of them. Havok offers no penetration depth for such a query; the half-size box stands in for "less than half of the block".
 
 ---
 

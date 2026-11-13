@@ -13,6 +13,7 @@ public class Config : INotifyPropertyChanged, IPluginConfig
     #region Options
 
     // Core
+    private bool buildBesideAngledSubgrids = true;
     private bool showDialogs = true;
 
     // Compatibility Mode
@@ -40,6 +41,13 @@ public class Config : INotifyPropertyChanged, IPluginConfig
     {
         get => showDialogs;
         set => SetField(ref showDialogs, value);
+    }
+
+    [Checkbox(label: "Build Beside Angled Subgrids", description: "Let projected blocks be built beside another subgrid of the same blueprint which the game finds in the way,\nas long as that subgrid does not reach into the inner half of the block. Applies in single player and when hosting;\non a server with the plugin the server's option decides.")]
+    public bool BuildBesideAngledSubgrids
+    {
+        get => buildBesideAngledSubgrids;
+        set => SetField(ref buildBesideAngledSubgrids, value);
     }
 
     [Separator("Compatibility Mode")]

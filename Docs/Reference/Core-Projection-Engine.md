@@ -15,7 +15,7 @@ parent [../Architecture.md](../Architecture.md) and [../API.md](../API.md).
 
 | File | Lines | Purpose |
 |------|------:|---------|
-| [MultigridProjection.cs](../../Shared/Logic/MultigridProjection.cs) | 2354 | Central per-projector class: lifecycle, subgrid/connection bookkeeping, build & placement checks, the update loop, and all Harmony entry points. |
+| [MultigridProjection.cs](../../Shared/Logic/MultigridProjection.cs) | 2387 | Central per-projector class: lifecycle, subgrid/connection bookkeeping, build & placement checks, the update loop, and all Harmony entry points. |
 | [Subgrid.cs](../../Shared/Logic/Subgrid.cs) | 818 | One blueprint subgrid: preview grid, optional built grid, block models, connections, grid-event handling, and background block-state scanning. |
 | [ReferenceFixer.cs](../../Shared/Logic/ReferenceFixer.cs) | 699 | Restores inter-block references (toolbars, toolbar group items, controllers, weapon/tool selections, AI waypoints) on freshly built blocks by mapping blueprint IDs to built EntityIds. |
 | [MultigridProjectorApiProvider.cs](../../Shared/Logic/MultigridProjectorApiProvider.cs) | 228 | Implements `IMultigridProjectorApi` and publishes the Mod API (mod message) and Programmable Block API (terminal property). |
@@ -162,6 +162,7 @@ projector's `EntityId`; lookups are the primary way patches reach the engine.
 | `BuildInternal` | method (server) | Validates and issues the actual block build request on the given subgrid (DLC/welding/buildable checks). A client's vanilla RPC builds on subgrid 0; the subgrid comes from MGP's own local calls and full mode build requests. |
 | `CanBuild` | method | Reimplemented build check across the preview/built transform (connectivity, voxels, Havok). |
 | `TestPlacementAreaCube` | method | True if a base block's preview maps to a built top subgrid (placement gate). |
+| `IsBarelyTouchingOnlySiblingSubgrids` | method | True if everything in the block's cells belongs to built subgrids of this projection and none of it reaches into the inner half of the block (placement gate for subgrids at an angle, SE-1402). |
 | `FindProjectedBlock` | method (private) | Ray-pick the nearest buildable preview block for hand welding (per-thread scratch arrays). |
 | `FindProjectedBlocks` | method (static, server) | Ship-welder variant: find all buildable preview blocks in a detector sphere. |
 | `MyWelder_FindProjectedBlock` | method (static, client) | Client welder entry point delegating to `FindProjectedBlock`. |
