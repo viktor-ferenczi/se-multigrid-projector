@@ -48,6 +48,17 @@ the memory must stay flat. Without it the memory must grow by 10 MB or more,
 which shows that Ship Welding still runs its checks. The client starts with an
 MGP 0.9.1 config file, which must come out converted with its options kept.
 
+`test_bugfixes_warning.py` and `ds/test_bugfixes_warning_ds.py` cover the
+warning about a missing Bugfixes plugin (SE-1548). They start the client on the
+main menu, or the server alone, and load no bench. Without Bugfixes the client
+and the server log the warning on every start, and the client shows its dialog
+on the main menu: on the first start, not on the next one, and again once the
+time saved in its config file is over a week old, which the test sets instead
+of waiting. With Bugfixes there is neither a warning nor a dialog. With
+`MGP_OLD_BUGFIXES_REPO`, a working copy of Bugfixes before 1.19.0, they also
+check the warning about a Bugfixes without the fix. `MGP_RENDER=1` saves the
+dialog to `tests/artifacts/bugfixes-dialog.png`.
+
 The client/server compatibility tests (SE-1273) are in `ds/` too, with their
 helpers in `ds/compat.py`. The server sends its presence packet 1 s after a
 player joins in every server test, and these set the repeat to 3 s:
@@ -204,6 +215,8 @@ dotnet test tests/unit
 | `MGP_WINDOWED=1` | a real window instead of headless |
 | `MGP_EXTRA_ARGS` | more launcher options, like `-bin64 <game Bin64>` when Pulsar can't find the game |
 | `MGP_ANTI_CHEAT_REPO` | the Anti-Cheat working copy of the compatibility tests |
-| `MGP_BUGFIXES_REPO` | the Bugfixes working copy of `ds/test_havok_leak_ds.py` |
+| `MGP_RENDER=1` | headless clients draw frames, for a test that saves a screenshot |
+| `MGP_BUGFIXES_REPO` | the Bugfixes working copy of `ds/test_havok_leak_ds.py` and of the Bugfixes warning tests, which default to `../bugfixes` |
+| `MGP_OLD_BUGFIXES_REPO` | a Bugfixes working copy before 1.19.0, for the Bugfixes warning tests |
 
 What MGP logged during each test goes to `tests/artifacts/<test file>.log`.

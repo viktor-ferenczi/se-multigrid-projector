@@ -47,6 +47,8 @@ TASK = os.environ.get("MGP_TASK", "mgp-tests")
 TEST_ROOT = HOME / ".se-test"
 ARTIFACTS = REPO / "tests" / "artifacts"
 WINDOWED = os.environ.get("MGP_WINDOWED") == "1"
+# Headless, but drawing frames, for a test that saves a screenshot
+RENDER = WINDOWED or os.environ.get("MGP_RENDER") == "1"
 
 MGP_CLIENT_ID = "viktor-ferenczi/se-multigrid-projector"
 MGP_SERVER_ID = "B91FD7B3-E1AC-4B57-8765-C677A7AC1F5F"
@@ -120,8 +122,10 @@ class Client:
             "--no-audio",
         ]
         if not WINDOWED:
+            args += ["--headless"]
+        if not RENDER:
             # No test looks at a frame
-            args += ["--headless", "--no-render"]
+            args += ["--no-render"]
         return args + os.environ.get("MGP_EXTRA_ARGS", "").split()
 
 
@@ -299,7 +303,7 @@ def launch(client: Client, extra_args=(), mgp: bool = True, plugins=()) -> None:
     ensure_pulsar(client)
     write_client_configs(client, mgp, plugins)
     client.log.unlink(missing_ok=True)
-    env = {} if WINDOWED else {"PULSAR_NO_RENDER": "true"}
+    env = {} if RENDER else {"PULSAR_NO_RENDER": "true"}
     start_process(
         [str(client.launcher), *client.args(), *extra_args],
         CLIENT_GIB,

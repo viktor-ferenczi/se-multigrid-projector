@@ -42,6 +42,8 @@
     <Compile Include="$(MSBuildThisFileDirectory)Patches\MyMechanicalConnectionBlockBase_OnBuildSuccess.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Patches\MyProjectorBase_GameProjectionPcu.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Patches\MyShipToolBase_UpdateAfterSimulation10.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Utilities\BugfixesCheck.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Utilities\BugfixesNag.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\Comms.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\Presence.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\EnsureOriginal.cs" />
