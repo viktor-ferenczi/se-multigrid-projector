@@ -52,9 +52,8 @@ MGP 0.9.1 config file, which must come out converted with its options kept.
 warning about a missing Bugfixes plugin (SE-1548). They start the client on the
 main menu, or the server alone, and load no bench. Without Bugfixes the client
 and the server log the warning on every start, and the client shows its dialog
-on the main menu: on the first start, not on the next one, and again once the
-time saved in its config file is over a week old, which the test sets instead
-of waiting. With Bugfixes there is neither a warning nor a dialog. With
+on the main menu on the first start only: it notes in its config file that the
+dialog has been shown. With Bugfixes there is neither a warning nor a dialog. With
 `MGP_OLD_BUGFIXES_REPO`, a working copy of Bugfixes before 1.19.0, they also
 check the warning about a Bugfixes without the fix. `MGP_RENDER=1` saves the
 dialog to `tests/artifacts/bugfixes-dialog.png`.

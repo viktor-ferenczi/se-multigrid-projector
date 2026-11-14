@@ -10,8 +10,9 @@ using VRageMath;
 
 namespace MultigridProjectorClient.Menus
 {
-    // The client side of the missing Bugfixes plugin warning: the log line, and a dialog on the
-    // main menu at most once a week. Remove it with the warning, see BugfixesCheck.
+    // The client side of the missing Bugfixes plugin warning: the log line on every start, and
+    // a dialog on the main menu the first time only. Remove it with the warning, see
+    // BugfixesCheck.
     internal static class BugfixesDialog
     {
         private static bool detected;
@@ -27,7 +28,7 @@ namespace MultigridProjectorClient.Menus
                 // Pulsar took them
                 detected = true;
                 state = BugfixesCheck.DetectAndWarn();
-                due = state != BugfixesState.Fixed && BugfixesNag.IsDue(Config.Current.BugfixesWarningShownUnixTime, Now);
+                due = state != BugfixesState.Fixed && !Config.Current.BugfixesWarningShown;
             }
 
             if (!due)
@@ -43,9 +44,9 @@ namespace MultigridProjectorClient.Menus
             {
                 MyGuiSandbox.AddScreen(CreateDialog());
 
-                // This deliberately ignores the Show Warning Dialogs option: the dialog is rare
-                // and the leak ends in a crash
-                Config.Current.BugfixesWarningShownUnixTime = Now;
+                // This deliberately ignores the Show Warning Dialogs option: the dialog comes
+                // up only once and the leak ends in a crash
+                Config.Current.BugfixesWarningShown = true;
                 ConfigStorage.Save(Config.Current);
             }
             catch (Exception e)
@@ -53,8 +54,6 @@ namespace MultigridProjectorClient.Menus
                 PluginLog.Warn($"Could not show the missing Bugfixes plugin dialog: {e.Message}");
             }
         }
-
-        private static long Now => DateTimeOffset.UtcNow.ToUnixTimeSeconds();
 
         private static MyGuiScreenMessageBox CreateDialog()
         {

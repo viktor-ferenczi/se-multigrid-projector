@@ -1,5 +1,3 @@
-using System;
-
 namespace MultigridProjector.Utilities
 {
     public enum BugfixesState
@@ -14,27 +12,16 @@ namespace MultigridProjector.Utilities
         Missing,
     }
 
-    // The texts and the timing of the missing Bugfixes plugin warning, see BugfixesCheck.
+    // The texts of the missing Bugfixes plugin warning, see BugfixesCheck.
     // Remove it together with BugfixesCheck.
     public static class BugfixesNag
     {
         // The first Bugfixes version with the fix (CometWorks/bugfixes#44)
         public const string MinVersion = "1.19.0";
 
-        public const long IntervalSeconds = 7 * 24 * 3600;
-
         private const string Why =
             "The game leaks Havok memory when welders check projected blocks, " +
             "until the game runs out of memory. Only the Bugfixes plugin fixes that.";
-
-        // The dialog is due a week after it was last shown. A time in the future is a clock set
-        // back since then, and counts as never shown.
-        public static bool IsDue(long lastShownUnixTime, long nowUnixTime)
-        {
-            return lastShownUnixTime <= 0
-                   || lastShownUnixTime > nowUnixTime
-                   || nowUnixTime - lastShownUnixTime >= IntervalSeconds;
-        }
 
         // Null if there is nothing to warn about
         public static string LogMessage(BugfixesState state)

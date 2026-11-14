@@ -17,7 +17,7 @@ namespace MultigridProjector.Utilities
     // REMOVE THIS MECHANISM once the game itself stops leaking in the vanilla build and weld
     // process, when tests/ds/test_havok_leak_ds.py fails without Bugfixes because the memory
     // stays flat: this file, BugfixesNag.cs, ClientPlugin/Menus/BugfixesDialog.cs, the calls in
-    // Update of both Plugin classes, Config.BugfixesWarningShownUnixTime, and their tests
+    // Update of both Plugin classes, Config.BugfixesWarningShown, and their tests
     // (tests/unit/BugfixesNagTests.cs, tests/test_bugfixes_warning.py,
     // tests/ds/test_bugfixes_warning_ds.py).
     public static class BugfixesCheck
