@@ -4,6 +4,7 @@ using ClientPlugin.Settings.Layouts;
 using HarmonyLib;
 using MultigridProjector.Utilities;
 using MultigridProjectorClient;
+using MultigridProjectorClient.Menus;
 using Sandbox.Graphics.GUI;
 using VRage.Plugins;
 
@@ -11,8 +12,8 @@ using VRage.Plugins;
 #if !LOCAL_BUILD
 using System.Reflection;
 
-[assembly: AssemblyVersion("1.0.2")]
-[assembly: AssemblyFileVersion("1.0.2")]
+[assembly: AssemblyVersion("1.0.3")]
+[assembly: AssemblyFileVersion("1.0.3")]
 #endif
 
 namespace ClientPlugin;
@@ -71,5 +72,7 @@ public class Plugin : IPlugin
 
     public void Update()
     {
+        // Remove this call with the missing Bugfixes plugin warning, see BugfixesCheck
+        BugfixesDialog.Update();
     }
 }

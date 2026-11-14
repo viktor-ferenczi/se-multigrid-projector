@@ -14,8 +14,8 @@ using ConfigStorage = PluginSdk.Config.ConfigStorage;
 #if !LOCAL_BUILD
 using System.Reflection;
 
-[assembly: AssemblyVersion("1.0.2")]
-[assembly: AssemblyFileVersion("1.0.2")]
+[assembly: AssemblyVersion("1.0.3")]
+[assembly: AssemblyFileVersion("1.0.3")]
 #endif
 
 namespace ServerPlugin;
@@ -41,6 +41,7 @@ public class Plugin : IPlugin
 
     private static bool earlyStarted;
     private static bool failed;
+    private static bool bugfixesChecked;
 
     [MethodImpl(MethodImplOptions.NoInlining)]
     public void Init(object gameInstance)
@@ -203,6 +204,14 @@ public class Plugin : IPlugin
 
     public void Update()
     {
+        // The missing Bugfixes plugin warning, on the first update: every plugin is initialized
+        // by then, in whatever order the loader took them. Remove it with BugfixesCheck.
+        if (bugfixesChecked)
+            return;
+        bugfixesChecked = true;
+
+        if (!failed)
+            BugfixesCheck.DetectAndWarn();
     }
 
     private static PluginConfig LoadConfig(string path)

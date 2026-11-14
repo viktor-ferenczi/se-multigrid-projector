@@ -21,6 +21,12 @@ Please consider supporting my work on [Patreon](https://www.patreon.com/semods) 
 
 ## Installation
 
+Use the [Bugfixes](https://github.com/CometWorks/bugfixes) plugin (1.19.0 or newer) together with
+Multigrid Projector, on the client and on the server. The game leaks memory when welders check
+projected blocks, until it runs out of it, and only Bugfixes fixes that. Without it Multigrid
+Projector logs a warning on every start, and the client shows a dialog on the main menu at most
+once a week.
+
 ### Client
 
 Have [Pulsar](https://github.com/SpaceGT/Pulsar) installed. Link to the Installer is in the README there.
