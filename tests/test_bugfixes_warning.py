@@ -24,7 +24,7 @@ from bugfixes_warning import BUGFIXES, MISSING, OLD_BUGFIXES, TOO_OLD, plugin, w
 
 CLIENT = rig.Client(0)
 CONFIG = CLIENT.appdata / "Storage" / "MultigridProjector.cfg"
-CAPTION = "Bugfixes Plugin Needed"
+CAPTION = "Bugfixes Plugin Recommended"
 
 
 def start(shown: bool, plugins=()):
@@ -116,7 +116,7 @@ def test_first_start_without_bugfixes_warns_and_shows_the_dialog():
     assert "Warning" in lines[0] or "WARNING" in lines[0], lines[0]
     assert noted_as_shown()
     text = json.dumps(remote.get_controls(index))
-    assert "The Bugfixes plugin is not enabled" in text
+    assert "Using it together with Multigrid Projector is recommended" in text
 
     if rig.RENDER:
         time.sleep(2)
@@ -162,5 +162,5 @@ def test_bugfixes_without_the_fix_warns_and_shows_the_dialog():
     index = wait_dialog(remote)
     lines = log_warnings()
     assert len(lines) == 1 and TOO_OLD in lines[0], lines
-    assert "its fix of the memory leak" in json.dumps(remote.get_controls(index))
+    assert "but only from version 1.19.0" in json.dumps(remote.get_controls(index))
     assert noted_as_shown()

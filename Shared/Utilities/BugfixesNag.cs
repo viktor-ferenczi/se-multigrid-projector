@@ -19,19 +19,15 @@ namespace MultigridProjector.Utilities
         // The first Bugfixes version with the fix (CometWorks/bugfixes#44)
         public const string MinVersion = "1.19.0";
 
-        private const string Why =
-            "The game leaks Havok memory when welders check projected blocks, " +
-            "until the game runs out of memory. Only the Bugfixes plugin fixes that.";
-
         // Null if there is nothing to warn about
         public static string LogMessage(BugfixesState state)
         {
             switch (state)
             {
                 case BugfixesState.Missing:
-                    return $"The Bugfixes plugin is not loaded. {Why} Use the Bugfixes plugin ({MinVersion} or newer) together with Multigrid Projector.";
+                    return "The Bugfixes plugin is not loaded. It fixes a memory leak in the welders' block checks, so using it together with Multigrid Projector is recommended.";
                 case BugfixesState.TooOld:
-                    return $"The Bugfixes plugin is loaded without its fix of the block placement test. {Why} Update the Bugfixes plugin to {MinVersion} or newer and check its log lines for a failed patch.";
+                    return $"The Bugfixes plugin is loaded without its fix of a memory leak in the welders' block checks. Update it to {MinVersion} or newer.";
                 default:
                     return null;
             }
@@ -43,19 +39,11 @@ namespace MultigridProjector.Utilities
             switch (state)
             {
                 case BugfixesState.Missing:
-                    return "The Bugfixes plugin is not enabled.\n\n" +
-                           "The game leaks memory when welders check projected blocks,\n" +
-                           "until it runs out of memory and crashes.\n" +
-                           "Only the Bugfixes plugin fixes that.\n\n" +
-                           "Please enable the Bugfixes plugin in the Plugins menu\n" +
-                           "and restart the game.";
+                    return "The Bugfixes plugin fixes a memory leak in the welders' block checks.\n" +
+                           "Using it together with Multigrid Projector is recommended.";
                 case BugfixesState.TooOld:
-                    return "The Bugfixes plugin is enabled, but its fix of the memory leak\n" +
-                           "is not active.\n\n" +
-                           "The game leaks memory when welders check projected blocks,\n" +
-                           "until it runs out of memory and crashes.\n\n" +
-                           $"Please update the Bugfixes plugin to {MinVersion} or newer\n" +
-                           "and restart the game.";
+                    return "The Bugfixes plugin fixes a memory leak in the welders' block checks,\n" +
+                           $"but only from version {MinVersion}. Please update it.";
                 default:
                     return null;
             }

@@ -60,8 +60,8 @@ namespace MultigridProjectorClient.Menus
             MyGuiScreenMessageBox messageBox = MyGuiSandbox.CreateMessageBox(
                 MyMessageBoxStyleEnum.Info,
                 messageText: new StringBuilder(BugfixesNag.DialogMessage(state)),
-                messageCaption: new StringBuilder("Multigrid Projector - Bugfixes Plugin Needed"),
-                size: new Vector2(0.65f, 0.4f));
+                messageCaption: new StringBuilder("Multigrid Projector - Bugfixes Plugin Recommended"),
+                size: new Vector2(0.65f, 0.3f));
 
             // Make the background color less transparent, as the default is very faint and this is an important message
             messageBox.BackgroundColor = new Vector4(1f, 1f, 1f, 10.0f);

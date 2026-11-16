@@ -11,13 +11,18 @@ public class BugfixesNagTests
         Assert.Null(BugfixesNag.DialogMessage(BugfixesState.Fixed));
     }
 
-    [Theory]
-    [InlineData(BugfixesState.Missing)]
-    [InlineData(BugfixesState.TooOld)]
-    public void TheWarningsNameThePluginAndItsVersion(BugfixesState state)
+    [Fact]
+    public void WithoutBugfixesTheWarningsRecommendIt()
     {
-        Assert.Contains("Bugfixes plugin", BugfixesNag.LogMessage(state));
-        Assert.Contains("1.19.0", BugfixesNag.LogMessage(state));
-        Assert.Contains("Bugfixes plugin", BugfixesNag.DialogMessage(state));
+        Assert.Contains("The Bugfixes plugin is not loaded", BugfixesNag.LogMessage(BugfixesState.Missing));
+        Assert.Contains("is recommended", BugfixesNag.LogMessage(BugfixesState.Missing));
+        Assert.Contains("is recommended", BugfixesNag.DialogMessage(BugfixesState.Missing));
+    }
+
+    [Fact]
+    public void WithAnOldBugfixesTheWarningsNameTheVersionToUpdateTo()
+    {
+        Assert.Contains("1.19.0", BugfixesNag.LogMessage(BugfixesState.TooOld));
+        Assert.Contains("1.19.0", BugfixesNag.DialogMessage(BugfixesState.TooOld));
     }
 }
