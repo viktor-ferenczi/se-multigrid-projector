@@ -15,6 +15,13 @@ functionality for everyone on the server.
 > Torch and the legacy Dedicated Server plugin loader are **no longer supported**. Use Pulsar on the
 > client and Magnetar (optionally managed by Quasar) on the server.
 
+Use the [Bugfixes](https://github.com/CometWorks/bugfixes) plugin (1.19.0 or newer) together with
+Multigrid Projector, on the client and on the server. It fixes a memory leak in the welders' block
+checks. Without it Multigrid Projector logs a warning on every start, and the client shows a
+dialog on the main menu once.
+
+![The dialog about the missing Bugfixes plugin](Images/bugfixes-dialog.png)
+
 ## Client plugin (Pulsar)
 
 1. Install [Pulsar](https://github.com/SpaceGT/Pulsar) (the plugin & mod loader for the game client).

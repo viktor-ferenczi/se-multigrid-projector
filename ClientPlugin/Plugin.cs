@@ -4,6 +4,7 @@ using ClientPlugin.Settings.Layouts;
 using HarmonyLib;
 using MultigridProjector.Utilities;
 using MultigridProjectorClient;
+using MultigridProjectorClient.Menus;
 using Sandbox.Graphics.GUI;
 using VRage.Plugins;
 
@@ -71,5 +72,7 @@ public class Plugin : IPlugin
 
     public void Update()
     {
+        // Remove this call with the missing Bugfixes plugin warning, see BugfixesCheck
+        BugfixesDialog.Update();
     }
 }

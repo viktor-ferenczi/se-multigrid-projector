@@ -30,6 +30,15 @@ public class Config : INotifyPropertyChanged, IPluginConfig
 
     #endregion
 
+    #region Saved state, not on the settings dialog
+
+    // Whether the missing Bugfixes plugin dialog has been shown: it comes up only once. It has
+    // no settings attribute, so the settings dialog does not list it. Remove it with the
+    // warning, see BugfixesCheck; a config file that still has the element loads fine.
+    public bool BugfixesWarningShown { get; set; }
+
+    #endregion
+
     #region User interface
 
     public readonly string Title = "Multigrid Projector";
