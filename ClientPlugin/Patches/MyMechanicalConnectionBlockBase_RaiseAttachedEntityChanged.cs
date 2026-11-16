@@ -9,7 +9,7 @@ namespace MultigridProjectorClient.Patches
     // ReSharper disable once UnusedType.Global
     [HarmonyPatch(typeof(MyMechanicalConnectionBlockBase))]
     [HarmonyPatch("RaiseAttachedEntityChanged")]
-    [EnsureOriginal("f0a1b3d3")]
+    [EnsureOriginal("f0a1b3d3", "2a7bb46e")]
     // ReSharper disable once InconsistentNaming
     public static class MyMechanicalConnectionBlockBase_RaiseAttachedEntityChanged
     {
