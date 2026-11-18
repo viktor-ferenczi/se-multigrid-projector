@@ -48,6 +48,13 @@ the memory must stay flat. Without it the memory must grow by 10 MB or more,
 which shows that Ship Welding still runs its checks. The client starts with an
 MGP 0.9.1 config file, which must come out converted with its options kept.
 
+`ds/test_repair_projection_ds.py` presses Load Repair Projection while the
+client's character sits in a cockpit of the projector's grid (DIS-0093). The
+blueprint used to carry the seated character, and sending it to the server
+crashed the client on the null `RegenEffects` list of its suit battery. The
+`ds/repair-probe` plugin adds a projector action that presses the terminal
+button, so Remote can press it.
+
 `test_bugfixes_warning.py` and `ds/test_bugfixes_warning_ds.py` cover the
 warning about a missing Bugfixes plugin (SE-1548). They start the client on the
 main menu, or the server alone, and load no bench. Without Bugfixes the client

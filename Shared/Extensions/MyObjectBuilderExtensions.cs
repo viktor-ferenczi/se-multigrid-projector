@@ -7,6 +7,7 @@ using Sandbox.Game.Entities.Blocks;
 using VRage;
 using VRage.Game;
 using VRage.Game.ObjectBuilders.ComponentSystem;
+using VRage.Game.ObjectBuilders.Components;
 using VRageMath;
 
 namespace MultigridProjector.Extensions
@@ -35,6 +36,29 @@ namespace MultigridProjector.Extensions
             // Remove nested blueprints from projectors, it still allows for repair projections and missile welders
             if (blockBuilder is MyObjectBuilder_ProjectorBase projectorBuilder)
                 RemoveNestedRepairBlueprints(projectorBuilder);
+
+            // A repair projection of a grid with someone seated would carry the character.
+            // Cloning drops the empty RegenEffects list of its suit battery, then sending the
+            // blueprint to the server throws on the null list. Vanilla clears pilots the same way
+            // when it copies a grid to the clipboard (MyGridClipboard.RemovePilots).
+            if (blockBuilder is MyObjectBuilder_Cockpit cockpitBuilder)
+                RemovePilot(cockpitBuilder);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static void RemovePilot(MyObjectBuilder_Cockpit cockpitBuilder)
+        {
+            cockpitBuilder.ClearPilotAndAutopilot();
+
+            var components = cockpitBuilder.ComponentContainer?.Components;
+            if (components == null)
+                return;
+
+            foreach (var component in components)
+            {
+                if (component.Component is MyObjectBuilder_HierarchyComponentBase hierarchy)
+                    hierarchy.Children.RemoveAll(child => child is MyObjectBuilder_Character);
+            }
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]

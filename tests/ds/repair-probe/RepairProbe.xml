@@ -1,0 +1,13 @@
+<?xml version="1.0"?>
+<PluginData
+  xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:type="GitHubPlugin"
+>
+  <Id>repair-probe</Id>
+  <RepoId>viktor-ferenczi/se-multigrid-projector</RepoId>
+  <FriendlyName>Repair Probe</FriendlyName>
+  <Author>Viktor</Author>
+  <Tooltip>Test only: an action that presses the Load Repair Projection button</Tooltip>
+  <Commit>TODO</Commit>
+</PluginData>
