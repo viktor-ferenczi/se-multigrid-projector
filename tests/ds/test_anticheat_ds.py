@@ -18,7 +18,9 @@ pytestmark = compat.needs_anti_cheat
 BENCHES = ["survival"]
 WORLD_SETTINGS = {"GameMode": "Survival", "EnableResearch": "false"}
 MGP_SERVER_CONFIG = compat.FAST_PRESENCE
-SERVER_PLUGINS = [compat.ANTI_CHEAT]
+# A plain survival player's character starts without components, and the server builds a
+# projected block only for a builder holding its first component (since 1.211.018)
+SERVER_PLUGINS = [compat.ANTI_CHEAT, compat.KIT_PROBE]
 EDIT_WORLD = compat.anti_cheat_config
 ADMINS = False
 # A plain player can't teleport: the character spawns in the middle of the bench
@@ -29,6 +31,7 @@ STATION_EXTRAS = compat.medical_room_extras()
 def welded(game):
     game.require_ops("WeldProjection")
     assert compat.wait_until(lambda: compat.client_lines(compat.FULL_MODE), 30)
+    assert compat.server_lines(compat.KIT_GIVEN, wait=60)
     grids = compat.grid_count(game)
     projector = bench_ids(bench_index("survival"))["projector"]
     requested = compat.weld_passes(game, projector, instant=False)

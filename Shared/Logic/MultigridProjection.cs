@@ -18,6 +18,7 @@ using Sandbox.Engine.Multiplayer;
 using Sandbox.Engine.Physics;
 using Sandbox.Game.Entities;
 using Sandbox.Game.Entities.Blocks;
+using Sandbox.Game.Entities.Character;
 using Sandbox.Game.Entities.Cube;
 using Sandbox.Game.EntityComponents;
 using Sandbox.Game.Multiplayer;
@@ -1430,6 +1431,25 @@ System.NullReferenceException: Object reference not set to an instance of an obj
                 return;
             }
 
+            // The checks vanilla BuildInternal does since 1.211.018: the world block limits, and in
+            // survival without an instant creative tools build the first component in the builder's
+            // inventory. The block is accounted to the owner, who also becomes its BuiltBy below.
+            var sender = MyEventContext.Current.Sender.Value;
+            var definition = previewBlock.BlockDefinition;
+            var creativeToolsBuild = requestInstant && MySession.Static.CreativeToolsEnabled(sender);
+            var pcuToBuild = MySession.Static.CreativeMode || creativeToolsBuild ? definition.PCU : MyCubeBlockDefinition.PCU_CONSTRUCTION_STAGE_COST;
+            if (MySession.Static.IsWithinWorldLimits(out _, owner, definition.GetLimitType(), pcuToBuild, 1, builtGrid.BlocksCount) != MySession.LimitResult.Passed)
+            {
+                BuildRequests.LogOnce(sender, "world limits", $"Refused to build {definition.Id.SubtypeName} for {sender}: world block limits");
+                return;
+            }
+
+            if (MySession.Static.SurvivalMode && !creativeToolsBuild && !BuilderHoldsFirstComponent(builder, definition))
+            {
+                BuildRequests.LogOnce(sender, "no component", $"Refused to build {definition.Id.SubtypeName} for {sender}: the builder holds none of its first component");
+                return;
+            }
+
             // Transform from the preview grid's coordinates to the grid being build (they don't match exactly for the projecting grid)
             // FIXME: Potential optimization opportunity on the non-projecting grids
 
@@ -1497,6 +1517,17 @@ System.NullReferenceException: Object reference not set to an instance of an obj
 
             // Actually build the block on both the server and all clients
             builtGrid.BuildBlockRequestInternal(visuals, location, blockBuilder, builder, instantBuild, owner, MyEventContext.Current.IsLocallyInvoked ? steamId : MyEventContext.Current.Sender.Value, isProjection: true);
+        }
+
+        // A character or a ship welder holding at least one of the block's first component
+        private static bool BuilderHoldsFirstComponent(long builder, MyCubeBlockDefinition definition)
+        {
+            if (!MyEntities.TryGetEntityById(builder, out var entity) || !(entity is MyCharacter || entity is IMyShipWelder))
+                return false;
+
+            var inventory = MyCubeBuilder.BuildComponent.GetBuilderInventory(entity);
+            var components = definition.Components;
+            return inventory != null && components != null && components.Length != 0 && inventory.GetItemAmount(components[0].Definition.Id) >= 1;
         }
 
         [Everywhere]
