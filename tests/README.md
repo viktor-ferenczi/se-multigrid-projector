@@ -55,6 +55,14 @@ crashed the client on the null `RegenEffects` list of its suit battery. The
 `ds/repair-probe` plugin adds a projector action that presses the terminal
 button, so Remote can press it.
 
+`ds/test_build_checks_ds.py` sends vanilla BuildInternal RPCs that the game
+refuses since 1.211.018 and checks that MGP's replacement refuses them too
+(SE-1753): a builder that isn't the sender's controlled character, a builtBy
+that isn't the sender's identity, a block over the world's block limits, and a
+survival build without the block's first component. An honest RPC must still
+build. The `ds/rpc-probe` plugin adds a projector action that sends the RPC
+with the arguments the test writes into the projector's custom data.
+
 `test_bugfixes_warning.py` and `ds/test_bugfixes_warning_ds.py` cover the
 warning about a missing Bugfixes plugin (SE-1548). They start the client on the
 main menu, or the server alone, and load no bench. Without Bugfixes the client

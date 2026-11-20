@@ -14,8 +14,8 @@ using ConfigStorage = PluginSdk.Config.ConfigStorage;
 #if !LOCAL_BUILD
 using System.Reflection;
 
-[assembly: AssemblyVersion("1.0.4")]
-[assembly: AssemblyFileVersion("1.0.4")]
+[assembly: AssemblyVersion("1.0.5")]
+[assembly: AssemblyFileVersion("1.0.5")]
 #endif
 
 namespace ServerPlugin;

@@ -1,0 +1,13 @@
+<?xml version="1.0"?>
+<PluginData
+  xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:type="GitHubPlugin"
+>
+  <Id>rpc-probe</Id>
+  <RepoId>viktor-ferenczi/se-multigrid-projector</RepoId>
+  <FriendlyName>RPC Probe</FriendlyName>
+  <Author>Viktor</Author>
+  <Tooltip>Test only: an action that sends a vanilla BuildInternal RPC with chosen arguments</Tooltip>
+  <Commit>TODO</Commit>
+</PluginData>

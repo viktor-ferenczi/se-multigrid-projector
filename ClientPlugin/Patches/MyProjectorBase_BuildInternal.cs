@@ -19,7 +19,7 @@ namespace MultigridProjectorClient.Patches
     // ReSharper disable once UnusedType.Global
     [HarmonyPatch(typeof(MyProjectorBase))]
     [HarmonyPatch("BuildInternal")]
-    [EnsureOriginal("f78ce8f7")]
+    [EnsureOriginal("f78ce8f7", "b08d536e")]
     // ReSharper disable once InconsistentNaming
     public static class MyProjectorBase_BuildInternal
     {
@@ -62,7 +62,12 @@ namespace MultigridProjectorClient.Patches
 
             // Only for the record: who sends which arguments
             if (!MyEventContext.Current.IsLocallyInvoked)
-                BuildRequests.NoteRpc(MyEventContext.Current.Sender.Value, owner, builtBy);
+            {
+                var sender = MyEventContext.Current.Sender.Value;
+                BuildRequests.NoteRpc(sender, owner, builtBy);
+                if (!BuildRequests.IsRpcAllowed(sender, builder, builtBy))
+                    return;
+            }
             
             // Find the multigrid projection, fall back to the default implementation if this projector is not handled by the plugin
             if (!MultigridProjection.TryFindProjectionByProjector(projector, out var projection))

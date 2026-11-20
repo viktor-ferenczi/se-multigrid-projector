@@ -56,9 +56,12 @@ namespace MultigridProjector.Logic
                 || request.Owner != identityId
                 || character == null
                 || character.EntityId != request.Builder
+                || players
+                    .GetPlayerById(new MyPlayer.PlayerId(sender))
+                    ?.Controller?.ControlledEntity != character
             )
             {
-                Refuse(sender, "not the sender's own identity and character", request);
+                Refuse(sender, "not the sender's own identity and controlled character", request);
                 return;
             }
 
@@ -104,6 +107,43 @@ namespace MultigridProjector.Logic
                 );
         }
 
+        // The sender checks of the vanilla BuildInternal RPC since 1.211.018: the builder is the
+        // sender's own character, which the sender controls, and builtBy is the sender's identity.
+        // MGP's own Build patches call BuildInternal locally, with the subgrid index in builtBy,
+        // so this applies to RPCs from clients only.
+        public static bool IsRpcAllowed(ulong sender, long builder, long builtBy)
+        {
+            var players = MySession.Static.Players;
+            var player = players.GetPlayerById(new MyPlayer.PlayerId(sender));
+            var character = player?.Character;
+            if (
+                character == null
+                || character.EntityId != builder
+                || player.Controller?.ControlledEntity != character
+            )
+            {
+                LogOnce(
+                    sender,
+                    "rpc builder",
+                    $"Refused a BuildInternal RPC from {sender}: builder {builder} is not the sender's controlled character"
+                );
+                return false;
+            }
+
+            var identityId = players.TryGetIdentityId(sender);
+            if (identityId == 0 || builtBy != identityId)
+            {
+                LogOnce(
+                    sender,
+                    "rpc builtBy",
+                    $"Refused a BuildInternal RPC from {sender}: builtBy {builtBy} is not the sender's identity {identityId}"
+                );
+                return false;
+            }
+
+            return true;
+        }
+
         // A BuildInternal RPC from a client, for the record. Vanilla clients and MGP clients in
         // client-only mode send builtBy = owner.
         public static void NoteRpc(ulong sender, long owner, long builtBy)
@@ -126,7 +166,7 @@ namespace MultigridProjector.Logic
             );
         }
 
-        private static void LogOnce(ulong sender, string kind, string message)
+        public static void LogOnce(ulong sender, string kind, string message)
         {
             lock (Logged)
                 if (!Logged.Add($"{sender} {kind}"))
