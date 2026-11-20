@@ -29,6 +29,15 @@ ANTI_CHEAT = (
     "AntiCheatServer.xml",
 )
 
+# Steel plates for the characters of plain survival players, see kit-probe/Plugin.cs
+KIT_PROBE = (
+    "kit-probe",
+    "kit-probe",
+    Path(__file__).parent / "kit-probe",
+    "KitProbe.xml",
+)
+KIT_GIVEN = "KitProbe: gave"
+
 # Seconds, short for the tests; the defaults are 10 and 300
 FAST_PRESENCE = {"PresenceDelaySeconds": 1, "PresenceIntervalSeconds": 3}
 

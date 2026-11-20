@@ -89,7 +89,10 @@ The Anti-Cheat tests need `MGP_ANTI_CHEAT_REPO`, a working copy of
 CometWorks/anti-cheat whose guards compile under Magnetar (SE-1251). Without it
 they skip. Plain players can't use the admin teleport, so those benches get a
 medical room shared with all, and the character spawns there. Anti-Cheat is
-set to kick on the first refusal, since it logs a refusal only when it kicks.
+set to kick on the first refusal, since it logs a refusal only when it kicks. The
+`ds/kit-probe` server plugin gives the plain player's character 50 steel
+plates: since 1.211.018 the server builds a projected block in survival only
+for a builder holding its first component.
 
 The mechanical combinations are the game's own, from its CubeBlocks
 definitions, DLC blocks left out (the clients run without Steam):
