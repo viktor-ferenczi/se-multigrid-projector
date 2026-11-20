@@ -2,7 +2,8 @@ using System;
 using System.Linq;
 using Sandbox.Game.Entities;
 using Sandbox.Game.Entities.Blocks;
-using SpaceEngineers.Game.Entities.Blocks;
+using Sandbox.ModAPI;
+using Entities.Blocks;
 using VRage.Plugins;
 using VRage.Utils;
 
