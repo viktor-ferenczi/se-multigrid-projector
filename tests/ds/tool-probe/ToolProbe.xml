@@ -1,0 +1,13 @@
+<?xml version="1.0"?>
+<PluginData
+  xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:type="GitHubPlugin"
+>
+  <Id>tool-probe</Id>
+  <RepoId>viktor-ferenczi/se-multigrid-projector</RepoId>
+  <FriendlyName>Tool Probe</FriendlyName>
+  <Author>Viktor</Author>
+  <Tooltip>Test only: a server-side projector build with a block as the builder, as ToolCore welders do</Tooltip>
+  <Commit>TODO</Commit>
+</PluginData>

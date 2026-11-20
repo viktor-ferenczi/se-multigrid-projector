@@ -38,6 +38,14 @@ KIT_PROBE = (
 )
 KIT_GIVEN = "KitProbe: gave"
 
+# A server-side projector build with a block as the builder, see tool-probe/Plugin.cs
+TOOL_PROBE = (
+    "tool-probe",
+    "tool-probe",
+    Path(__file__).parent / "tool-probe",
+    "ToolProbe.xml",
+)
+
 # Seconds, short for the tests; the defaults are 10 and 300
 FAST_PRESENCE = {"PresenceDelaySeconds": 1, "PresenceIntervalSeconds": 3}
 

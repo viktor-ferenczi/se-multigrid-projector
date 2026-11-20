@@ -12,6 +12,11 @@ data. The world is survival with the hinge (block pair LargeHinge) limited to
 none, and the client is an admin with creative tools on, so an instant build
 needs no components. Each test asks for a different base of the large bench and
 counts the bases of that subtype on the station afterwards.
+
+A request the server makes itself for a block other than a ship welder is not
+checked for components (SE-1769): ToolCore's welders take the first component
+out of the tool and then call projector.Build with the tool as the builder. The
+tool-probe server plugin makes such a request.
 """
 
 from __future__ import annotations
@@ -20,6 +25,7 @@ import re
 import time
 from pathlib import Path
 
+import compat
 import ds_rig
 from fixtures import bench_ids, bench_index
 
@@ -28,6 +34,7 @@ WORLD_SETTINGS = {"GameMode": "Survival", "EnableResearch": "false"}
 
 PROBE = Path(__file__).parent / "rpc-probe"
 CLIENT_PLUGINS = [("rpc-probe", "rpc-probe", PROBE, "RpcProbe.xml")]
+SERVER_PLUGINS = [compat.TOOL_PROBE]
 SEND = "MgpTestBuildRpc"
 
 STATION = bench_ids(bench_index("large"))["grid"]
@@ -114,6 +121,18 @@ def test_survival_without_components_is_refused(game):
     assert send(game, "LargeStator", instant=False) == 0
 
 
+def test_server_side_build_by_a_block_builds(game):
+    # Not instant, and the projector holds no steel plates: built like a ToolCore welder's
+    before = count(game, "LargeAdvancedStator")
+    asked = server_lines("ToolProbe: asked")
+    game.api.set_custom_data(STATION, PROJECTOR_CELL, "serverBuild=LargeAdvancedStator")
+    assert wait_server_lines("ToolProbe: asked", asked + 1), "the tool-probe made no request"
+    deadline = time.monotonic() + 10
+    while count(game, "LargeAdvancedStator") == before and time.monotonic() < deadline:
+        time.sleep(1)
+    assert count(game, "LargeAdvancedStator") - before == 1
+
+
 def test_refusals_are_logged(game):
     for reason in (
         "is not the sender's controlled character",
@@ -130,4 +149,17 @@ def wait_server(text: str, timeout: float = 60) -> bool:
         if text in ds_rig.server_log_text():
             return True
         time.sleep(1)
+    return False
+
+
+def server_lines(text: str) -> int:
+    return ds_rig.server_log_text().count(text)
+
+
+def wait_server_lines(text: str, lines: int, timeout: float = 30) -> bool:
+    deadline = time.monotonic() + timeout
+    while time.monotonic() < deadline:
+        if server_lines(text) >= lines:
+            return True
+        time.sleep(0.5)
     return False
