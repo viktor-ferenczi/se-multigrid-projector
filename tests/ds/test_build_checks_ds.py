@@ -125,7 +125,7 @@ def test_server_side_build_by_a_block_builds(game):
     # Not instant, and the projector holds no steel plates: built like a ToolCore welder's
     before = count(game, "LargeAdvancedStator")
     asked = server_lines("ToolProbe: asked")
-    game.api.set_custom_data(STATION, PROJECTOR_CELL, "serverBuild=LargeAdvancedStator")
+    (ds_rig.SERVER_DATA / "ToolProbe.txt").write_text("LargeAdvancedStator")
     assert wait_server_lines(
         "ToolProbe: asked", asked + 1
     ), "the tool-probe made no request"
