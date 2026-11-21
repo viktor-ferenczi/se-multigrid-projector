@@ -1519,10 +1519,19 @@ System.NullReferenceException: Object reference not set to an instance of an obj
             builtGrid.BuildBlockRequestInternal(visuals, location, blockBuilder, builder, instantBuild, owner, MyEventContext.Current.IsLocallyInvoked ? steamId : MyEventContext.Current.Sender.Value, isProjection: true);
         }
 
-        // A character or a ship welder holding at least one of the block's first component
+        // A character or a ship welder holding at least one of the block's first component.
+        // A request the server makes itself for a block other than a ship welder passes: mods'
+        // tools like ToolCore's welders take the component out of the tool before they call
+        // projector.Build, and no client can send such a request.
         private static bool BuilderHoldsFirstComponent(long builder, MyCubeBlockDefinition definition)
         {
-            if (!MyEntities.TryGetEntityById(builder, out var entity) || !(entity is MyCharacter || entity is IMyShipWelder))
+            if (!MyEntities.TryGetEntityById(builder, out var entity))
+                return false;
+
+            if (MyEventContext.Current.IsLocallyInvoked && entity is MyCubeBlock && !(entity is IMyShipWelder))
+                return true;
+
+            if (!(entity is MyCharacter || entity is IMyShipWelder))
                 return false;
 
             var inventory = MyCubeBuilder.BuildComponent.GetBuilderInventory(entity);

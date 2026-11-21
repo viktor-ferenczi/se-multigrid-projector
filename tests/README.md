@@ -62,6 +62,10 @@ that isn't the sender's identity, a block over the world's block limits, and a
 survival build without the block's first component. An honest RPC must still
 build. The `ds/rpc-probe` plugin adds a projector action that sends the RPC
 with the arguments the test writes into the projector's custom data.
+It also checks that a request the server makes itself, with a block other than
+a ship welder as the builder, builds without the component (SE-1769): ToolCore's
+welders take the component out of the tool before they call `projector.Build`.
+The `ds/tool-probe` server plugin makes that request.
 
 `test_bugfixes_warning.py` and `ds/test_bugfixes_warning_ds.py` cover the
 warning about a missing Bugfixes plugin (SE-1548). They start the client on the
