@@ -17,7 +17,7 @@ _15 files, 4748 lines._
 | [Shared/Logic/BuildRequests.cs](../Shared/Logic/BuildRequests.cs) | csharp | 144 |
 | [Shared/Logic/Connection.cs](../Shared/Logic/Connection.cs) | csharp | 59 |
 | [Shared/Logic/FastBlockLocation.cs](../Shared/Logic/FastBlockLocation.cs) | csharp | 53 |
-| [Shared/Logic/MultigridProjection.cs](../Shared/Logic/MultigridProjection.cs) | csharp | 2387 |
+| [Shared/Logic/MultigridProjection.cs](../Shared/Logic/MultigridProjection.cs) | csharp | 2432 |
 | [Shared/Logic/MultigridProjectorApiProvider.cs](../Shared/Logic/MultigridProjectorApiProvider.cs) | csharp | 228 |
 | [Shared/Logic/MultigridProjectorSession.cs](../Shared/Logic/MultigridProjectorSession.cs) | csharp | 74 |
 | [Shared/Logic/MultigridUpdateWork.cs](../Shared/Logic/MultigridUpdateWork.cs) | csharp | 134 |
@@ -47,7 +47,7 @@ _7 files, 619 lines._
 
 ## [Shared Harmony Patches](Reference/Shared-Patches.md)
 
-_6 files, 342 lines._
+_8 files, 507 lines._
 
 | File | Type | Lines |
 | ---- | ---- | ----: |
@@ -57,6 +57,7 @@ _6 files, 342 lines._
 | [Shared/Patches/MyMechanicalConnectionBlockBase_CreateTopPart.cs](../Shared/Patches/MyMechanicalConnectionBlockBase_CreateTopPart.cs) | csharp | 111 |
 | [Shared/Patches/MyMechanicalConnectionBlockBase_OnBuildSuccess.cs](../Shared/Patches/MyMechanicalConnectionBlockBase_OnBuildSuccess.cs) | csharp | 41 |
 | [Shared/Patches/MyProjectorBase_GameProjectionPcu.cs](../Shared/Patches/MyProjectorBase_GameProjectionPcu.cs) | csharp | 118 |
+| [Shared/Patches/MyProjectorBase_UpdateOnceBeforeFrame.cs](../Shared/Patches/MyProjectorBase_UpdateOnceBeforeFrame.cs) | csharp | 47 |
 | [Shared/Patches/MyShipToolBase_UpdateAfterSimulation10.cs](../Shared/Patches/MyShipToolBase_UpdateAfterSimulation10.cs) | csharp | 23 |
 
 ## [Shared Extension Methods](Reference/Shared-Extensions.md)

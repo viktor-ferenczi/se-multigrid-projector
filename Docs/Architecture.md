@@ -82,7 +82,7 @@ The engine leans on two supporting subsystems, also in `Shared/`:
 MGP changes the game purely through **Harmony patches** — it never modifies game files. Patches come
 in three sets:
 
-- **[Shared Harmony Patches](Reference/Shared-Patches.md)** (6) — compiled into both targets; placement
+- **[Shared Harmony Patches](Reference/Shared-Patches.md)** (8) — compiled into both targets; placement
   validation, mechanical-block construction (extending `topSize` with sentinel values), and crash
   guards.
 - **[Client Harmony Patches](Reference/Client-Patches.md)** (22) — projector/welder/blueprint-screen
