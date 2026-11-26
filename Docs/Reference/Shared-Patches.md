@@ -16,6 +16,7 @@ Patch applicability is controlled by placement attributes (`[Everywhere]`, `[Ser
 | [`MyMechanicalConnectionBlockBase_CreateTopPart.cs`](../../Shared/Patches/MyMechanicalConnectionBlockBase_CreateTopPart.cs) | 111 | Server-only Transpiler that extends the `topSize` enum logic so MGP can force same-size or opposite-size top parts |
 | [`MyMechanicalConnectionBlockBase_OnBuildSuccess.cs`](../../Shared/Patches/MyMechanicalConnectionBlockBase_OnBuildSuccess.cs) | 41 | Server-only Transpiler that skips automatic top-part creation when the base block is being built from a projection |
 | [`MyProjectorBase_GameProjectionPcu.cs`](../../Shared/Patches/MyProjectorBase_GameProjectionPcu.cs) | 118 | Transpilers that skip the game's own projection PCU count (`InitializeClipboard`, `RemoveProjection`, `UpdateAfterSimulation`) for the projectors MGP handles, and a `RemoveProjection` postfix that releases the projection's count in `ProjectionLimits` |
+| [`MyProjectorBase_UpdateOnceBeforeFrame.cs`](../../Shared/Patches/MyProjectorBase_UpdateOnceBeforeFrame.cs) | 47 | Prefix that drops the game's second load of a saved projection when MGP has already loaded it into the clipboard (SE-1942) |
 | [`MyShipToolBase_UpdateAfterSimulation10.cs`](../../Shared/Patches/MyShipToolBase_UpdateAfterSimulation10.cs) | 23 | Server-only Prefix that prevents projected welders and grinders from functioning |
 
 ---
@@ -118,6 +119,18 @@ When a mechanical base block (rotor, hinge, piston) is successfully built, `OnBu
 *`MyProjectorBase_InitializeClipboard_GamePcu`, `MyProjectorBase_RemoveProjection_GamePcu`, `MyProjectorBase_UpdateAfterSimulation_GamePcu` — Transpilers on `MyProjectorBase` with the same `EnsureOriginal` digests as the prefixes on these methods*
 
 The game counts one PCU per block of a projection to the player who built the projector: `InitializeClipboard` checks the player's limits and adds it, `RemoveProjection` takes it off, and `UpdateAfterSimulation` moves it when the projector changes grids. All three start with `MySession.Static.Players.TryGetIdentity(BuiltBy)`. The transpilers replace that call with `ProjectionLimits.IdentityForGameCheck`, which returns `null` for the projectors MGP handles (welding, no scaling), so the game skips its count there. MGP's `RemoveProjection` never took the count off again, so before this it grew with every projection removed and loaded again. The server's projection limit (`ProjectionPcuLimitPercent`, see [Configuration.md](./Configuration.md)) counts these projections instead, in `ProjectionLimits`; the `RemoveProjection` postfix releases a projection's count once the projector stops projecting.
+
+---
+
+## MyProjectorBase_UpdateOnceBeforeFrame
+
+*`public static class MyProjectorBase_UpdateOnceBeforeFrame` — `[HarmonyPatch(typeof(MyProjectorBase))]`, `[EnsureOriginal("49ec6cdb")]`*
+
+**Patched target:** `MyProjectorBase.UpdateOnceBeforeFrame`
+
+**Patch kinds:** Prefix (`[Everywhere]`, acts only where `Sync.IsServer`, so also on client hosts and offline games).
+
+MGP's `Init` postfix points `m_originalGridBuilders` at the saved projection, the same list as `m_savedProjections`, so `Remap` loads the blueprint into the clipboard and the projection is built as soon as the projector has power. The game's `UpdateOnceBeforeFrame` then loads `m_savedProjections` again and builds the projection a second time, a long frame for a big blueprint on every world load and every cluster handover. The prefix clears `m_savedProjections` when the clipboard already holds the same number of grids from that same list. Saving is not affected: `GetObjectBuilderCubeBlock` falls back to `m_savedProjections` only while the clipboard is empty.
 
 ---
 

@@ -183,6 +183,7 @@ namespace MultigridProjector.Logic
             using (Projections.Write())
                 Projections[projector.EntityId] = projection;
 
+            PluginLog.Info($"Projection set up on {projector.GetDebugName()}: {gridBuilders.Count} grids");
             return projection;
         }
 
@@ -2325,7 +2326,11 @@ System.NullReferenceException: Object reference not set to an instance of an obj
             projector.ResourceSink.Update();
             if (projector.GetRemoveRequested())
             {
-                if (projector.IsProjecting())
+                // As the game does it: a request removes only a projection that can't stay. The
+                // game asks for one after every load, and removing a working projection there
+                // made MGP set it up again on the next frame (SE-1942).
+                projector.UpdateIsWorking();
+                if ((!projector.IsWorking || !projector.GetTierCanProject()) && projector.IsProjecting())
                     projector.RemoveProjection(true);
 
                 projector.SetRemoveRequested(false);
