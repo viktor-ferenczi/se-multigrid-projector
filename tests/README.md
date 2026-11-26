@@ -8,7 +8,7 @@ uses the workspace's Linux scripts, so it doesn't run on Windows yet.
 
 | File | What it covers |
 |---|---|
-| `test_projection.py` | the projections as the world loads them: every blueprint grid a subgrid, every base mapped to its top part, only the bases on the projector's grid buildable, the projector's totals over all subgrids |
+| `test_projection.py` | the projections as the world loads them: every blueprint grid a subgrid, every base mapped to its top part, only the bases on the projector's grid buildable, the projector's totals over all subgrids, each projection set up once (SE-1942) |
 | `test_weld.py` | welding every vanilla mechanical combination: each subgrid built with the blueprint's grid size and block count, each base holding a top part of the blueprint's subtype |
 | `test_references.py` | toolbar items (in toolbars and waypoint actions), bound and turret cameras, tool, weapon and selection lists, and block groups of welded blocks across subgrids, and the same after a referenced block is welded again |
 | `test_rebuild.py` | welding again after losing a top subgrid, a base or a block on a subgrid, and after a save and reload halfway |

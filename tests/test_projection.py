@@ -5,11 +5,14 @@ welding."""
 
 from __future__ import annotations
 
+import re
+import time
 from collections import Counter
 
 import pytest
 
 import blueprint
+import rig
 import stations
 from benches import BENCHES
 from fixtures import bench_ids, bench_index
@@ -17,6 +20,13 @@ from fixtures import bench_ids, bench_index
 
 def projector(bench: str) -> int:
     return bench_ids(bench_index(bench))["projector"]
+
+
+@pytest.fixture(scope="module")
+def setup_logs():
+    """The game logs MGP writes its projection setups to: the local game's"""
+    client = rig.Client(0)
+    return {"client": lambda: client.log.read_text(errors="replace")}
 
 
 @pytest.fixture(scope="module")
@@ -89,3 +99,21 @@ def test_projector_counts_every_subgrid(game, reports, bench):
     assert stats["totalBlocks"] == sum(counts.values())
     assert stats["remainingBlocks"] == sum(counts.values()) - counts["FullyBuilt"]
     assert stats["buildableBlocksCount"] == counts["Buildable"]
+
+
+def test_each_projection_is_set_up_once(game, setup_logs):
+    """A projection loaded with the world is built and set up once (SE-1942).
+    The game loaded the saved projection again in its first update and asked
+    for its removal, so each projection was set up two or three times, which
+    cost a long frame each for a big blueprint."""
+    for name in BENCHES:
+        game.wait_report(projector(name), lambda r: r.scan > 0)
+    # A second setup came within a few frames of the first one
+    time.sleep(3)
+    for where, read in setup_logs.items():
+        log = read()
+        setups = {
+            name: len(re.findall(rf"Projection set up on .*\[{projector(name)}\]", log))
+            for name in BENCHES
+        }
+        assert setups == {name: 1 for name in BENCHES}, where
